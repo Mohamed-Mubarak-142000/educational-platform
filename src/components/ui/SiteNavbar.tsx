@@ -26,7 +26,7 @@ export function SiteNavbar({ variant = 'marketing', position = 'fixed', classNam
           </div>
         ) : (
           <Link to="/" className="flex items-center gap-3">
-            <img src="/bioverse-logo.svg" alt="BioVerse Logo" className="w-10 h-10 drop-shadow-sm" />
+            <img src="/academix-logo.svg" alt="Academix Logo" className="w-10 h-10 drop-shadow-sm" />
             <span className="font-extrabold text-2xl tracking-tight hidden sm:block bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
               {t('brandName')}
             </span>

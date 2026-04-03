@@ -165,7 +165,7 @@ export default function TeacherApplicationSection() {
             Join as a Teacher
           </span>
           <h2 className="text-4xl font-bold text-slate-900 dark:text-white mb-4">
-            Teach with BioVerse
+            Teach with Academix
           </h2>
           <p className="text-lg text-slate-600 dark:text-slate-300 max-w-xl mx-auto">
             Share your expertise with thousands of students. Fill in your details and we'll be in touch to schedule an interview.

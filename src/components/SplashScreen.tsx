@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const SPLASH_KEY = 'bioverse_splash_shown';
+const SPLASH_KEY = 'academix_splash_shown';
 
 /**
  * Splash screen shown once per browser session on the very first visit.
@@ -56,7 +56,7 @@ export default function SplashScreen() {
                 />
               ))}
               <div className="w-24 h-24 rounded-3xl bg-white/20 backdrop-blur-sm border border-white/30 shadow-2xl flex items-center justify-center">
-                <img src="/bioverse-logo.svg" alt="BioVerse" className="w-14 h-14 drop-shadow-lg" />
+                <img src="/academix-logo.svg" alt="Academix" className="w-14 h-14 drop-shadow-lg" />
               </div>
             </motion.div>
 
@@ -67,14 +67,14 @@ export default function SplashScreen() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.35 }}
             >
-              <h1 className="text-4xl font-extrabold text-white tracking-tight">BioVerse</h1>
+              <h1 className="text-4xl font-extrabold text-white tracking-tight">Academix</h1>
               <motion.p
                 className="text-blue-100 text-base mt-2 font-medium"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.65, duration: 0.5 }}
               >
-                Biology Educational Platform
+                Education Made Simple
               </motion.p>
             </motion.div>
 
@@ -85,7 +85,7 @@ export default function SplashScreen() {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.9, duration: 0.5 }}
             >
-              Explore life sciences through interactive learning
+              Explore knowledge through interactive learning
             </motion.p>
 
             {/* Loading dots */}

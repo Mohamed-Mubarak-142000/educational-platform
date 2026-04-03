@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#4338CA"/>
+    </linearGradient>
+    <linearGradient id="sparkGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#93C5FD"/>
+      <stop offset="1" stop-color="#C7D2FE"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded background -->
+  <rect width="100" height="100" rx="24" fill="url(#bgGrad)"/>
+
+  <!-- A lettermark (even-odd so the inner triangle punches out) -->
+  <path
+    fill-rule="evenodd"
+    clip-rule="evenodd"
+    d="M50 16 L76 80 H64 L57.5 62 H42.5 L36 80 H24 L50 16 Z
+       M50 31 L40.5 58 H59.5 Z"
+    fill="white"
+  />
+
+  <!-- Accent spark – top-right corner, references the "-ix" modern twist -->
+  <!-- Outer glow -->
+  <circle cx="78" cy="22" r="8" fill="white" fill-opacity="0.15"/>
+  <!-- Inner dot -->
+  <circle cx="78" cy="22" r="4.5" fill="url(#sparkGrad)"/>
+  <!-- Cross spikes -->
+  <line x1="78" y1="15" x2="78" y2="29" stroke="white" stroke-opacity="0.6" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="71" y1="22" x2="85" y2="22" stroke="white" stroke-opacity="0.6" stroke-width="1.5" stroke-linecap="round"/>
+</svg>

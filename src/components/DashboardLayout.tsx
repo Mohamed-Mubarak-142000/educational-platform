@@ -76,7 +76,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <div className="px-4 pt-4 pb-4">
               <div className="flex flex-col items-center">
                 <NavLink to={roleHome(role)} className="flex flex-col items-center gap-2">
-                  <img src="/bioverse-logo.svg" alt="BioVerse" className="w-10 h-10" />
+                  <img src="/academix-logo.svg" alt="Academix" className="w-10 h-10" />
                   <AnimatePresence>
                     {!collapsed && (
                       <motion.span

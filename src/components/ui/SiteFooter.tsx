@@ -7,7 +7,7 @@ export function SiteFooter() {
     <footer className="bg-slate-50 dark:bg-slate-950 pt-16 pb-8 border-t border-slate-200 dark:border-slate-800 text-center transition-colors duration-300 flex-shrink-0">
       <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between mb-8">
         <div className="flex items-center gap-3 mb-4 md:mb-0">
-          <img src="/bioverse-logo.svg" alt="BioVerse Logo" className="w-8 h-8 opacity-90" />
+          <img src="/academix-logo.svg" alt="Academix Logo" className="w-8 h-8 opacity-90" />
           <span className="font-bold text-xl tracking-tight text-slate-900 dark:text-white">
             {t('brandName')}
           </span>

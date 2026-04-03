@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 
 /**
  * Full-screen loading page shown while the app is initializing auth state.
- * Matches the project's blue/slate color scheme and uses the BioVerse logo.
+ * Matches the project's blue/slate color scheme and uses the Academix logo.
  */
 export default function PageLoader() {
   return (
@@ -28,7 +28,7 @@ export default function PageLoader() {
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.45, ease: 'easeOut' }}
           >
-            <img src="/bioverse-logo.svg" alt="BioVerse" className="w-12 h-12" />
+            <img src="/academix-logo.svg" alt="Academix" className="w-12 h-12" />
           </motion.div>
         </div>
 
@@ -39,8 +39,8 @@ export default function PageLoader() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.2 }}
         >
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">BioVerse</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Biology Educational Platform</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Academix</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Education Made Simple</p>
         </motion.div>
 
         {/* Animated progress bar */}
