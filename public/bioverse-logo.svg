@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <!-- Background Glow -->
+  <circle cx="100" cy="100" r="90" fill="url(#bgGlow)" />
+  
+  <!-- Leaf representing Nature/Life -->
+  <path d="M100 160C40 160 40 90 40 40C90 40 160 40 160 100C160 140 130 160 100 160Z" fill="url(#leaf)" />
+  
+  <!-- DNA Double Helix Structure inside the leaf representing Biology -->
+  <path d="M80 60C120 80 120 120 80 140" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" opacity="0.9" />
+  <path d="M120 60C80 80 80 120 120 140" stroke="#E0E7FF" stroke-width="12" stroke-linecap="round" opacity="0.9" />
+  
+  <!-- Helix Rungs -->
+  <line x1="86" y1="70" x2="114" y2="70" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" opacity="0.7" />
+  <line x1="100" y1="100" x2="100" y2="100" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" /> <!-- Center crossing -->
+  <line x1="86" y1="130" x2="114" y2="130" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" opacity="0.7" />
+  
+  <!-- Sparkles representing Learning/Enlightenment -->
+  <circle cx="145" cy="55" r="8" fill="#FBBF24" />
+  <circle cx="160" cy="75" r="5" fill="#FBBF24" />
+  <circle cx="130" cy="145" r="6" fill="#60A5FA" />
+  
+  <defs>
+    <radialGradient id="bgGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(100 100) rotate(90) scale(90)">
+      <stop stop-color="#3B82F6" stop-opacity="0.1" />
+      <stop offset="1" stop-color="#10B981" stop-opacity="0.0" />
+    </radialGradient>
+    <linearGradient id="leaf" x1="40" y1="40" x2="160" y2="160" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#10B981" />
+      <stop offset="1" stop-color="#3B82F6" />
+    </linearGradient>
+  </defs>
+</svg>

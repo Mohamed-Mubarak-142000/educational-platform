@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+	height: 100%;
+	overflow-x: hidden;
+	max-width: 100vw;
+}
+
+body {
+	position: relative;
+}
+
+/* Custom Scrollbar Styling */
+* {
+	scrollbar-width: thin;
+	scrollbar-color: rgb(203 213 225 / 0.5) transparent;
+}
+
+*::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+	background: transparent;
+	border-radius: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+	background: rgb(203 213 225 / 0.5);
+	border-radius: 10px;
+	border: 2px solid transparent;
+	background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+	background: rgb(148 163 184 / 0.7);
+	background-clip: padding-box;
+}
+
+/* Dark mode scrollbar */
+.dark * {
+	scrollbar-color: rgb(71 85 105 / 0.5) transparent;
+}
+
+.dark *::-webkit-scrollbar-thumb {
+	background: rgb(71 85 105 / 0.5);
+	background-clip: padding-box;
+}
+
+.dark *::-webkit-scrollbar-thumb:hover {
+	background: rgb(100 116 139 / 0.7);
+	background-clip: padding-box;
+}
+
+.dashboard-shell {
+	--sidebar-width: 16rem;
+}
+
+.dashboard-shell.collapsed {
+	--sidebar-width: 5rem;
+}
+
+@media (min-width: 1024px) {
+	.sidebar-wrapper {
+		flex-shrink: 0;
+		width: var(--sidebar-width);
+		position: relative;
+	}
+
+	.dashboard-sidebar {
+		width: var(--sidebar-width);
+		inset-inline-start: 0;
+	}
+
+	.dashboard-main {
+		margin-inline-start: 0;
+	}
+
+	.sidebar-toggle {
+		inset-inline-start: calc(var(--sidebar-width) - 0.75rem);
+	}
+}
