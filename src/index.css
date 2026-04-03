@@ -8,51 +8,70 @@ html, body, #root {
 	max-width: 100vw;
 }
 
+#root {
+	overflow-y: auto;
+}
+
 body {
 	position: relative;
 }
 
-/* Custom Scrollbar Styling */
+/* ─────────────────────────────────────────────────────────
+   Custom Scrollbar — applied to every scrollable element
+   across the entire site (landing page, student pages,
+   admin dashboard, modals, sidebars, etc.)
+───────────────────────────────────────────────────────── */
+
+/* Firefox / Chrome ≥ 121 (standards track) */
 * {
 	scrollbar-width: thin;
-	scrollbar-color: rgb(203 213 225 / 0.5) transparent;
+	scrollbar-color: rgb(148 163 184 / 0.55) transparent;
 }
 
-*::-webkit-scrollbar {
-	width: 8px;
-	height: 8px;
-}
+/* ── WebKit / Blink (Chrome, Edge, Safari) ─────────────── */
 
-*::-webkit-scrollbar-track {
-	background: transparent;
-	border-radius: 10px;
-}
+/* Document-level scrollbar (page scroll) */
+::-webkit-scrollbar          { width: 6px; height: 6px; }
+::-webkit-scrollbar-track    { background: transparent; }
+::-webkit-scrollbar-thumb    { background: rgb(148 163 184 / 0.5); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: rgb(100 116 139 / 0.75); }
+::-webkit-scrollbar-corner   { background: transparent; }
 
-*::-webkit-scrollbar-thumb {
-	background: rgb(203 213 225 / 0.5);
-	border-radius: 10px;
-	border: 2px solid transparent;
-	background-clip: padding-box;
-}
+/* Element-level scrollbars (div, textarea, modal bodies…)
+   Written as "html *::-webkit-scrollbar" so the `html *`
+   ancestor prevents the minifier from stripping the host. */
+html *::-webkit-scrollbar          { width: 6px; height: 6px; }
+html *::-webkit-scrollbar-track    { background: transparent; }
+html *::-webkit-scrollbar-thumb    { background: rgb(148 163 184 / 0.5); border-radius: 9999px; }
+html *::-webkit-scrollbar-thumb:hover { background: rgb(100 116 139 / 0.75); }
+html *::-webkit-scrollbar-corner   { background: transparent; }
 
-*::-webkit-scrollbar-thumb:hover {
-	background: rgb(148 163 184 / 0.7);
-	background-clip: padding-box;
-}
+/* ── Dark mode ─────────────────────────────────────────── */
 
-/* Dark mode scrollbar */
+/* Descendant elements (divs, modals, sidebar, etc.) */
 .dark * {
-	scrollbar-color: rgb(71 85 105 / 0.5) transparent;
+	scrollbar-color: rgb(71 85 105 / 0.55) transparent;
 }
 
-.dark *::-webkit-scrollbar-thumb {
-	background: rgb(71 85 105 / 0.5);
-	background-clip: padding-box;
+.dark ::-webkit-scrollbar-thumb {
+	background: rgb(71 85 105 / 0.55);
 }
 
-.dark *::-webkit-scrollbar-thumb:hover {
-	background: rgb(100 116 139 / 0.7);
-	background-clip: padding-box;
+.dark ::-webkit-scrollbar-thumb:hover {
+	background: rgb(100 116 139 / 0.8);
+}
+
+/* html element itself as scroll host (landing page document scroll) */
+html.dark {
+	scrollbar-color: rgb(71 85 105 / 0.55) transparent;
+}
+
+html.dark::-webkit-scrollbar-thumb {
+	background: rgb(71 85 105 / 0.55);
+}
+
+html.dark::-webkit-scrollbar-thumb:hover {
+	background: rgb(100 116 139 / 0.8);
 }
 
 .dashboard-shell {

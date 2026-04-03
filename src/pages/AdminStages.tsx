@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getStages, createStage, updateStage, deleteStage, getSubjectsByStage } from '@/api/subjectApi';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,6 +38,7 @@ function getStageColor(color: string) {
 const emptyForm = { name: '', description: '', icon: '📚', color: 'blue' as StageColor };
 
 function StageSubjectCount({ stageId }: { stageId: string }) {
+  const { t } = useTranslation();
   const { data: subjects = [] } = useQuery({
     queryKey: ['subjects-by-stage', stageId],
     queryFn: () => getSubjectsByStage(stageId),
@@ -44,12 +46,13 @@ function StageSubjectCount({ stageId }: { stageId: string }) {
   return (
     <span className="flex items-center gap-1 text-xs text-slate-400 dark:text-slate-500">
       <BookOpen className="w-3.5 h-3.5" />
-      {subjects.length} subject{subjects.length !== 1 ? 's' : ''}
+      {subjects.length} {t(subjects.length === 1 ? 'subjectSingular' : 'subjectPlural')}
     </span>
   );
 }
 
 export default function AdminStages() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -99,12 +102,12 @@ export default function AdminStages() {
   return (
     <div className={spacing.pageContainer}>
       <PageHeader
-        title="Education Stages"
-        subtitle="Manage stages, subjects, units and lessons"
+        title={t('educationStages')}
+        subtitle={t('manageStagesSubtitle')}
         action={
           <Button onClick={openCreate} className={buttonVariants.primary}>
             <Plus className="w-4 h-4 mr-2" />
-            Add Stage
+            {t('addStage')}
           </Button>
         }
       />
@@ -119,9 +122,9 @@ export default function AdminStages() {
         <Card className={cardVariants.default}>
           <CardContent className="py-16 text-center">
             <Layers className="w-12 h-12 mx-auto mb-4 text-slate-300 dark:text-slate-600" />
-            <p className="text-slate-500 mb-4">No stages yet. Create your first education stage.</p>
+            <p className="text-slate-500 mb-4">{t('noStagesYet')}</p>
             <Button onClick={openCreate} className={buttonVariants.primary}>
-              <Plus className="w-4 h-4 mr-2" /> Add Stage
+              <Plus className="w-4 h-4 mr-2" /> {t('addStage')}
             </Button>
           </CardContent>
         </Card>
@@ -184,10 +187,10 @@ export default function AdminStages() {
                       <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 mb-4">{stage.description}</p>
                       <div className={`flex items-center justify-between pt-3 border-t ${colors.border}`}>
                         <span className="text-xs text-slate-400 dark:text-slate-500">
-                          Stage {stage.order}
+                          {t('stageOrder', { n: stage.order })}
                         </span>
                         <div className={`flex items-center gap-1.5 text-xs font-medium ${colors.text} group-hover:gap-2.5 transition-all`}>
-                          View Subjects
+                          {t('viewSubjects')}
                           <ChevronRight className="w-3.5 h-3.5" />
                         </div>
                       </div>
@@ -204,12 +207,12 @@ export default function AdminStages() {
       <Dialog open={formOpen} onOpenChange={(open) => { if (!open) closeForm(); }}>
         <DialogContent className="sm:max-w-[480px]">
           <DialogHeader>
-            <DialogTitle>{editId ? 'Edit Stage' : 'Add New Stage'}</DialogTitle>
+            <DialogTitle>{editId ? t('editStage') : t('addNewStage')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="grid grid-cols-4 gap-3">
               <div className="col-span-1">
-                <Label className="text-xs text-slate-500 mb-1 block">Icon</Label>
+                <Label className="text-xs text-slate-500 mb-1 block">{t('icon')}</Label>
                 <Input
                   value={form.icon}
                   onChange={(e) => setForm((f) => ({ ...f, icon: e.target.value }))}
@@ -218,25 +221,25 @@ export default function AdminStages() {
                 />
               </div>
               <div className="col-span-3">
-                <Label className="text-xs text-slate-500 mb-1 block">Stage Name *</Label>
+                <Label className="text-xs text-slate-500 mb-1 block">{t('stageName')}</Label>
                 <Input
                   value={form.name}
                   onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                  placeholder="e.g. Primary Stage, High School..."
+                  placeholder={t('stageNamePlaceholder')}
                 />
               </div>
             </div>
             <div>
-              <Label className="text-xs text-slate-500 mb-1 block">Description</Label>
+              <Label className="text-xs text-slate-500 mb-1 block">{t('description')}</Label>
               <Textarea
                 value={form.description}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setForm((f) => ({ ...f, description: e.target.value }))}
-                placeholder="Brief description of this education stage..."
+                placeholder={t('stageDescPlaceholder')}
                 rows={3}
               />
             </div>
             <div>
-              <Label className="text-xs text-slate-500 mb-2 block">Color</Label>
+              <Label className="text-xs text-slate-500 mb-2 block">{t('color')}</Label>
               <div className="flex flex-wrap gap-2">
                 {STAGE_COLORS.map((c) => (
                   <button
@@ -251,13 +254,13 @@ export default function AdminStages() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={closeForm}>Cancel</Button>
+            <Button variant="ghost" onClick={closeForm}>{t('cancel')}</Button>
             <Button
               className={buttonVariants.primary}
               onClick={handleSubmit}
               disabled={isPending || !form.name.trim()}
             >
-              {isPending ? 'Saving...' : editId ? 'Save Changes' : 'Create Stage'}
+              {isPending ? t('saving') : editId ? t('saveChanges') : t('createStage')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -265,10 +268,10 @@ export default function AdminStages() {
 
       <ConfirmDialog
         open={!!deleteId}
-        title="Delete Stage"
-        description="This will permanently delete the stage and all its subjects, units, and lessons. Are you sure?"
-        confirmLabel="Delete"
-        cancelLabel="Cancel"
+        title={t('deleteStage')}
+        description={t('deleteStageDesc')}
+        confirmLabel={t('delete')}
+        cancelLabel={t('cancel')}
         onConfirm={() => { if (deleteId) deleteMutation.mutate(deleteId); }}
         onCancel={() => setDeleteId(null)}
       />

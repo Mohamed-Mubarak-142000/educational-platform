@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getStageById, getSubjectsByStage, createSubject, updateSubject, deleteSubject } from '@/api/subjectApi';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,6 +38,7 @@ function getColorClasses(color: string) {
 const emptyForm = { name: '', description: '', icon: '📚', color: 'blue' as SubjectColor };
 
 export default function AdminSubjects() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { stageId } = useParams<{ stageId: string }>();
   const queryClient = useQueryClient();
@@ -100,7 +102,7 @@ export default function AdminSubjects() {
           className="flex items-center gap-1.5 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          Stages
+          {t('stagesLabel')}
         </button>
         {stage && (
           <>
@@ -116,13 +118,13 @@ export default function AdminSubjects() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-            {stage ? `${stage.name} — Subjects` : 'Subjects'}
+            {stage ? `${stage.name} — ${t('subjectPlural')}` : t('subjectPlural')}
           </h1>
           {stage && <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{stage.description}</p>}
         </div>
         <Button onClick={openCreate} className={buttonVariants.primary}>
           <Plus className="w-4 h-4 mr-2" />
-          Add Subject
+          {t('addSubject')}
         </Button>
       </div>
 
@@ -136,9 +138,9 @@ export default function AdminSubjects() {
         <Card className={cardVariants.default}>
           <CardContent className="py-16 text-center">
             <BookOpen className="w-12 h-12 mx-auto mb-4 text-slate-300 dark:text-slate-600" />
-            <p className="text-slate-500 mb-4">No subjects in this stage yet.</p>
+            <p className="text-slate-500 mb-4">{t('noSubjectsInStage')}</p>
             <Button onClick={openCreate} className={buttonVariants.primary}>
-              <Plus className="w-4 h-4 mr-2" /> Add Subject
+              <Plus className="w-4 h-4 mr-2" /> {t('addSubject')}
             </Button>
           </CardContent>
         </Card>
@@ -214,12 +216,12 @@ export default function AdminSubjects() {
       <Dialog open={formOpen} onOpenChange={(open) => { if (!open) closeForm(); }}>
         <DialogContent className="sm:max-w-[480px]">
           <DialogHeader>
-            <DialogTitle>{editId ? 'Edit Subject' : 'Add New Subject'}</DialogTitle>
+            <DialogTitle>{editId ? t('editSubject') : t('addNewSubject')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="grid grid-cols-4 gap-3">
               <div className="col-span-1">
-                <Label className="text-xs text-slate-500 mb-1 block">Icon</Label>
+                <Label className="text-xs text-slate-500 mb-1 block">{t('icon')}</Label>
                 <Input
                   value={form.icon}
                   onChange={(e) => setForm((f) => ({ ...f, icon: e.target.value }))}
@@ -228,25 +230,25 @@ export default function AdminSubjects() {
                 />
               </div>
               <div className="col-span-3">
-                <Label className="text-xs text-slate-500 mb-1 block">Subject Name *</Label>
+                <Label className="text-xs text-slate-500 mb-1 block">{t('subjectName')}</Label>
                 <Input
                   value={form.name}
                   onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                  placeholder="e.g. Biology, Physics..."
+                  placeholder={t('subjectNamePlaceholder')}
                 />
               </div>
             </div>
             <div>
-              <Label className="text-xs text-slate-500 mb-1 block">Description</Label>
+              <Label className="text-xs text-slate-500 mb-1 block">{t('description')}</Label>
               <Textarea
                 value={form.description}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setForm((f) => ({ ...f, description: e.target.value }))}
-                placeholder="Brief description of this subject..."
+                placeholder={t('subjectDescPlaceholder')}
                 rows={3}
               />
             </div>
             <div>
-              <Label className="text-xs text-slate-500 mb-2 block">Color</Label>
+              <Label className="text-xs text-slate-500 mb-2 block">{t('color')}</Label>
               <div className="flex flex-wrap gap-2">
                 {SUBJECT_COLORS.map((c) => (
                   <button
@@ -261,13 +263,13 @@ export default function AdminSubjects() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={closeForm}>Cancel</Button>
+            <Button variant="ghost" onClick={closeForm}>{t('cancel')}</Button>
             <Button
               className={buttonVariants.primary}
               onClick={handleSubmit}
               disabled={isPending || !form.name.trim()}
             >
-              {isPending ? 'Saving...' : editId ? 'Save Changes' : 'Create Subject'}
+              {isPending ? t('saving') : editId ? t('saveChanges') : t('createSubject')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -275,10 +277,10 @@ export default function AdminSubjects() {
 
       <ConfirmDialog
         open={!!deleteId}
-        title="Delete Subject"
-        description="This will permanently delete this subject along with its units and lessons."
-        confirmLabel="Delete"
-        cancelLabel="Cancel"
+        title={t('deleteSubject')}
+        description={t('deleteSubjectDesc')}
+        confirmLabel={t('delete')}
+        cancelLabel={t('cancel')}
         onConfirm={() => { if (deleteId) deleteMutation.mutate(deleteId); }}
         onCancel={() => setDeleteId(null)}
       />

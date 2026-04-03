@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 const SPLASH_KEY = 'academix_splash_shown';
 
@@ -8,6 +9,7 @@ const SPLASH_KEY = 'academix_splash_shown';
  * After the animation completes, it unmounts and never shows again for the session.
  */
 export default function SplashScreen() {
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(() => {
     // Only show if not already shown this session
     return !sessionStorage.getItem(SPLASH_KEY);
@@ -67,14 +69,14 @@ export default function SplashScreen() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.35 }}
             >
-              <h1 className="text-4xl font-extrabold text-white tracking-tight">Academix</h1>
+              <h1 className="text-4xl font-extrabold text-white tracking-tight">{t('brandName')}</h1>
               <motion.p
                 className="text-blue-100 text-base mt-2 font-medium"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.65, duration: 0.5 }}
               >
-                Education Made Simple
+                {t('tagline')}
               </motion.p>
             </motion.div>
 
@@ -85,7 +87,7 @@ export default function SplashScreen() {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.9, duration: 0.5 }}
             >
-              Explore knowledge through interactive learning
+              {t('splashTagline')}
             </motion.p>
 
             {/* Loading dots */}

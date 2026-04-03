@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/context/AuthContext';
+import { useTranslation } from 'react-i18next';
 import {
   getEnrolledUnitIds,
   getUnitById,
@@ -30,6 +31,7 @@ import StudentQuizModal from '@/components/StudentQuizModal';
 
 // ── Quiz badge ──────────────────────────────────────────────────────
 function QuizBadge({ attachedToId, label }: { attachedToId: string; label: string }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const { data: quiz } = useQuery({
     queryKey: ['unit-quiz', attachedToId],
@@ -52,6 +54,7 @@ function QuizBadge({ attachedToId, label }: { attachedToId: string; label: strin
 
 // ── Enrolled unit card ───────────────────────────────────────────────
 function EnrolledUnitCard({ unitId, navigate }: { unitId: string; navigate: ReturnType<typeof useNavigate> }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(true);
 
   const { data: unit } = useQuery({ queryKey: ['unit', unitId], queryFn: () => getUnitById(unitId) });
@@ -86,7 +89,7 @@ function EnrolledUnitCard({ unitId, navigate }: { unitId: string; navigate: Retu
             <div className="bg-white dark:bg-slate-950">
               {lessons.length === 0 ? (
                 <div className="px-6 py-5 text-center">
-                  <p className="text-sm text-slate-400 dark:text-slate-500">No lessons in this unit yet.</p>
+                  <p className="text-sm text-slate-400 dark:text-slate-500">{t('noLessonsInUnit')}</p>
                 </div>
               ) : (
                 <div className="divide-y divide-slate-100 dark:divide-slate-800/50">
@@ -108,7 +111,7 @@ function EnrolledUnitCard({ unitId, navigate }: { unitId: string; navigate: Retu
                       <QuizBadge attachedToId={lesson._id} label={`${lesson.title} Quiz`} />
                       <Button size="sm" variant="ghost" className="h-7 px-2.5 text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex-shrink-0"
                         onClick={() => navigate(`/lesson/${lesson._id}?subjectId=${unit.subjectId}&from=student`)}>
-                        View
+                        {t('view')}
                       </Button>
                     </div>
                   ))}
@@ -161,7 +164,7 @@ function TeacherSection({
         </div>
         <div className="flex-1 text-left min-w-0">
           <p className="font-semibold text-slate-900 dark:text-slate-100 text-sm">{teacherName}</p>
-          <p className="text-xs text-slate-500 dark:text-slate-400">{unitIds.length} unit{unitIds.length !== 1 ? 's' : ''} enrolled</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">{unitIds.length} {t(unitIds.length === 1 ? 'unitSingular' : 'unitPlural')} {t('enrolledBadge').toLowerCase()}</p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           <span className="hidden sm:flex items-center gap-1 text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/40 px-2 py-0.5 rounded-full font-medium">
@@ -234,6 +237,7 @@ function UnitTeacherResolver({
 
 // ── Main Page ──────────────────────────────────────────────────────
 export default function StudentCourses() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -277,8 +281,8 @@ export default function StudentCourses() {
           <BookOpen className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">My Courses</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Your enrolled units, grouped by teacher</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{t('myCourses')}</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">{t('enrolledByTeacherDesc')}</p>
         </div>
       </div>
 
@@ -295,10 +299,10 @@ export default function StudentCourses() {
         <Card className="border border-slate-200 dark:border-slate-800 border-dashed">
           <CardContent className="py-16 text-center">
             <Layers className="w-12 h-12 mx-auto mb-4 text-slate-300 dark:text-slate-600" />
-            <p className="text-slate-500 mb-2">You haven't enrolled in any units yet.</p>
-            <p className="text-sm text-slate-400 dark:text-slate-500 mb-5">Browse your subjects to subscribe to units.</p>
+            <p className="text-slate-500 mb-2">{t('notEnrolledYet')}</p>
+            <p className="text-sm text-slate-400 dark:text-slate-500 mb-5">{t('browseSubjectsHint')}</p>
             <Button onClick={() => navigate('/student/learn')} className="bg-blue-600 hover:bg-blue-700 text-white">
-              Browse Subjects
+              {t('browseSubjects')}
             </Button>
           </CardContent>
         </Card>
@@ -320,7 +324,7 @@ export default function StudentCourses() {
           {stageSubjects.length > 0 && (
             <div>
               <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3 mt-6">
-                Other Subjects in Your Stage
+                {t('otherSubjectsInStage')}
               </p>
               <div className="space-y-2">
                 {stageSubjects

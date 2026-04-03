@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/context/AuthContext';
 import { getStageById, getSubjectsByStage } from '@/api/subjectApi';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, BookOpen, GraduationCap, AlertCircle } from 'lucide-react';
@@ -26,6 +27,7 @@ const STAGE_COLORS: Record<string, string> = {
 function sgColor(c: string) { return STAGE_COLORS[c] ?? STAGE_COLORS.blue; }
 
 export default function StudentLearn() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
   const stageId = user?.stageId || '';
@@ -50,16 +52,16 @@ export default function StudentLearn() {
             <CardContent className="py-10 text-center space-y-4">
               <AlertCircle className="w-10 h-10 mx-auto text-amber-500" />
               <div>
-                <p className="font-semibold text-slate-800 dark:text-slate-200">No educational stage set</p>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                  Please set your stage in your profile to see your subjects.
+              <p className="font-semibold text-slate-800 dark:text-slate-200">{t('noStageSet')}</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                {t('setStageInProfile')}
                 </p>
               </div>
               <Button
                 onClick={() => navigate('/student')}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
-                Go to Profile
+                {t('goToProfile')}
               </Button>
             </CardContent>
           </Card>
@@ -86,7 +88,7 @@ export default function StudentLearn() {
       {/* Subjects */}
       <div className="flex items-center gap-2 mb-4">
         <GraduationCap className="w-5 h-5 text-blue-600" />
-        <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Available Subjects</h2>
+        <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">{t('availableSubjects')}</h2>
         <span className="text-sm text-slate-400 dark:text-slate-500 ml-1">
           ({subjects.length})
         </span>
@@ -102,8 +104,8 @@ export default function StudentLearn() {
         <Card className="border border-slate-200 dark:border-slate-800 border-dashed">
           <CardContent className="py-16 text-center">
             <BookOpen className="w-12 h-12 mx-auto mb-4 text-slate-300 dark:text-slate-600" />
-            <p className="text-slate-500">No subjects available for your stage yet.</p>
-            <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">Check back soon!</p>
+            <p className="text-slate-500">{t('noSubjectsAvailable')}</p>
+            <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">{t('checkBackSoon')}</p>
           </CardContent>
         </Card>
       ) : (

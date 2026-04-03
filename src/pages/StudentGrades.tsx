@@ -8,6 +8,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/context/AuthContext';
 import { getGradesByStudent } from '@/api/subjectApi';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import {
   Award,
@@ -74,6 +75,7 @@ function GradeRow({ grade, index }: { grade: { _id: string; quizId: string; scor
 }
 
 export default function StudentGrades() {
+  const { t } = useTranslation();
   const { user } = useAuth();
 
   const { data: grades = [], isLoading } = useQuery({
@@ -97,10 +99,10 @@ export default function StudentGrades() {
       <div className="mb-8">
         <h1 className="flex items-center gap-2 text-2xl font-bold text-slate-900 dark:text-slate-100">
           <Award className="w-6 h-6 text-amber-500" />
-          My Grades
+          {t('myGrades')}
         </h1>
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-          View your quiz results and performance history.
+          {t('gradesSubtitle')}
         </p>
       </div>
 
@@ -108,10 +110,10 @@ export default function StudentGrades() {
       {total > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
           {[
-            { label: 'Quizzes Taken', value: total, icon: ClipboardList, color: 'text-blue-600' },
-            { label: 'Passed', value: passed, icon: CheckCircle2, color: 'text-emerald-600' },
-            { label: 'Average Score', value: `${avg}%`, icon: TrendingUp, color: 'text-violet-600' },
-            { label: 'Pass Rate', value: `${passRate}%`, icon: BarChart2, color: 'text-amber-600' },
+            { label: t('quizzesTaken'), value: total, icon: ClipboardList, color: 'text-blue-600' },
+            { label: t('passedLabel'), value: passed, icon: CheckCircle2, color: 'text-emerald-600' },
+            { label: t('averageScore'), value: `${avg}%`, icon: TrendingUp, color: 'text-violet-600' },
+            { label: t('gradePassRate'), value: `${passRate}%`, icon: BarChart2, color: 'text-amber-600' },
           ].map(({ label, value, icon: Icon, color }) => (
             <motion.div
               key={label}
@@ -132,14 +134,14 @@ export default function StudentGrades() {
         {isLoading ? (
           <div className="flex items-center justify-center py-20 text-slate-400">
             <div className="w-6 h-6 border-2 border-slate-300 border-t-blue-600 rounded-full animate-spin mr-3" />
-            Loading grades…
+            {t('loadingGrades')}
           </div>
         ) : grades.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center px-6">
             <Award className="w-12 h-12 text-slate-300 dark:text-slate-700 mb-4" />
-            <p className="text-slate-600 dark:text-slate-400 font-medium">No quiz results yet</p>
+            <p className="text-slate-600 dark:text-slate-400 font-medium">{t('noGradesYet')}</p>
             <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
-              Complete quizzes in your lessons to see your grades here.
+              {t('noGradesDesc')}
             </p>
           </div>
         ) : (
@@ -148,16 +150,16 @@ export default function StudentGrades() {
               <thead>
                 <tr className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-700">
                   <th className="py-3 px-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                    Quiz
+                    {t('quizColHeader')}
                   </th>
                   <th className="py-3 px-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                    Score
+                    {t('score')}
                   </th>
                   <th className="py-3 px-4 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                    Correct
+                    {t('correct')}
                   </th>
                   <th className="py-3 px-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                    Date
+                    {t('date')}
                   </th>
                 </tr>
               </thead>

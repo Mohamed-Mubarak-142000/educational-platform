@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import {
   getSubjectById,
   getUnitsBySubject,
@@ -39,6 +40,7 @@ import StudentQuizModal from '@/components/StudentQuizModal';
 // ── Quiz badge ──────────────────────────────────────────────────────
 
 function QuizBadge({ attachedToId, label }: { attachedToId: string; label: string }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const { data: quiz } = useQuery({
     queryKey: ['unit-quiz', attachedToId],
@@ -52,7 +54,7 @@ function QuizBadge({ attachedToId, label }: { attachedToId: string; label: strin
         className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50 text-xs font-medium hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors flex-shrink-0"
       >
         <ClipboardList className="w-3 h-3" />
-        Start Quiz
+        {t('submitQuiz')}
       </button>
       <StudentQuizModal open={open} onClose={() => setOpen(false)} quizId={quiz._id} quizTitle={quiz.title || label} />
     </>
@@ -68,7 +70,7 @@ function UnitRow({
   onSubscribe,
   subscribing,
   availabilityStatus,
-  isBlocked,   // true if a previous unit is not enrolled (enforce order)
+  isBlocked,
   navigate,
 }: {
   unit: any;
@@ -80,6 +82,7 @@ function UnitRow({
   isBlocked?: boolean;
   navigate: ReturnType<typeof useNavigate>;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(enrolled);
 
   const { data: lessons = [], isLoading } = useQuery({
@@ -121,7 +124,7 @@ function UnitRow({
           {enrolled ? (
             <>
               <span className="hidden sm:flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/40 px-2 py-1 rounded-full">
-                <CheckCircle2 className="w-3 h-3" /> Enrolled
+                <CheckCircle2 className="w-3 h-3" /> {t('enrolledBadge')}
               </span>
               <QuizBadge attachedToId={unit._id} label={`${unit.title} Quiz`} />
               <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}
@@ -131,16 +134,16 @@ function UnitRow({
             </>
           ) : availabilityStatus === 'upcoming' ? (
             <span className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 px-2 py-1 rounded-full">
-              <CalendarClock className="w-3 h-3" /> Coming Soon
+              <CalendarClock className="w-3 h-3" /> {t('comingSoon')}
             </span>
           ) : availabilityStatus === 'locked' || isBlocked ? (
             <span className="flex items-center gap-1 text-xs text-slate-400 dark:text-slate-500">
-              <Lock className="w-3 h-3" /> {isBlocked ? 'Complete previous unit first' : 'Locked'}
+              <Lock className="w-3 h-3" /> {isBlocked ? t('completePreviousFirst') : t('lockedUnit')}
             </span>
           ) : (
             <>
               <span className="flex items-center gap-1 text-xs text-slate-400 dark:text-slate-500">
-                <Lock className="w-3 h-3" /> Not enrolled
+                <Lock className="w-3 h-3" /> {t('notEnrolledLabel')}
               </span>
               <Button
                 size="sm"
@@ -149,7 +152,7 @@ function UnitRow({
                 disabled={subscribing}
               >
                 <CreditCard className="w-3 h-3" />
-                {subscribing ? '...' : 'Subscribe'}
+                {subscribing ? '...' : t('subscribeCta')}
               </Button>
             </>
           )}
@@ -167,7 +170,7 @@ function UnitRow({
                 </div>
               ) : lessons.length === 0 ? (
                 <div className="px-6 py-6 text-center">
-                  <p className="text-sm text-slate-400 dark:text-slate-500">No lessons in this unit yet.</p>
+                  <p className="text-sm text-slate-400 dark:text-slate-500">{t('noLessonsInUnit')}</p>
                 </div>
               ) : (
                 <div className="divide-y divide-slate-100 dark:divide-slate-800/50">
@@ -192,7 +195,7 @@ function UnitRow({
                       <Button size="sm" variant="ghost" className="h-7 px-2.5 text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex-shrink-0"
                         onClick={() => navigate(`/lesson/${lesson._id}?subjectId=${subjectId}&from=student`)}
                       >
-                        View
+                        {t('view')}
                       </Button>
                     </div>
                   ))}
@@ -207,7 +210,7 @@ function UnitRow({
       {!enrolled && (
         <div className="bg-gradient-to-b from-slate-50 dark:from-slate-900/40 to-white dark:to-slate-950 px-6 py-5 text-center border-t border-slate-100 dark:border-slate-800/40">
           <Lock className="w-7 h-7 mx-auto mb-2 text-slate-300 dark:text-slate-600" />
-          <p className="text-xs text-slate-400 dark:text-slate-500">Subscribe to unlock lessons, videos, and quizzes for this unit.</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500">{t('subscribeToUnlock')}</p>
         </div>
       )}
     </div>
@@ -217,6 +220,7 @@ function UnitRow({
 // ── Live Sessions Section ──────────────────────────────────────────
 
 function LiveSessionsSection({ subjectId, studentId }: { subjectId: string; studentId?: string }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   const { data: schedules = [], isLoading } = useQuery({
@@ -251,9 +255,9 @@ function LiveSessionsSection({ subjectId, studentId }: { subjectId: string; stud
     <div className="mt-8">
       <h2 className="flex items-center gap-2 text-base font-semibold text-slate-800 dark:text-slate-200 mb-4">
         <Video className="w-4 h-4 text-violet-600" />
-        Live Sessions
+        {t('liveSessions')}
         <span className="ml-1 text-xs font-normal text-slate-400 dark:text-slate-500">
-          (Max 5 students per group)
+          {t('maxStudentsPerGroup')}
         </span>
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -284,7 +288,7 @@ function LiveSessionsSection({ subjectId, studentId }: { subjectId: string; stud
                 </div>
                 {isEnrolled && (
                   <span className="flex items-center gap-1 text-xs text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-300 dark:border-emerald-700/50 px-2 py-0.5 rounded-full flex-shrink-0">
-                    <UserCheck className="w-3 h-3" /> Enrolled
+                    <UserCheck className="w-3 h-3" /> {t('enrolledBadge')}
                   </span>
                 )}
               </div>
@@ -299,7 +303,7 @@ function LiveSessionsSection({ subjectId, studentId }: { subjectId: string; stud
                   <Users className="w-3.5 h-3.5" />
                   {s.enrolledStudents?.length ?? 0} / {s.maxStudents}
                   {!isFull && !isEnrolled && (
-                    <span className="ml-1 text-emerald-600 dark:text-emerald-400">({spots} spot{spots !== 1 ? 's' : ''} left)</span>
+                    <span className="ml-1 text-emerald-600 dark:text-emerald-400">({t('spotsLeft', { count: spots })})</span>
                   )}
                 </div>
                 {!isEnrolled && (
@@ -314,7 +318,7 @@ function LiveSessionsSection({ subjectId, studentId }: { subjectId: string; stud
                         : 'bg-violet-600 hover:bg-violet-700 text-white'
                     }`}
                   >
-                    {isFull ? 'Full' : enrollMutation.isPending ? '...' : 'Join Group'}
+                    {isFull ? t('groupFull') : enrollMutation.isPending ? '...' : t('joinGroup')}
                   </Button>
                 )}
               </div>
@@ -329,6 +333,7 @@ function LiveSessionsSection({ subjectId, studentId }: { subjectId: string; stud
 // ── Main Page ──────────────────────────────────────────────────────
 
 export default function StudentSubjectDetail() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { id: subjectId } = useParams<{ id: string }>();
   const { user } = useAuth();
@@ -389,7 +394,7 @@ export default function StudentSubjectDetail() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="sm" onClick={() => navigate('/student/learn')} className="flex items-center gap-1.5">
-            <ArrowLeft className="w-4 h-4" /> Learn
+            <ArrowLeft className="w-4 h-4" /> {t('back')}
           </Button>
           <span className="text-slate-300 dark:text-slate-600">/</span>
           <div className="flex items-center gap-2">
@@ -408,16 +413,16 @@ export default function StudentSubjectDetail() {
       <div className="flex items-center gap-6 mb-6 px-1">
         <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
           <Layers className="w-4 h-4" />
-          <span><strong className="text-slate-700 dark:text-slate-300">{units.length}</strong> Unit{units.length !== 1 ? 's' : ''}</span>
+          <span><strong className="text-slate-700 dark:text-slate-300">{units.length}</strong> {t(units.length === 1 ? 'unitSingular' : 'unitPlural')}</span>
         </div>
         <div className="flex items-center gap-2 text-sm text-emerald-600 dark:text-emerald-400">
           <CheckCircle2 className="w-4 h-4" />
-          <span><strong>{enrolledCount}</strong> Enrolled</span>
+          <span><strong>{enrolledCount}</strong> {t('enrolledBadge')}</span>
         </div>
         {enrolledCount < units.length && (
           <div className="flex items-center gap-2 text-sm text-slate-400 dark:text-slate-500">
             <Lock className="w-4 h-4" />
-            <span><strong>{units.length - enrolledCount}</strong> Available to subscribe</span>
+            <span><strong>{units.length - enrolledCount}</strong> {t('availableToSubscribe')}</span>
           </div>
         )}
       </div>
@@ -431,7 +436,7 @@ export default function StudentSubjectDetail() {
         <Card className="border border-slate-200 dark:border-slate-800">
           <CardContent className="py-16 text-center">
             <BookOpen className="w-12 h-12 mx-auto mb-4 text-slate-300 dark:text-slate-600" />
-            <p className="text-slate-500">No units in this subject yet.</p>
+            <p className="text-slate-500">{t('noUnitsYet')}</p>
           </CardContent>
         </Card>
       ) : (

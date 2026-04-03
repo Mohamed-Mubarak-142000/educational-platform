@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { Camera } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface AvatarUploadProps {
   preview?: string;
@@ -15,6 +16,7 @@ const sizeMap = {
 };
 
 export default function AvatarUpload({ preview, name, onChange, size = 'md' }: AvatarUploadProps) {
+  const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const sizeClass = sizeMap[size];
 
@@ -49,7 +51,7 @@ export default function AvatarUpload({ preview, name, onChange, size = 'md' }: A
         type="button"
         onClick={handleClick}
         className={`relative ${sizeClass} rounded-full overflow-hidden border-4 border-blue-500 shadow-md cursor-pointer group focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2`}
-        aria-label="Upload avatar"
+        aria-label={t('uploadAvatarAriaLabel', 'Upload avatar')}
       >
         {preview ? (
           <img
@@ -67,7 +69,7 @@ export default function AvatarUpload({ preview, name, onChange, size = 'md' }: A
           <Camera className="w-6 h-6 text-white" />
         </div>
       </button>
-      <span className="text-xs text-slate-500 dark:text-slate-400">Click to upload photo</span>
+      <span className="text-xs text-slate-500 dark:text-slate-400">{t('clickToUploadPhoto')}</span>
       <input
         ref={inputRef}
         type="file"

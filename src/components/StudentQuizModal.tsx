@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getQuestionsByQuiz } from '@/api/subjectApi';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogContent,
@@ -43,6 +44,7 @@ export default function StudentQuizModal({
   quizTitle: string;
   onComplete?: (score: number, correctCount: number, total: number) => void;
 }) {
+  const { t } = useTranslation();
   const [phase, setPhase] = useState<Phase>('taking');
   // questionId → chosen option index (0–3)
   const [answers, setAnswers] = useState<Record<string, number>>({});
@@ -138,7 +140,7 @@ export default function StudentQuizModal({
                 ) : questions.length === 0 ? (
                   <div className="py-16 text-center text-slate-400 dark:text-slate-500">
                     <ClipboardList className="w-10 h-10 mx-auto mb-3 opacity-40" />
-                    <p>No questions in this quiz yet.</p>
+                    <p>{t('quizNoQuestions')}</p>
                   </div>
                 ) : (
                   (questions as any[]).map((q, idx) => {
@@ -210,14 +212,14 @@ export default function StudentQuizModal({
                       : pct >= 40 ? 'text-amber-600 dark:text-amber-400'
                       : 'text-red-600 dark:text-red-400'
                     }`}>
-                      {pct}% — {pct >= 70 ? 'Excellent!' : pct >= 40 ? 'Keep Practicing' : 'Needs Improvement'}
+                      {pct}% — {pct >= 70 ? t('quizExcellent') : pct >= 40 ? t('quizKeepPracticing') : t('quizNeedsImprovement')}
                     </p>
                   </div>
                 </div>
 
                 {/* Per-question review */}
                 <div className="space-y-3">
-                  <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Answer Review</h4>
+                  <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t('quizAnswerReview')}</h4>
                   {(questions as any[]).map((q, idx) => {
                     const chosen = answers[q._id];
                     const correct = q.correctAnswer;
@@ -265,7 +267,7 @@ export default function StudentQuizModal({
                           })}
                         </div>
                         {notAnswered && (
-                          <p className="text-xs text-slate-400 dark:text-slate-500 pl-6 italic">Not answered — correct answer: {OPT_LABELS[correct]}</p>
+                          <p className="text-xs text-slate-400 dark:text-slate-500 pl-6 italic">{t('quizNotAnswered')} {OPT_LABELS[correct]}</p>
                         )}
                       </div>
                     );
@@ -281,23 +283,23 @@ export default function StudentQuizModal({
           {phase === 'taking' ? (
             <>
               <p className="text-xs text-slate-400 dark:text-slate-500">
-                {Object.keys(answers).length} / {questions.length} answered
+                {t('quizAnsweredCount', { count: Object.keys(answers).length, total: questions.length })}
               </p>
               <Button
                 className="bg-blue-600 hover:bg-blue-700 text-white"
                 onClick={submit}
                 disabled={isLoading || questions.length === 0}
               >
-                Submit Quiz
+                {t('submitQuiz')}
               </Button>
             </>
           ) : (
             <>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Quiz complete
+                {t('quizCompleteLabel')}
               </p>
               <Button variant="outline" onClick={onClose}>
-                Close
+                {t('close')}
               </Button>
             </>
           )}

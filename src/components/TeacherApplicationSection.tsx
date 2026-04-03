@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { submitTeacherApplication } from '@/api/adminApi';
+import { useTranslation } from 'react-i18next';
 import {
   GraduationCap,
   Upload,
@@ -50,6 +51,7 @@ const emptyForm: AppForm = {
 };
 
 export default function TeacherApplicationSection() {
+  const { t } = useTranslation();
   const [form, setForm] = useState<AppForm>(emptyForm);
   const [profilePreview, setProfilePreview] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -99,13 +101,13 @@ export default function TeacherApplicationSection() {
 
   const validate = (): string[] => {
     const errs: string[] = [];
-    if (!form.name.trim()) errs.push('Full name is required.');
-    if (!form.email.trim() || !/\S+@\S+\.\S+/.test(form.email)) errs.push('Valid email is required.');
-    if (!form.phone.trim()) errs.push('Phone number is required.');
-    if (form.selectedDays.length < 2) errs.push('Select at least 2 available days.');
+    if (!form.name.trim()) errs.push(t('errorNameRequired'));
+    if (!form.email.trim() || !/\S+@\S+\.\S+/.test(form.email)) errs.push(t('errorEmailRequired'));
+    if (!form.phone.trim()) errs.push(t('errorPhoneRequired'));
+    if (form.selectedDays.length < 2) errs.push(t('errorSelectDays'));
     for (const day of form.selectedDays) {
       const h = form.hours[day];
-      if (!h || h.start >= h.end) errs.push(`Invalid hours for ${day}.`);
+      if (!h || h.start >= h.end) errs.push(t('errorInvalidHours', { day }));
     }
     return errs;
   };
@@ -142,12 +144,12 @@ export default function TeacherApplicationSection() {
         <div className="max-w-2xl mx-auto px-6 text-center">
           <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5 }}>
             <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
-            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-3">Application Submitted!</h2>
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-3">{t('applicationSubmitted')}</h2>
             <p className="text-lg text-slate-600 dark:text-slate-300">
-              Thank you for your interest! Our team will review your application and reach out via email with next steps.
+              {t('applicationThankYou')}
             </p>
             <Button className="mt-8 bg-blue-600 hover:bg-blue-700 text-white" onClick={() => { setSubmitted(false); setForm(emptyForm); setProfilePreview(''); }}>
-              Submit Another Application
+              {t('submitAnotherApp')}
             </Button>
           </motion.div>
         </div>
@@ -157,18 +159,18 @@ export default function TeacherApplicationSection() {
 
   return (
     <section id="join-as-teacher" className="py-20 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-900 dark:to-slate-900/80">
-      <div className="max-w-3xl mx-auto px-6">
+      <div className="max-w-5xl mx-auto px-6">
         {/* Header */}
         <div className="text-center mb-12">
           <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-sm font-medium mb-4">
             <GraduationCap className="w-4 h-4" />
-            Join as a Teacher
+            {t('joinAsTeacher')}
           </span>
           <h2 className="text-4xl font-bold text-slate-900 dark:text-white mb-4">
-            Teach with Academix
+            {t('teachWithAcademix')}
           </h2>
           <p className="text-lg text-slate-600 dark:text-slate-300 max-w-xl mx-auto">
-            Share your expertise with thousands of students. Fill in your details and we'll be in touch to schedule an interview.
+            {t('teacherAppDesc')}
           </p>
         </div>
 
@@ -216,7 +218,7 @@ export default function TeacherApplicationSection() {
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                   <User className="inline w-4 h-4 mr-1" />
-                  Full Name <span className="text-red-500">*</span>
+                  {t('fullName')} <span className="text-red-500">*</span>
                 </label>
                 <Input
                   placeholder="Dr. Ahmed Hassan"
@@ -227,7 +229,7 @@ export default function TeacherApplicationSection() {
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                   <Phone className="inline w-4 h-4 mr-1" />
-                  Phone Number <span className="text-red-500">*</span>
+                  {t('phoneNumber')} <span className="text-red-500">*</span>
                 </label>
                 <Input
                   type="tel"
@@ -239,7 +241,7 @@ export default function TeacherApplicationSection() {
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                   <Mail className="inline w-4 h-4 mr-1" />
-                  Email Address <span className="text-red-500">*</span>
+                  {t('emailAddress')} <span className="text-red-500">*</span>
                 </label>
                 <Input
                   type="email"
@@ -254,7 +256,7 @@ export default function TeacherApplicationSection() {
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                 <FileText className="inline w-4 h-4 mr-1" />
-                CV / Resume
+                {t('cvResume')}
               </label>
               <div
                 onClick={() => cvRef.current?.click()}
@@ -262,7 +264,7 @@ export default function TeacherApplicationSection() {
               >
                 <Upload className="w-5 h-5 text-slate-400" />
                 <span className="text-sm text-slate-500">
-                  {form.cvFile ? form.cvFile.name : 'Upload your CV (PDF, DOC)'}
+                  {form.cvFile ? form.cvFile.name : t('uploadCvPlaceholder')}
                 </span>
                 {form.cvFile && (
                   <button
@@ -280,8 +282,8 @@ export default function TeacherApplicationSection() {
             {/* Day Selector */}
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                Available Days <span className="text-red-500">*</span>
-                <span className="ml-2 text-xs font-normal text-slate-500">(select 2–4 days)</span>
+                {t('availableDays')} <span className="text-red-500">*</span>
+                <span className="ml-2 text-xs font-normal text-slate-500">{t('select2To4Days')}</span>
               </label>
               <div className="flex flex-wrap gap-2">
                 {ALL_DAYS.map((day) => {
@@ -320,25 +322,27 @@ export default function TeacherApplicationSection() {
                 >
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
                     <Clock className="inline w-4 h-4 mr-1" />
-                    Available Hours per Day <span className="text-red-500">*</span>
+                    {t('availableHoursPerDay')} <span className="text-red-500">*</span>
                   </label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {form.selectedDays.map((day) => (
-                      <div key={day} className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
+                      <div key={day} className="flex flex-wrap items-center gap-2 bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
                         <span className="text-sm font-medium text-slate-700 dark:text-slate-300 w-24 flex-shrink-0">{day}</span>
-                        <input
-                          type="time"
-                          value={form.hours[day]?.start || '09:00'}
-                          onChange={(e) => setHour(day, 'start', e.target.value)}
-                          className="flex-1 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                        <span className="text-slate-400 text-sm">–</span>
-                        <input
-                          type="time"
-                          value={form.hours[day]?.end || '11:00'}
-                          onChange={(e) => setHour(day, 'end', e.target.value)}
-                          className="flex-1 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
+                        <div className="flex flex-1 flex-wrap items-center gap-2 min-w-0">
+                          <input
+                            type="time"
+                            value={form.hours[day]?.start || '09:00'}
+                            onChange={(e) => setHour(day, 'start', e.target.value)}
+                            className="flex-1 min-w-[110px] text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                          <span className="text-slate-400 text-sm flex-shrink-0">–</span>
+                          <input
+                            type="time"
+                            value={form.hours[day]?.end || '11:00'}
+                            onChange={(e) => setHour(day, 'end', e.target.value)}
+                            className="flex-1 min-w-[110px] text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -352,7 +356,7 @@ export default function TeacherApplicationSection() {
               disabled={isSubmitting}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl text-base font-semibold transition-all"
             >
-              {isSubmitting ? 'Submitting…' : 'Submit Application'}
+              {isSubmitting ? t('submitting') : t('submitApplication')}
             </Button>
           </form>
         </div>

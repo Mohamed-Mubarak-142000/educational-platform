@@ -1,10 +1,12 @@
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Full-screen loading page shown while the app is initializing auth state.
  * Matches the project's blue/slate color scheme and uses the Academix logo.
  */
 export default function PageLoader() {
+  const { t } = useTranslation();
   return (
     <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
 
@@ -39,8 +41,8 @@ export default function PageLoader() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.2 }}
         >
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Academix</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Education Made Simple</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">{t('brandName')}</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{t('tagline')}</p>
         </motion.div>
 
         {/* Animated progress bar */}

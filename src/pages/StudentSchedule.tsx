@@ -8,6 +8,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/context/AuthContext';
 import { getStudentSchedules } from '@/api/subjectApi';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 import { Calendar, Clock, GraduationCap, User2, BookOpen, Video } from 'lucide-react';
@@ -36,6 +37,7 @@ function dayColor(day: string) {
 }
 
 export default function StudentSchedule() {
+  const { t } = useTranslation();
   const { user } = useAuth();
 
   const { data: schedule = [], isLoading } = useQuery({
@@ -59,10 +61,11 @@ export default function StudentSchedule() {
       <div className="mb-8">
         <h1 className="flex items-center gap-2.5 text-2xl font-bold text-slate-900 dark:text-slate-100 mb-1">
           <Calendar className="w-6 h-6 text-blue-600" />
-          My Schedule
+          {t('mySchedule')}
         </h1>
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          Your weekly live-lesson timetable. {totalSessions > 0 ? `${totalSessions} session${totalSessions !== 1 ? 's' : ''} enrolled.` : 'No live sessions yet.'}
+          {t('weeklyTimetableDesc')}{' '}
+          {totalSessions > 0 ? t('sessionsEnrolledCount', { count: totalSessions }) : t('noLiveSessionsTitle') + '.'}
         </p>
       </div>
 
@@ -74,9 +77,9 @@ export default function StudentSchedule() {
         <Card className="border border-slate-200 dark:border-slate-800">
           <CardContent className="py-16 text-center">
             <Video className="w-12 h-12 mx-auto mb-4 text-slate-300 dark:text-slate-600" />
-            <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-2">No live sessions yet</h3>
+            <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-2">{t('noLiveSessionsTitle')}</h3>
             <p className="text-sm text-slate-400 dark:text-slate-500 max-w-xs mx-auto">
-              Subscribe to live lessons in a subject to see your timetable here.
+              {t('noLiveSessionsDesc')}
             </p>
           </CardContent>
         </Card>
@@ -89,7 +92,7 @@ export default function StudentSchedule() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25 }}
             >
-              <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{day}</h2>
+              <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t('dayName_' + day as any)}</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {sessions.map((session) => (
                   <div
@@ -102,7 +105,7 @@ export default function StudentSchedule() {
                         {timeLabel(session.startTime)} – {timeLabel(session.endTime)}
                       </span>
                       <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-white/60 dark:bg-black/20">
-                        Live
+                        {t('live')}
                       </span>
                     </div>
                     <div className="space-y-1.5 text-sm">
@@ -116,7 +119,7 @@ export default function StudentSchedule() {
                       </div>
                       <div className="flex items-center gap-2 opacity-70 text-xs">
                         <GraduationCap className="w-3.5 h-3.5" />
-                        <span>{session.enrolledStudents.length} / {session.maxStudents} students</span>
+                        <span>{t('studentsSeated', { enrolled: session.enrolledStudents.length, max: session.maxStudents })}</span>
                       </div>
                     </div>
                   </div>
@@ -131,7 +134,7 @@ export default function StudentSchedule() {
       {totalSessions > 0 && (
         <Card className="mt-8 border border-slate-200 dark:border-slate-800">
           <CardHeader>
-            <CardTitle className="text-base">Weekly Summary</CardTitle>
+            <CardTitle className="text-base">{t('weeklySummary')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-7 gap-1">
@@ -139,7 +142,7 @@ export default function StudentSchedule() {
                 const hasSessions = !!byDay[day];
                 return (
                   <div key={day} className="flex flex-col items-center gap-1">
-                    <span className="text-xs text-slate-500 font-medium">{day.slice(0, 3)}</span>
+                    <span className="text-xs text-slate-500 font-medium">{t('dayAbbr_' + day as any)}</span>
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border transition-colors ${
                       hasSessions
                         ? 'bg-blue-600 text-white border-blue-600'
