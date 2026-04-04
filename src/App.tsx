@@ -46,15 +46,18 @@ import RequireAuth, { roleHome } from '@/components/RequireAuth';
 import DashboardLayout from '@/components/DashboardLayout';
 import PageLoader from '@/components/PageLoader';
 import SplashScreen from '@/components/SplashScreen';
+import { SidebarProvider } from '@/context/SidebarContext';
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 font-sans selection:bg-blue-200 flex flex-col">
-      <SiteNavbar variant="app" position="fixed" />
-      <main className="flex-1">
-        {children}
-      </main>
-    </div>
+    <SidebarProvider>
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 font-sans selection:bg-blue-200 flex flex-col">
+        <SiteNavbar variant="app" position="fixed" />
+        <main className="flex-1">
+          {children}
+        </main>
+      </div>
+    </SidebarProvider>
   );
 }
 

@@ -1,4 +1,5 @@
 import * as z from 'zod';
+import { useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
@@ -13,18 +14,18 @@ import { roleHome } from '@/components/RequireAuth';
 import { useRTL, useAuthForm } from '@/hooks';
 import { cardVariants, buttonVariants, badgeVariants, gradients, iconContainers, textColors } from '@/lib/constants';
 
-const schema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
-});
-
-type LoginFormData = z.infer<typeof schema>;
-
 export default function Login() {
   const { t } = useTranslation();
   const isRtl = useRTL(); // Using useRTL hook
   const { loginMutation } = useAuth();
   const navigate = useNavigate();
+
+  const schema = useMemo(() => z.object({
+    email: z.string().email({ message: t('emailInvalid') }),
+    password: z.string().min(6, { message: t('passwordMin') }),
+  }), [t]);
+
+  type LoginFormData = z.infer<typeof schema>;
 
   // Using useAuthForm hook - Replaces manual form setup
   const { form, onSubmit, isSubmitting } = useAuthForm<LoginFormData>({
@@ -97,18 +98,18 @@ export default function Login() {
                       {...register('email')}
                       placeholder={t('email')}
                       type="email"
-                      className="w-full"
+                      className={`w-full ${errors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                     />
-                    {errors.email && <span className="text-red-500 text-sm">{errors.email.message as string}</span>}
+                    {errors.email && <span className="text-red-500 text-xs mt-1 block">{errors.email.message as string}</span>}
                   </div>
                   <div>
                     <Input
                       {...register('password')}
                       placeholder={t('password')}
                       type="password"
-                      className="w-full"
+                      className={`w-full ${errors.password ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                     />
-                    {errors.password && <span className="text-red-500 text-sm">{errors.password.message as string}</span>}
+                    {errors.password && <span className="text-red-500 text-xs mt-1 block">{errors.password.message as string}</span>}
                   </div>
                   <Button
                     type="submit"
@@ -119,7 +120,7 @@ export default function Login() {
                   </Button>
                   {loginMutation.isError && (
                     <p className="text-red-500 text-center text-sm">
-                      {loginMutation.error.response?.data?.message || 'Login failed'}
+                      {(loginMutation.error as any)?.response?.data?.message || t('toastActionFailed')}
                     </p>
                   )}
                   <div className="text-center text-sm text-slate-500 dark:text-slate-400">

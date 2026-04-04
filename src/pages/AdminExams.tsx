@@ -7,7 +7,7 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useTranslation } from 'react-i18next';
 import { useCRUDOperations } from '@/hooks';
 import { cardVariants, buttonVariants, spacing } from '@/lib/constants';
-import { PageHeader, DataTable } from '@/components/shared';
+import { PageHeader, DataTable, ErrorState } from '@/components/shared';
 import type { TableColumn } from '@/components/shared';
 import { Pencil, Trash2, Plus, Eye } from 'lucide-react';
 
@@ -18,7 +18,7 @@ export default function AdminExams() {
   const [selectedExamId, setSelectedExamId] = useState<string | null>(null);
 
   // CRUD operations hook
-  const { data: exams, deleteMutation } = useCRUDOperations({
+  const { data: exams, deleteMutation, isLoading, isError, refetch } = useCRUDOperations({
     queryKey: ['exams'],
     queryFn: getExams,
     deleteFn: deleteExam,
@@ -66,9 +66,13 @@ export default function AdminExams() {
           <CardTitle>{t('examsTableTitle')}</CardTitle>
         </CardHeader>
         <CardContent>
+          {isError ? (
+            <ErrorState onRetry={refetch} />
+          ) : (
           <DataTable
             columns={columns}
             data={exams}
+            isLoading={isLoading}
             actions={(exam: any) => (
               <div className="flex items-center justify-end gap-1">
                 <Button
@@ -101,6 +105,7 @@ export default function AdminExams() {
               </div>
             )}
           />
+          )}
         </CardContent>
       </Card>
 

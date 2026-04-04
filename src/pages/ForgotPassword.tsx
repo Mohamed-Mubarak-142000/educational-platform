@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -11,12 +11,6 @@ import { Input } from '@/components/ui/input';
 import { SiteNavbar } from '@/components/ui/SiteNavbar';
 import { SiteFooter } from '@/components/ui/SiteFooter';
 
-const schema = z.object({
-  email: z.string().email(),
-});
-
-type FormValues = z.infer<typeof schema>;
-
 export default function ForgotPassword() {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === 'ar';
@@ -25,6 +19,11 @@ export default function ForgotPassword() {
     mutationFn: forgotPassword,
     onSuccess: () => setSent(true),
   });
+
+  const schema = useMemo(() => z.object({
+    email: z.string().email({ message: t('emailInvalid') }),
+  }), [t]);
+  type FormValues = z.infer<typeof schema>;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -51,9 +50,9 @@ export default function ForgotPassword() {
               <CardContent>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                   <div>
-                    <Input {...form.register('email')} placeholder={t('email')} type="email" className="w-full" />
+                    <Input {...form.register('email')} placeholder={t('email')} type="email" className={`w-full ${form.formState.errors.email ? 'border-red-500' : ''}`} />
                     {form.formState.errors.email && (
-                      <span className="text-red-500 text-sm">{form.formState.errors.email.message}</span>
+                      <span className="text-red-500 text-xs mt-1 block">{form.formState.errors.email.message}</span>
                     )}
                   </div>
                   <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/30" disabled={mutation.isPending}>

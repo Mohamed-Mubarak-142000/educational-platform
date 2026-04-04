@@ -1,22 +1,19 @@
+import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SiteNavbar } from '@/components/ui/SiteNavbar';
 import { SiteFooter } from '@/components/ui/SiteFooter';
 import { Link, useNavigate } from 'react-router-dom';
-import { Activity, CheckCircle, Microscope } from 'lucide-react';
-
-const registerSchema = z.object({
-  name: z.string().min(2),
-  email: z.string().email(),
-  password: z.string().min(6),
-});
+import { Activity, CheckCircle, Microscope, Video } from 'lucide-react';
+import { getStages } from '@/api/subjectApi';
 
 const pendingEmailKey = 'pendingVerificationEmail';
 
@@ -26,15 +23,26 @@ export default function Register() {
   const { registerMutation } = useAuth();
   const navigate = useNavigate();
 
-  type RegisterFormValues = {
-    name: string;
-    email: string;
-    password: string;
-  };
+  const { data: stages = [] } = useQuery({
+    queryKey: ['stages'],
+    queryFn: getStages,
+  });
 
+  const registerSchema = useMemo(() => z.object({
+    name: z.string().min(2, { message: t('nameTooShort') }),
+    email: z.string().email({ message: t('emailInvalid') }),
+    password: z.string().min(6, { message: t('passwordMin') }),
+    phone: z.string().optional(),
+    parentEmail: z.string().email({ message: t('emailInvalid') }).optional().or(z.literal('')),
+    stageId: z.string().optional(),
+    subscribeLiveLessons: z.boolean().optional(),
+  }), [t]);
+
+  type RegisterFormValues = z.infer<typeof registerSchema>;
 
   const registerForm = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
+    defaultValues: { subscribeLiveLessons: false },
   });
 
   const onRegisterSubmit = (data: RegisterFormValues) => {
@@ -119,12 +127,51 @@ export default function Register() {
                       <span className="text-red-500 text-sm">{registerForm.formState.errors.password.message}</span>
                     )}
                   </div>
+                  <div>
+                    <Input {...registerForm.register('phone')} placeholder={t('phoneNumber')} className="w-full" />
+                  </div>
+                  <div>
+                    <Input {...registerForm.register('parentEmail')} placeholder={t('parentEmail')} type="email" className="w-full" />
+                    {registerForm.formState.errors.parentEmail && (
+                      <span className="text-red-500 text-sm mt-1 block">{registerForm.formState.errors.parentEmail.message}</span>
+                    )}
+                  </div>
+                  <div>
+                    <select
+                      {...registerForm.register('stageId')}
+                      className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                      <option value="">{t('academicStage')}</option>
+                      {stages.map((stage: any) => (
+                        <option key={stage._id} value={stage._id}>
+                          {stage.icon} {stage.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="border border-slate-200 dark:border-slate-700 rounded-xl p-4 bg-blue-50/40 dark:bg-blue-900/10">
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        {...registerForm.register('subscribeLiveLessons')}
+                        className="mt-0.5 w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                          <Video className="w-4 h-4 text-blue-600" /> {t('subscribeLiveLessonsLabel')}
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                          {t('subscribeLiveLessonsDesc')}
+                        </p>
+                      </div>
+                    </label>
+                  </div>
                   <Button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-600/30" disabled={registerMutation.isPending}>
                     {registerMutation.isPending ? '...' : t('register')}
                   </Button>
                   {registerMutation.isError && (
                     <p className="text-red-500 text-center text-sm">
-                      {registerMutation.error.response?.data?.message || 'Registration failed'}
+                      {(registerMutation.error as any)?.response?.data?.message || t('registrationFailed')}
                     </p>
                   )}
                 </form>

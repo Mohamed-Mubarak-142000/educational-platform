@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -636,7 +635,6 @@ export default function AdminSubjectDetail() {
   const navigate = useNavigate();
   const { id: subjectId } = useParams<{ id: string }>();
   const queryClient = useQueryClient();
-  const { t } = useTranslation();
 
   // Unit dialog state
   const [unitFormOpen, setUnitFormOpen] = useState(false);

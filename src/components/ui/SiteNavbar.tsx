@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAuth } from '../../context/AuthContext';
+import { useSidebar } from '@/context/SidebarContext';
 
 export type SiteNavbarProps = {
   variant?: 'marketing' | 'app';
@@ -14,6 +16,7 @@ export type SiteNavbarProps = {
 export function SiteNavbar({ variant = 'marketing', position = 'fixed', className = '' }: SiteNavbarProps) {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { setMobileOpen } = useSidebar();
 
   return (
     <nav
@@ -22,6 +25,15 @@ export function SiteNavbar({ variant = 'marketing', position = 'fixed', classNam
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         {variant === 'app' ? (
           <div className="flex items-center gap-3">
+            {/* Hamburger — only visible on mobile, opens the sidebar drawer */}
+            <button
+              type="button"
+              onClick={() => setMobileOpen(true)}
+              className="lg:hidden p-2 -ms-1 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              aria-label="Open menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
             <span className="font-semibold text-lg">{t('dashboard')}</span>
           </div>
         ) : (

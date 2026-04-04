@@ -31,7 +31,6 @@ import StudentQuizModal from '@/components/StudentQuizModal';
 
 // ── Quiz badge ──────────────────────────────────────────────────────
 function QuizBadge({ attachedToId, label }: { attachedToId: string; label: string }) {
-  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const { data: quiz } = useQuery({
     queryKey: ['unit-quiz', attachedToId],
@@ -138,6 +137,7 @@ function TeacherSection({
   navigate: ReturnType<typeof useNavigate>;
 }) {
   const [collapsed, setCollapsed] = useState(false);
+  const { t } = useTranslation();
 
   // Generate initials avatar
   const initials = teacherName

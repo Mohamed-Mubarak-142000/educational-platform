@@ -86,10 +86,10 @@ export default function StudentGrades() {
 
   // Summary stats
   const total = grades.length;
-  const passed = grades.filter((g) => g.score >= 60).length;
+  const passed = grades.filter((g: any) => g.score >= 60).length;
   const avg =
     total > 0
-      ? Math.round(grades.reduce((sum, g) => sum + g.score, 0) / total)
+      ? Math.round(grades.reduce((sum: number, g: any) => sum + g.score, 0) / total)
       : 0;
   const passRate = total > 0 ? Math.round((passed / total) * 100) : 0;
 
@@ -164,7 +164,7 @@ export default function StudentGrades() {
                 </tr>
               </thead>
               <tbody>
-                {grades.map((grade, i) => (
+                {grades.map((grade: any, i: number) => (
                   <GradeRow key={grade._id} grade={grade} index={i} />
                 ))}
               </tbody>

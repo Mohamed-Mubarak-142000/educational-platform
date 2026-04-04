@@ -32,6 +32,8 @@ import {
 } from 'lucide-react';
 import { spacing } from '@/lib/constants';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
+import { EmptyState } from '@/components/shared';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
 
@@ -102,6 +104,7 @@ function SubjectCard({ subject, enrolledUnitIds, navigate }: { subject: any; enr
 export default function StudentOverview() {
   const navigate = useNavigate();
   const { user, updateProfileMutation, refreshProfile } = useAuth();
+  const { t } = useTranslation();
 
   // ── Profile form (name + phone only; stage is read-only) ────────
   const [name, setName] = useState(user?.name || '');
@@ -180,19 +183,19 @@ export default function StudentOverview() {
             <span className="text-3xl">{currentStage?.icon || '🎓'}</span>
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className="text-xl font-bold text-white truncate">Welcome back, {user?.name?.split(' ')[0] || 'Student'}</h1>
+            <h1 className="text-xl font-bold text-white truncate">{t('welcomeBack')}, {user?.name?.split(' ')[0] || 'Student'}</h1>
             <p className="text-blue-100 text-sm mt-0.5">
-              {currentStage ? `${currentStage.name} · ${subjects.length} subjects available` : 'No stage assigned yet'}
+              {currentStage ? `${currentStage.name} · ${subjects.length} ${t('subjectsCount')}` : t('noStageAssigned')}
             </p>
           </div>
           <div className="flex gap-3 flex-shrink-0">
             <div className="text-center bg-white/15 rounded-xl px-4 py-2">
               <p className="text-2xl font-bold text-white">{enrolledUnitIds.length}</p>
-              <p className="text-blue-100 text-xs mt-0.5">Enrolled Units</p>
+              <p className="text-blue-100 text-xs mt-0.5">{t('enrolledUnitsCount')}</p>
             </div>
             <div className="text-center bg-white/15 rounded-xl px-4 py-2">
               <p className="text-2xl font-bold text-white">{subjects.length}</p>
-              <p className="text-blue-100 text-xs mt-0.5">Subjects</p>
+              <p className="text-blue-100 text-xs mt-0.5">{t('subjectsCount')}</p>
             </div>
           </div>
         </div>
@@ -206,25 +209,25 @@ export default function StudentOverview() {
               <CardContent className="p-5 space-y-4">
                 <div className="flex items-center gap-2 mb-1">
                   <User className="w-4 h-4 text-blue-600" />
-                  <h2 className="font-bold text-slate-900 dark:text-slate-100 text-sm">Profile</h2>
+                  <h2 className="font-bold text-slate-900 dark:text-slate-100 text-sm">{t('studentProfile')}</h2>
                 </div>
 
                 <div className="space-y-3">
                   <div>
-                    <Label className="text-xs text-slate-500 mb-1 block">Full Name</Label>
-                    <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" className="h-9 text-sm" />
+                    <Label className="text-xs text-slate-500 mb-1 block">{t('fullNameLabel')}</Label>
+                    <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={t('fullNameLabel')} className="h-9 text-sm" />
                   </div>
 
                   <div>
                     <Label className="text-xs text-slate-500 mb-1 block">
-                      <span className="flex items-center gap-1"><Phone className="w-3 h-3" />Phone</span>
+                      <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{t('phoneLabel')}</span>
                     </Label>
                     <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+20 ..." className="h-9 text-sm" />
                   </div>
 
                   <div>
                     <Label className="text-xs text-slate-500 mb-1 block">
-                      <span className="flex items-center gap-1"><Mail className="w-3 h-3" />Email</span>
+                      <span className="flex items-center gap-1"><Mail className="w-3 h-3" />{t('emailLabel')}</span>
                     </Label>
                     <Input value={user?.email || ''} disabled className="h-9 text-sm opacity-60 cursor-not-allowed" />
                   </div>
@@ -232,15 +235,15 @@ export default function StudentOverview() {
                   {/* Stage — read-only */}
                   <div>
                     <Label className="text-xs text-slate-500 mb-1 block">
-                      <span className="flex items-center gap-1"><Award className="w-3 h-3" />Educational Stage</span>
+                      <span className="flex items-center gap-1"><Award className="w-3 h-3" />{t('educationalStageLabel')}</span>
                     </Label>
                     <div className="flex items-center gap-2 h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-3 text-sm text-slate-700 dark:text-slate-300 cursor-not-allowed select-none">
                       {currentStage ? (
                         <><span>{currentStage.icon}</span><span>{currentStage.name}</span></>
                       ) : (
-                        <span className="text-slate-400 italic">Not assigned</span>
+                        <span className="text-slate-400 italic">{t('notAssigned')}</span>
                       )}
-                      <span className="ml-auto text-xs text-slate-400">(read-only)</span>
+                      <span className="ml-auto text-xs text-slate-400">{t('readOnly')}</span>
                     </div>
                   </div>
                 </div>
@@ -251,11 +254,11 @@ export default function StudentOverview() {
                     disabled={!isDirty || updateProfileMutation.isPending}
                     className="bg-blue-600 hover:bg-blue-700 text-white h-8 px-4 text-xs"
                   >
-                    {updateProfileMutation.isPending ? 'Saving…' : 'Save Changes'}
+                    {updateProfileMutation.isPending ? t('savingLabel') : t('saveChanges')}
                   </Button>
                   {saved && (
                     <span className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Saved!
+                      <CheckCircle2 className="w-3.5 h-3.5" /> {t('savedLabel')}
                     </span>
                   )}
                 </div>
@@ -267,19 +270,19 @@ export default function StudentOverview() {
               <CardContent className="p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <TrendingUp className="w-4 h-4 text-blue-600" />
-                  <h2 className="font-bold text-slate-900 dark:text-slate-100 text-sm">Progress Overview</h2>
+                  <h2 className="font-bold text-slate-900 dark:text-slate-100 text-sm">{t('progressOverview')}</h2>
                 </div>
                 <div className="space-y-2.5">
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5"><Layers className="w-3.5 h-3.5" />Enrolled units</span>
+                    <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5"><Layers className="w-3.5 h-3.5" />{t('enrolledUnitsLabel')}</span>
                     <span className="font-semibold text-slate-900 dark:text-slate-100">{enrolledUnitIds.length}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5"><BookOpen className="w-3.5 h-3.5" />Subjects in stage</span>
+                    <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5"><BookOpen className="w-3.5 h-3.5" />{t('subjectsInStage')}</span>
                     <span className="font-semibold text-slate-900 dark:text-slate-100">{subjects.length}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5"><GraduationCap className="w-3.5 h-3.5" />Stage</span>
+                    <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5"><GraduationCap className="w-3.5 h-3.5" />{t('stageLabel')}</span>
                     <span className="font-semibold text-slate-900 dark:text-slate-100">{currentStage?.name || '—'}</span>
                   </div>
                 </div>
@@ -294,30 +297,34 @@ export default function StudentOverview() {
               <div className="flex items-center gap-2">
                 <GraduationCap className="w-5 h-5 text-blue-600" />
                 <h2 className="font-bold text-slate-900 dark:text-slate-100">
-                  My Subjects
-                  {currentStage && <span className="ml-2 text-sm font-normal text-slate-400">— {currentStage.name}</span>}
+                  {t('mySubjects')}
+                  {currentStage && <span className="ms-2 text-sm font-normal text-slate-400">— {currentStage.name}</span>}
                 </h2>
               </div>
               {subjects.length > 0 && (
                 <Button variant="ghost" size="sm" onClick={() => navigate('/student/learn')} className="text-blue-600 hover:text-blue-700 text-xs h-8">
-                  Browse all <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                  {t('browseAll')} <ArrowRight className="w-3.5 h-3.5 ms-1" />
                 </Button>
               )}
             </div>
 
             {!stageId ? (
               <Card className="border border-slate-200 dark:border-slate-800 border-dashed">
-                <CardContent className="py-14 text-center">
-                  <BookOpen className="w-10 h-10 mx-auto mb-3 text-slate-300 dark:text-slate-600" />
-                  <p className="text-slate-500 mb-1">No educational stage assigned</p>
-                  <p className="text-sm text-slate-400 dark:text-slate-500">Contact your administrator to assign a stage.</p>
+                <CardContent className="py-14">
+                  <EmptyState
+                    icon={<BookOpen className="w-8 h-8" />}
+                    title={t('noStageAssigned')}
+                    description={t('contactAdminForStage')}
+                  />
                 </CardContent>
               </Card>
             ) : subjects.length === 0 ? (
               <Card className="border border-slate-200 dark:border-slate-800 border-dashed">
-                <CardContent className="py-14 text-center">
-                  <BookOpen className="w-10 h-10 mx-auto mb-3 text-slate-300 dark:text-slate-600" />
-                  <p className="text-slate-500">No subjects available for this stage yet.</p>
+                <CardContent className="py-8">
+                  <EmptyState
+                    icon={<BookOpen className="w-8 h-8" />}
+                    description={t('noSubjectsForStage')}
+                  />
                 </CardContent>
               </Card>
             ) : (
@@ -325,7 +332,7 @@ export default function StudentOverview() {
                 {/* Subject enrollment bar chart */}
                 <Card className="border border-slate-200 dark:border-slate-800 shadow-sm">
                   <CardContent className="p-5">
-                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Units Per Subject</p>
+                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t('unitsPerSubject')}</p>
                     <div className="h-32">
                       <Bar data={barData} options={barOptions} />
                     </div>

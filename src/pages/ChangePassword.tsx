@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -14,24 +14,23 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { roleHome } from '@/components/RequireAuth';
 
-const schema = z
-  .object({
-    currentPassword: z.string().min(6),
-    newPassword: z.string().min(6),
-    confirmPassword: z.string().min(6),
-  })
-  .refine((values) => values.newPassword === values.confirmPassword, {
-    message: 'Passwords do not match',
-    path: ['confirmPassword'],
-  });
-
-type FormValues = z.infer<typeof schema>;
-
 export default function ChangePassword() {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === 'ar';
   const navigate = useNavigate();
   const { user, refreshProfile } = useAuth();
+
+  const schema = useMemo(() => z
+    .object({
+      currentPassword: z.string().min(6, { message: t('passwordMin') }),
+      newPassword: z.string().min(6, { message: t('passwordMin') }),
+      confirmPassword: z.string().min(6, { message: t('passwordMin') }),
+    })
+    .refine((values) => values.newPassword === values.confirmPassword, {
+      message: t('passwordsDoNotMatch'),
+      path: ['confirmPassword'],
+    }), [t]);
+  type FormValues = z.infer<typeof schema>;
 
   const mutation = useMutation({
     mutationFn: changePassword,
@@ -76,21 +75,21 @@ export default function ChangePassword() {
               <CardContent>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                   <div>
-                    <Input {...form.register('currentPassword')} placeholder={t('currentPassword')} type="password" className="w-full" />
+                    <Input {...form.register('currentPassword')} placeholder={t('currentPassword')} type="password" className={`w-full ${form.formState.errors.currentPassword ? 'border-red-500' : ''}`} />
                     {form.formState.errors.currentPassword && (
-                      <span className="text-red-500 text-sm">{form.formState.errors.currentPassword.message}</span>
+                      <span className="text-red-500 text-xs mt-1 block">{form.formState.errors.currentPassword.message}</span>
                     )}
                   </div>
                   <div>
-                    <Input {...form.register('newPassword')} placeholder={t('newPassword')} type="password" className="w-full" />
+                    <Input {...form.register('newPassword')} placeholder={t('newPassword')} type="password" className={`w-full ${form.formState.errors.newPassword ? 'border-red-500' : ''}`} />
                     {form.formState.errors.newPassword && (
-                      <span className="text-red-500 text-sm">{form.formState.errors.newPassword.message}</span>
+                      <span className="text-red-500 text-xs mt-1 block">{form.formState.errors.newPassword.message}</span>
                     )}
                   </div>
                   <div>
-                    <Input {...form.register('confirmPassword')} placeholder={t('confirmPassword')} type="password" className="w-full" />
+                    <Input {...form.register('confirmPassword')} placeholder={t('confirmPassword')} type="password" className={`w-full ${form.formState.errors.confirmPassword ? 'border-red-500' : ''}`} />
                     {form.formState.errors.confirmPassword && (
-                      <span className="text-red-500 text-sm">{form.formState.errors.confirmPassword.message}</span>
+                      <span className="text-red-500 text-xs mt-1 block">{form.formState.errors.confirmPassword.message}</span>
                     )}
                   </div>
                   <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/30" disabled={mutation.isPending}>

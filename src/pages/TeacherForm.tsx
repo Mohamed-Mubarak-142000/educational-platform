@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { createTeacher, getTeachers, updateTeacher } from '@/api/adminApi';
+import { getStages, getSubjectsByStage } from '@/api/subjectApi';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTranslation } from 'react-i18next';
@@ -44,6 +45,7 @@ export default function TeacherForm() {
       subject: '', 
       status: 'Active',
       profileImage: '',
+      stageId: '',
     },
   });
 
@@ -54,10 +56,23 @@ export default function TeacherForm() {
     enabled: isEditMode,
   });
 
-  // Populate form in edit mode
+  // Fetch all stages for the stage dropdown
+  const { data: stages = [], isLoading: stagesLoading } = useQuery({
+    queryKey: ['stages'],
+    queryFn: getStages,
+  });
+
+  // Fetch subjects for the selected stage only
+  const { data: subjects = [], isLoading: subjectsLoading } = useQuery({
+    queryKey: ['subjects-by-stage', formState.stageId],
+    queryFn: () => getSubjectsByStage(formState.stageId),
+    enabled: !!formState.stageId,
+  });
+
+  // Populate form in edit mode — also try to restore the stage selection
   useEffect(() => {
-    if (isEditMode && teachers.length > 0) {
-      const teacher = teachers.find((t: { _id: string; name: string; email: string; phone?: string; subject?: string; status?: string; profileImage?: string }) => t._id === id);
+    if (isEditMode && teachers.length > 0 && stages.length > 0) {
+      const teacher = teachers.find((t: { _id: string; name: string; email: string; phone?: string; subject?: string; stageId?: string; status?: string; profileImage?: string }) => t._id === id);
       if (teacher) {
         const imagePreview = teacher.profileImage || '';
         setFormState({
@@ -67,22 +82,21 @@ export default function TeacherForm() {
           subject: teacher.subject || '',
           status: teacher.status || 'Active',
           profileImage: imagePreview,
+          stageId: teacher.stageId || '',
         });
-        // Note: profileImagePreview is derived from form state, avoid double setState
       }
     }
-  }, [isEditMode, id, teachers, setFormState]);
+  }, [isEditMode, id, teachers, stages, setFormState]);
 
-  // Update preview when form profileImage changes
-  useEffect(() => {
-    if (formState.profileImage && !profileImageFile) {
-      setProfileImagePreview(formState.profileImage);
-    }
-  }, [formState.profileImage, profileImageFile]);
+  const displayPreview = profileImageFile ? profileImagePreview : formState.profileImage;
 
   const handleAvatarChange = (_file: File, previewUrl: string) => {
     setProfileImageFile(_file);
     setProfileImagePreview(previewUrl);
+  };
+
+  const handleStageChange = (stageId: string) => {
+    setFormState({ ...formState, stageId, subject: '' });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -94,6 +108,7 @@ export default function TeacherForm() {
       phone: formState.phone,
       subject: formState.subject,
       status: formState.status,
+      ...(formState.stageId && { stageId: formState.stageId }),
     };
 
     // TODO: Implement image upload to cloudinary
@@ -134,7 +149,7 @@ export default function TeacherForm() {
         {/* Avatar Upload */}
         <div className="flex justify-center mb-6">
           <AvatarUpload
-            preview={profileImagePreview}
+            preview={displayPreview}
             name={formState.name}
             onChange={handleAvatarChange}
             size="lg"
@@ -170,12 +185,46 @@ export default function TeacherForm() {
             />
           </FormField>
 
+          <FormField label={t('stage') || 'Stage'}>
+            <select
+              value={formState.stageId}
+              onChange={(e) => handleStageChange(e.target.value)}
+              className={inputVariants.default}
+              disabled={stagesLoading}
+            >
+              <option value="">
+                {stagesLoading ? (t('loadingStages') || 'Loading stages…') : (t('selectStage') || 'Select stage')}
+              </option>
+              {stages.map((stage: any) => (
+                <option key={stage._id} value={stage._id}>
+                  {stage.name}
+                </option>
+              ))}
+            </select>
+          </FormField>
+
           <FormField label={t('subject')}>
-            <Input
-              placeholder={t('teachingSubject')}
+            <select
               value={formState.subject}
               onChange={(e) => setFormState({ ...formState, subject: e.target.value })}
-            />
+              className={inputVariants.default}
+              disabled={!formState.stageId || subjectsLoading}
+            >
+              <option value="">
+                {!formState.stageId
+                  ? (t('selectStageFirst') || 'Select a stage first')
+                  : subjectsLoading
+                  ? (t('loadingSubjects') || 'Loading subjects…')
+                  : subjects.length === 0
+                  ? (t('noSubjectsInStage') || 'No subjects in this stage')
+                  : (t('selectSubject') || 'Select subject')}
+              </option>
+              {subjects.map((s: any) => (
+                <option key={s._id} value={s.name}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
           </FormField>
 
           <FormField label={t('status')} required>

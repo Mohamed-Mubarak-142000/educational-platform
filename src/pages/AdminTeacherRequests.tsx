@@ -29,18 +29,20 @@ import {
 } from 'lucide-react';
 import { spacing, cardVariants } from '@/lib/constants';
 import type { MockTeacherApplication } from '@/api/mock/data';
-import { PageHeader } from '@/components/shared';
+import { PageHeader, LoadingState, EmptyState, ErrorState } from '@/components/shared';
+import { useTranslation } from 'react-i18next';
 
 // ── Helpers ────────────────────────────────────────────────────────
 
-function statusBadge(status: MockTeacherApplication['status']) {
+function StatusBadge({ status }: { status: MockTeacherApplication['status'] }) {
+  const { t } = useTranslation();
   switch (status) {
     case 'Pending':
-      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">Pending</span>;
+      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">{t('applicationStatusPending')}</span>;
     case 'Accepted':
-      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">Accepted</span>;
+      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">{t('applicationStatusAccepted')}</span>;
     case 'Rejected':
-      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">Rejected</span>;
+      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">{t('applicationStatusRejected')}</span>;
   }
 }
 
@@ -55,6 +57,7 @@ function ApplicationCard({
   onAccept: (id: string) => void;
   onReject: (id: string) => void;
 }) {
+  const { t } = useTranslation();
   const days = app.availableDays;
 
   return (
@@ -77,7 +80,7 @@ function ApplicationCard({
         <div className="flex-1 min-w-0 space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="font-semibold text-lg text-slate-900 dark:text-slate-100">{app.name}</h3>
-            {statusBadge(app.status)}
+            <StatusBadge status={app.status} />
           </div>
 
           <div className="flex flex-wrap gap-4 text-sm text-slate-600 dark:text-slate-400">
@@ -89,7 +92,7 @@ function ApplicationCard({
           <div className="space-y-1">
             <p className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
               <Calendar className="w-3.5 h-3.5" />
-              Available Days &amp; Hours
+              {t('availableDaysHours')}
             </p>
             <div className="flex flex-wrap gap-2">
               {days.map((day) => {
@@ -116,21 +119,21 @@ function ApplicationCard({
               className="inline-flex items-center gap-1.5 text-sm text-blue-600 dark:text-blue-400 hover:underline"
             >
               <FileText className="w-4 h-4" />
-              View CV
+              {t('viewCv')}
             </a>
           )}
 
           {/* Zoom link (if accepted) */}
           {app.status === 'Accepted' && app.zoomLink && (
             <p className="text-sm text-emerald-700 dark:text-emerald-400">
-              Zoom: <a href={app.zoomLink} target="_blank" rel="noopener noreferrer" className="underline">{app.zoomLink}</a>
+              {t('zoomSession')} <a href={app.zoomLink} target="_blank" rel="noopener noreferrer" className="underline">{app.zoomLink}</a>
             </p>
           )}
 
           {/* Rejection reason */}
           {app.status === 'Rejected' && app.rejectionReason && (
             <p className="text-sm text-red-600 dark:text-red-400">
-              Reason: {app.rejectionReason}
+              {t('rejectionReasonPrefix')} {app.rejectionReason}
             </p>
           )}
         </div>
@@ -144,7 +147,7 @@ function ApplicationCard({
               className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5"
             >
               <CheckCircle2 className="w-4 h-4" />
-              Accept
+              {t('accept')}
             </Button>
             <Button
               size="sm"
@@ -153,7 +156,7 @@ function ApplicationCard({
               className="border-red-300 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 gap-1.5"
             >
               <XCircle className="w-4 h-4" />
-              Reject
+              {t('reject')}
             </Button>
           </div>
         )}
@@ -165,9 +168,10 @@ function ApplicationCard({
 // ── Main Page ──────────────────────────────────────────────────────
 
 export default function AdminTeacherRequests() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
-  const { data: applications = [], isLoading } = useQuery({
+  const { data: applications = [], isLoading, isError, refetch } = useQuery({
     queryKey: ['teacher-applications'],
     queryFn: getTeacherApplications,
   });
@@ -208,22 +212,24 @@ export default function AdminTeacherRequests() {
   return (
     <div className={spacing.pageContainer}>
       <PageHeader
-        title="Teacher Applications"
-        subtitle="Review and respond to new teacher applications submitted from the website"
+        title={t('teacherApplicationsTitle')}
+        subtitle={t('teacherApplicationsSubtitle')}
       />
 
       {isLoading ? (
-        <div className="flex items-center justify-center h-40 text-slate-400">Loading…</div>
+        <LoadingState />
+      ) : isError ? (
+        <ErrorState onRetry={() => refetch()} />
       ) : (
         <div className="space-y-8">
           {/* Pending */}
           <section>
             <h2 className="text-base font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
               <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-xs font-bold">{pending.length}</span>
-              Pending Review
+              {t('pendingReview')}
             </h2>
             {pending.length === 0 ? (
-              <p className="text-sm text-slate-400 italic">No pending applications.</p>
+              <EmptyState description={t('noPendingApplications')} />
             ) : (
               <div className="space-y-4">
                 {pending.map((app: MockTeacherApplication) => (
@@ -241,7 +247,7 @@ export default function AdminTeacherRequests() {
           {/* Reviewed */}
           {reviewed.length > 0 && (
             <section>
-              <h2 className="text-base font-semibold text-slate-700 dark:text-slate-300 mb-3">Reviewed</h2>
+              <h2 className="text-base font-semibold text-slate-700 dark:text-slate-300 mb-3">{t('reviewed')}</h2>
               <div className="space-y-4">
                 {reviewed.map((app: MockTeacherApplication) => (
                   <ApplicationCard key={app._id} app={app} onAccept={() => {}} onReject={() => {}} />
@@ -258,32 +264,32 @@ export default function AdminTeacherRequests() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-              Accept Application
+              {t('acceptApplication')}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <p className="text-sm text-slate-600 dark:text-slate-400">
-              An acceptance email with the Zoom interview link will be sent to the applicant.
+              {t('acceptEmailNote')}
             </p>
             <div>
               <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1.5">
-                Zoom Interview Link <span className="text-red-500">*</span>
+                {t('zoomInterviewLink')} <span className="text-red-500">*</span>
               </label>
               <Input
-                placeholder="https://zoom.us/j/..."
+                placeholder={t('zoomLinkPlaceholder')}
                 value={zoomLink}
                 onChange={(e) => setZoomLink(e.target.value)}
               />
             </div>
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setAcceptId(null)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setAcceptId(null)}>{t('cancel')}</Button>
             <Button
               onClick={handleAcceptConfirm}
               disabled={!zoomLink.trim() || reviewMutation.isPending}
               className="bg-emerald-600 hover:bg-emerald-700 text-white"
             >
-              {reviewMutation.isPending ? 'Sending…' : 'Send & Accept'}
+              {reviewMutation.isPending ? t('sending') : t('sendAndAccept')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -295,32 +301,32 @@ export default function AdminTeacherRequests() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <XCircle className="w-5 h-5 text-red-500" />
-              Reject Application
+              {t('rejectApplication')}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <p className="text-sm text-slate-600 dark:text-slate-400">
-              A rejection email will be sent notifying the applicant they are not eligible at this time.
+              {t('rejectEmailNote')}
             </p>
             <div>
               <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1.5">
-                Reason (optional)
+                {t('rejectionReasonLabel')}
               </label>
               <Input
-                placeholder="e.g. Position currently filled"
+                placeholder={t('rejectionReasonPlaceholder')}
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
               />
             </div>
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setRejectId(null)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setRejectId(null)}>{t('cancel')}</Button>
             <Button
               onClick={handleRejectConfirm}
               disabled={reviewMutation.isPending}
               className="bg-red-600 hover:bg-red-700 text-white"
             >
-              {reviewMutation.isPending ? 'Sending…' : 'Send & Reject'}
+              {reviewMutation.isPending ? t('sending') : t('sendAndReject')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -328,3 +334,4 @@ export default function AdminTeacherRequests() {
     </div>
   );
 }
+

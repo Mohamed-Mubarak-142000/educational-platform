@@ -7,7 +7,7 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useTranslation } from 'react-i18next';
 import { useCRUDOperations } from '@/hooks';
 import { cardVariants, buttonVariants, spacing } from '@/lib/constants';
-import { PageHeader, DataTable } from '@/components/shared';
+import { PageHeader, DataTable, ErrorState } from '@/components/shared';
 import type { TableColumn } from '@/components/shared';
 import { Pencil, Trash2, Plus, Eye } from 'lucide-react';
 
@@ -18,7 +18,7 @@ export default function AdminTeachers() {
   const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(null);
 
   // CRUD operations hook
-  const { data: teachers, deleteMutation } = useCRUDOperations({
+  const { data: teachers, deleteMutation, isLoading, isError, refetch } = useCRUDOperations({
     queryKey: ['teachers'],
     queryFn: getTeachers,
     deleteFn: deleteTeacher,
@@ -43,11 +43,11 @@ export default function AdminTeachers() {
     { 
       key: 'profileImage', 
       label: t('photo'), 
-      render: (v) => v ? (
+      render: (v, row: any) => v ? (
         <img src={v} alt="Profile" className="w-10 h-10 rounded-full object-cover" />
       ) : (
         <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-semibold">
-          {(teachers.find((t: any) => t.profileImage === v)?.name || 'U')[0]}
+          {(row?.name || 'U')[0]}
         </div>
       )
     },
@@ -79,9 +79,13 @@ export default function AdminTeachers() {
           <CardTitle>{t('teachersTableTitle')}</CardTitle>
         </CardHeader>
         <CardContent>
+          {isError ? (
+            <ErrorState onRetry={refetch} />
+          ) : (
           <DataTable
             columns={columns}
             data={teachers}
+            isLoading={isLoading}
             actions={(teacher: any) => (
               <div className="flex items-center justify-end gap-1">
                 <Button
@@ -114,6 +118,7 @@ export default function AdminTeachers() {
               </div>
             )}
           />
+          )}
         </CardContent>
       </Card>
 

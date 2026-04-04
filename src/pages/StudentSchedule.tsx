@@ -48,7 +48,7 @@ export default function StudentSchedule() {
 
   // Group by day
   const byDay = DAY_ORDER.reduce<Record<string, typeof schedule>>((acc, day) => {
-    const items = schedule.filter((s) => s.day === day);
+    const items = schedule.filter((s: any) => s.day === day);
     if (items.length > 0) acc[day] = items;
     return acc;
   }, {});
@@ -94,7 +94,7 @@ export default function StudentSchedule() {
             >
               <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t('dayName_' + day as any)}</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {sessions.map((session) => (
+                {sessions.map((session: any) => (
                   <div
                     key={session._id}
                     className={`rounded-2xl border p-5 shadow-sm ${dayColor(day)} transition-all hover:shadow-md`}

@@ -70,7 +70,7 @@ function SidebarUnit({
     <div className="border-b border-slate-100 dark:border-slate-800/60 last:border-b-0">
       <button
         className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors text-left"
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => setOpen((o: boolean) => !o)}
       >
         <div className="flex items-center gap-2 min-w-0">
           <span className="flex-shrink-0 w-6 h-6 rounded-md bg-blue-600 text-white text-xs font-bold flex items-center justify-center">
@@ -165,10 +165,6 @@ function LessonPartsSection({ lessonId, studentId }: { lessonId: string; student
       </h2>
       <div className="space-y-4">
         {(parts as any[]).map((part, idx) => {
-          const partGrade = grades.find((g: any) => {
-            // Grade is linked to a quiz attached to this part
-            return false; // populated below via quiz query
-          });
           return (
             <PartCard
               key={part._id}
@@ -190,7 +186,6 @@ function LessonPartsSection({ lessonId, studentId }: { lessonId: string; student
 function PartCard({
   part,
   index,
-  studentId,
   grades,
   onSaveGrade,
 }: {
@@ -217,7 +212,7 @@ function PartCard({
       {/* Part header */}
       <button
         className="w-full flex items-center justify-between px-5 py-4 bg-slate-50 dark:bg-slate-900/60 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors text-left"
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => setOpen((o: boolean) => !o)}
       >
         <div className="flex items-center gap-3">
           <span className="w-7 h-7 rounded-lg bg-blue-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
@@ -677,6 +672,7 @@ export default function LessonView() {
                 </h2>
                 {lesson.modelUrl && (
                   <div className="rounded-xl overflow-hidden border border-purple-200 dark:border-purple-800/40 aspect-video bg-slate-900">
+                    {/* @ts-expect-error model-viewer web component */}
                     <model-viewer
                       src={lesson.modelUrl}
                       auto-rotate

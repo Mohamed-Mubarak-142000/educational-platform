@@ -94,7 +94,7 @@ export default function AdminLessonForm() {
             audioUrl: lessonData.audioUrl ?? '',
           } satisfies LessonMedia,
           order: lessonData.order ?? 1,
-          parts: partsData.map((p): LessonPart => ({
+          parts: partsData.map((p: any): LessonPart => ({
             id: p._id,
             title: p.title,
             content: p.content ?? '',
@@ -106,7 +106,7 @@ export default function AdminLessonForm() {
               modelExplanation: p.media?.modelExplanation ?? '',
               audioUrl: p.media?.audioUrl ?? '',
             },
-            quiz: (p.quiz ?? []).map((q) => ({
+            quiz: (p.quiz ?? []).map((q: any) => ({
               id: `q-${Math.random().toString(36).slice(2)}`,
               question: q.question,
               options: q.options as [string, string, string, string],
@@ -145,14 +145,14 @@ export default function AdminLessonForm() {
         savedLesson = await updateLesson(lessonId, payload);
         // Delete all existing parts, then recreate from form state
         const existing = await getPartsByLesson(lessonId);
-        await Promise.all(existing.map((p) => deleteLessonPart(p._id)));
+        await Promise.all(existing.map((p: any) => deleteLessonPart(p._id)));
       } else {
         savedLesson = await createLesson(unitId!, payload);
       }
 
       if (data.parts.length > 0) {
         await Promise.all(
-          data.parts.map((p, i) =>
+          data.parts.map((p: any, i) =>
             createLessonPart(savedLesson._id, {
               title: p.title,
               content: p.content,

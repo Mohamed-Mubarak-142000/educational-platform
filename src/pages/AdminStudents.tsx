@@ -8,7 +8,7 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useTranslation } from 'react-i18next';
 import { useCRUDOperations } from '@/hooks';
 import { cardVariants, buttonVariants, spacing } from '@/lib/constants';
-import { PageHeader, DataTable } from '@/components/shared';
+import { PageHeader, DataTable, ErrorState } from '@/components/shared';
 import type { TableColumn } from '@/components/shared';
 import { Pencil, Trash2, Plus, Eye } from 'lucide-react';
 
@@ -18,7 +18,7 @@ export default function AdminStudents() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
 
-  const { data: students = [] } = useQuery({
+  const { data: students = [], isLoading: studentsLoading, isError: studentsError, refetch: refetchStudents } = useQuery({
     queryKey: ['students'],
     queryFn: getStudents,
   });
@@ -106,9 +106,13 @@ export default function AdminStudents() {
           <CardTitle>{t('studentsTableTitle')}</CardTitle>
         </CardHeader>
         <CardContent>
+          {studentsError ? (
+            <ErrorState onRetry={refetchStudents} />
+          ) : (
           <DataTable
             columns={columns}
             data={students}
+            isLoading={studentsLoading}
             actions={(student: any) => (
               <div className="flex items-center justify-end gap-1">
                 <Button
@@ -141,6 +145,7 @@ export default function AdminStudents() {
               </div>
             )}
           />
+          )}
         </CardContent>
       </Card>
 

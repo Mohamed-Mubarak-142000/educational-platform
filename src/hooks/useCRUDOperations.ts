@@ -47,6 +47,8 @@ export interface CRUDOperations<TData, TCreateInput, TUpdateInput> {
   refetch: () => void;
   /** Loading state */
   isLoading: boolean;
+  /** Error state */
+  isError: boolean;
 }
 
 /**
@@ -172,5 +174,6 @@ export function useCRUDOperations<TData = unknown, TCreateInput = unknown, TUpda
     data,
     refetch,
     isLoading: query.isLoading,
+    isError: query.isError,
   };
 }

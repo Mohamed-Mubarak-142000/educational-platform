@@ -6,6 +6,9 @@ import { Button } from '@/components/ui/button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/components/ui/ToastProvider';
 import { useTranslation } from 'react-i18next';
+import { LoadingState, EmptyState, ErrorState } from '@/components/shared';
+import { spacing, cardVariants } from '@/lib/constants';
+import { PageHeader } from '@/components/shared';
 
 export default function AdminPayments() {
   const { t } = useTranslation();
@@ -13,7 +16,7 @@ export default function AdminPayments() {
   const [confirmAction, setConfirmAction] = useState<'approve' | 'reject' | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const { data: payments = [], refetch } = useQuery({
+  const { data: payments = [], refetch, isLoading, isError } = useQuery({
     queryKey: ['payments'],
     queryFn: () => getPayments('Pending'),
   });
@@ -53,42 +56,46 @@ export default function AdminPayments() {
   };
 
   return (
-    <div className="px-6 py-10">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">{t('adminPayments')}</h1>
-        <p className="text-slate-600 dark:text-slate-400">{t('adminPaymentsSubtitle')}</p>
-      </div>
+    <div className={spacing.pageContainer}>
+      <PageHeader title={t('adminPayments')} subtitle={t('adminPaymentsSubtitle')} />
 
-      <Card className="border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/70">
+      <Card className={cardVariants.default}>
         <CardHeader>
           <CardTitle>{t('pendingPayments')}</CardTitle>
         </CardHeader>
         <CardContent>
+          {isLoading ? (
+            <LoadingState />
+          ) : isError ? (
+            <ErrorState onRetry={() => refetch()} />
+          ) : payments.length === 0 ? (
+            <EmptyState />
+          ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="text-slate-500">
+              <thead className="text-slate-500 dark:text-slate-400">
                 <tr>
-                  <th className="text-left py-3">{t('studentName')}</th>
-                  <th className="text-left py-3">{t('plan')}</th>
-                  <th className="text-left py-3">{t('paymentMethod')}</th>
-                  <th className="text-left py-3">{t('screenshot')}</th>
-                  <th className="text-left py-3">{t('status')}</th>
-                  <th className="text-right py-3">{t('actions')}</th>
+                  <th className="text-start py-3 px-2">{t('studentName')}</th>
+                  <th className="text-start py-3 px-2">{t('plan')}</th>
+                  <th className="text-start py-3 px-2">{t('paymentMethod')}</th>
+                  <th className="text-start py-3 px-2">{t('screenshot')}</th>
+                  <th className="text-start py-3 px-2">{t('status')}</th>
+                  <th className="text-end py-3 px-2">{t('actions')}</th>
                 </tr>
               </thead>
               <tbody>
                 {payments.map((payment: any) => (
                   <tr key={payment._id} className="border-t border-slate-200/60 dark:border-slate-800">
-                    <td className="py-3 font-medium">{payment.studentId?.name}</td>
-                    <td className="py-3">{payment.plan}</td>
-                    <td className="py-3">{payment.method}</td>
-                    <td className="py-3">
+                    <td className="py-3 px-2 font-medium">{payment.studentId?.name}</td>
+                    <td className="py-3 px-2">{payment.plan}</td>
+                    <td className="py-3 px-2">{payment.method}</td>
+                    <td className="py-3 px-2">
                       <a href={payment.screenshotUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
                         {t('view')}
                       </a>
                     </td>
-                    <td className="py-3">{payment.status}</td>
-                    <td className="py-3 text-right space-x-2">
+                    <td className="py-3 px-2">{payment.status}</td>
+                    <td className="py-3 px-2 text-end space-x-2">
                       <Button variant="ghost" onClick={() => requestAction(payment._id, 'approve')}>
                         {t('approve')}
                       </Button>
@@ -101,6 +108,7 @@ export default function AdminPayments() {
               </tbody>
             </table>
           </div>
+          )}
         </CardContent>
       </Card>
 

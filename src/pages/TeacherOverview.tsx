@@ -1,40 +1,36 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useQuery } from '@tanstack/react-query';
+import { getCourses } from '@/api/courseApi';
+import { getExams } from '@/api/examApi';
+import { getStudents } from '@/api/adminApi';
 import { useTranslation } from 'react-i18next';
+import { LoadingState, PageHeader, StatsCard } from '@/components/shared';
+import { spacing } from '@/lib/constants';
 
 export default function TeacherOverview() {
   const { t } = useTranslation();
 
-  return (
-    <div className="px-6 py-10">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">{t('teacherOverview')}</h1>
-        <p className="text-slate-600 dark:text-slate-400">{t('teacherOverviewSubtitle')}</p>
+  const { data: courses = [], isLoading: coursesLoading } = useQuery({ queryKey: ['courses'], queryFn: getCourses });
+  const { data: exams = [], isLoading: examsLoading } = useQuery({ queryKey: ['exams'], queryFn: getExams });
+  const { data: students = [], isLoading: studentsLoading } = useQuery({ queryKey: ['students'], queryFn: getStudents });
+
+  const isLoading = coursesLoading || examsLoading || studentsLoading;
+
+  if (isLoading) {
+    return (
+      <div className={spacing.pageContainer}>
+        <PageHeader title={t('teacherOverview')} subtitle={t('teacherOverviewSubtitle')} />
+        <LoadingState variant="fullpage" />
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/70">
-          <CardHeader>
-            <CardTitle>{t('teacherCourses')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">0</p>
-          </CardContent>
-        </Card>
-        <Card className="border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/70">
-          <CardHeader>
-            <CardTitle>{t('teacherExams')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">0</p>
-          </CardContent>
-        </Card>
-        <Card className="border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/70">
-          <CardHeader>
-            <CardTitle>{t('teacherStudents')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">0</p>
-          </CardContent>
-        </Card>
+    );
+  }
+
+  return (
+    <div className={spacing.pageContainer}>
+      <PageHeader title={t('teacherOverview')} subtitle={t('teacherOverviewSubtitle')} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+        <StatsCard title={t('teacherCourses')} value={courses.length} />
+        <StatsCard title={t('teacherExams')} value={exams.length} />
+        <StatsCard title={t('teacherStudents')} value={students.length} />
       </div>
     </div>
   );

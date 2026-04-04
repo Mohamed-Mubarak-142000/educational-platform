@@ -11,6 +11,9 @@ import {
 import { ChevronUp, ChevronDown, ChevronsUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { tableVariants } from '@/lib/constants';
+import { LoadingState } from './LoadingState';
+import { EmptyState } from './EmptyState';
+import { useTranslation } from 'react-i18next';
 
 export interface TableColumn<T = any> {
   key: string;
@@ -35,11 +38,12 @@ export function DataTable<T extends Record<string, any>>({
   columns,
   data,
   actions,
-  emptyMessage = 'No data available',
+  emptyMessage,
   isLoading = false,
   className = '',
   pageSize = 10,
 }: DataTableProps<T>) {
+  const { t } = useTranslation();
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const getNestedValue = (obj: any, path: string) => {
@@ -62,7 +66,7 @@ export function DataTable<T extends Record<string, any>>({
     if (actions) {
       cols.push({
         id: '__actions__',
-        header: 'Actions',
+        header: t('actions'),
         cell: ({ row }) => (
           <div className="flex items-center justify-end gap-1">
             {actions(row.original)}
@@ -74,7 +78,7 @@ export function DataTable<T extends Record<string, any>>({
     }
 
     return cols;
-  }, [columns, actions]);
+  }, [columns, actions, t]);
 
   const table = useReactTable({
     data: data ?? [],
@@ -88,11 +92,11 @@ export function DataTable<T extends Record<string, any>>({
   });
 
   if (isLoading) {
-    return <div className="py-8 text-center text-slate-500">Loading...</div>;
+    return <LoadingState />;
   }
 
   if (!data || data.length === 0) {
-    return <div className="py-8 text-center text-slate-500">{emptyMessage}</div>;
+    return <EmptyState description={emptyMessage ?? t('emptyStateDescription')} />;
   }
 
   return (

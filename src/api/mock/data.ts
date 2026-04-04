@@ -630,6 +630,7 @@ export interface MockUnitLesson {
   modelExplanation?: string;  // written explanation linked to 3D model
   audioUrl?: string;         // recorded audio for the lesson
   attachments?: { name: string; url: string; type: 'pdf' | 'doc' | 'image' }[];
+  duration?: number;
   order: number;
   createdAt: string;
 }
