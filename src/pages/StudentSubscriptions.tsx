@@ -114,7 +114,7 @@ export default function StudentSubscriptions() {
             </div>
 
             <Button onClick={requestSubmit} className="bg-blue-600 hover:bg-blue-700 text-white" disabled={submitMutation.isPending}>
-              {submitMutation.isPending ? '...' : t('submitPayment')}
+              {submitMutation.isPending ? t('loadingEllipsis') : t('submitPayment')}
             </Button>
           </CardContent>
         </Card>

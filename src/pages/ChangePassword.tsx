@@ -93,7 +93,7 @@ export default function ChangePassword() {
                     )}
                   </div>
                   <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/30" disabled={mutation.isPending}>
-                    {mutation.isPending ? '...' : t('changePasswordAction')}
+                    {mutation.isPending ? t('loadingEllipsis') : t('changePasswordAction')}
                   </Button>
                   {mutation.isError && (
                     <p className="text-red-500 text-center text-sm">{t('changePasswordFailed')}</p>

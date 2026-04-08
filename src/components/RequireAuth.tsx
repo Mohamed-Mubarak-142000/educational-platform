@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 type Role = 'Admin' | 'Teacher' | 'Student';
 
@@ -18,9 +19,14 @@ const roleHome = (role?: Role) => {
 export default function RequireAuth({ children, allowedRoles }: RequireAuthProps) {
   const { user, isLoading } = useAuth();
   const location = useLocation();
+  const { t } = useTranslation();
 
   if (isLoading) {
-    return <div className="h-screen flex items-center justify-center text-slate-600">Loading...</div>;
+    return (
+      <div className="h-screen flex items-center justify-center text-slate-600">
+        {t('loading')}
+      </div>
+    );
   }
 
   if (!user) {

@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
-import { PageHeader } from '@/components/shared';
+import { EmptyState, PageHeader } from '@/components/shared';
 import {
   Dialog,
   DialogContent,
@@ -18,7 +18,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Pencil, Trash2, Plus, ChevronRight, BookOpen, Layers } from 'lucide-react';
+import { Pencil, Trash2, Plus, ChevronRight, BookOpen } from 'lucide-react';
 import { cardVariants, buttonVariants, spacing } from '@/lib/constants';
 
 const STAGE_COLORS = [
@@ -31,15 +31,35 @@ const STAGE_COLORS = [
 
 type StageColor = typeof STAGE_COLORS[number]['value'];
 
+type Stage = {
+  _id: string;
+  name: string;
+  description: string;
+  icon: string;
+  color: StageColor;
+  order: number;
+};
+
+type StageForm = {
+  name: string;
+  description: string;
+  icon: string;
+  color: StageColor;
+};
+
+type SubjectSummary = {
+  _id: string;
+};
+
 function getStageColor(color: string) {
   return STAGE_COLORS.find((c) => c.value === color) ?? STAGE_COLORS[1];
 }
 
-const emptyForm = { name: '', description: '', icon: '📚', color: 'blue' as StageColor };
+const emptyForm: StageForm = { name: '', description: '', icon: '📚', color: 'blue' };
 
 function StageSubjectCount({ stageId }: { stageId: string }) {
   const { t } = useTranslation();
-  const { data: subjects = [] } = useQuery({
+  const { data: subjects = [] } = useQuery<SubjectSummary[]>({
     queryKey: ['subjects-by-stage', stageId],
     queryFn: () => getSubjectsByStage(stageId),
   });
@@ -61,7 +81,7 @@ export default function AdminStages() {
   const [form, setForm] = useState(emptyForm);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const { data: stages = [], isLoading } = useQuery({
+  const { data: stages = [], isLoading } = useQuery<Stage[]>({
     queryKey: ['stages'],
     queryFn: getStages,
   });
@@ -69,12 +89,12 @@ export default function AdminStages() {
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['stages'] });
 
   const createMutation = useMutation({
-    mutationFn: (data: typeof emptyForm) => createStage(data),
+    mutationFn: (data: StageForm) => createStage(data),
     onSuccess: () => { invalidate(); setFormOpen(false); setForm(emptyForm); },
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: typeof emptyForm }) => updateStage(id, data),
+    mutationFn: ({ id, data }: { id: string; data: StageForm }) => updateStage(id, data),
     onSuccess: () => { invalidate(); setFormOpen(false); setEditId(null); setForm(emptyForm); },
   });
 
@@ -84,7 +104,7 @@ export default function AdminStages() {
   });
 
   const openCreate = () => { setEditId(null); setForm(emptyForm); setFormOpen(true); };
-  const openEdit = (stage: any) => {
+  const openEdit = (stage: Stage) => {
     setEditId(stage._id);
     setForm({ name: stage.name, description: stage.description, icon: stage.icon, color: stage.color });
     setFormOpen(true);
@@ -121,11 +141,14 @@ export default function AdminStages() {
       ) : stages.length === 0 ? (
         <Card className={cardVariants.default}>
           <CardContent className="py-16 text-center">
-            <Layers className="w-12 h-12 mx-auto mb-4 text-slate-300 dark:text-slate-600" />
-            <p className="text-slate-500 mb-4">{t('noStagesYet')}</p>
-            <Button onClick={openCreate} className={buttonVariants.primary}>
-              <Plus className="w-4 h-4 mr-2" /> {t('addStage')}
-            </Button>
+            <EmptyState
+              description={t('noStagesYet')}
+              action={(
+                <Button onClick={openCreate} className={buttonVariants.primary}>
+                  <Plus className="w-4 h-4 mr-2" /> {t('addStage')}
+                </Button>
+              )}
+            />
           </CardContent>
         </Card>
       ) : (
@@ -136,7 +159,7 @@ export default function AdminStages() {
           variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
         >
           <AnimatePresence>
-            {stages.map((stage: any) => {
+            {stages.map((stage) => {
               const colors = getStageColor(stage.color);
               return (
                 <motion.div
@@ -169,7 +192,7 @@ export default function AdminStages() {
                             size="sm"
                             className="h-8 w-8 p-0"
                             onClick={(e) => { e.stopPropagation(); openEdit(stage); }}
-                            title="Edit"
+                            title={t('edit')}
                           >
                             <Pencil className="w-3.5 h-3.5" />
                           </Button>
@@ -178,7 +201,7 @@ export default function AdminStages() {
                             size="sm"
                             className="h-8 w-8 p-0 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500"
                             onClick={(e) => { e.stopPropagation(); setDeleteId(stage._id); }}
-                            title="Delete"
+                            title={t('delete')}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </Button>

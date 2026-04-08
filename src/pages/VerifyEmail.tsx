@@ -106,7 +106,7 @@ export default function VerifyEmail() {
                     )}
                   </div>
                   <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/30" disabled={verifyMutation.isPending}>
-                    {verifyMutation.isPending ? '...' : t('verifyOTP')}
+                    {verifyMutation.isPending ? t('loadingEllipsis') : t('verifyOTP')}
                   </Button>
                   {verifyMutation.isError && (
                     <p className="text-red-500 text-center text-sm">{t('otpInvalid')}</p>
@@ -114,7 +114,7 @@ export default function VerifyEmail() {
                 </form>
                 <div className="mt-4 flex flex-col items-center gap-2 text-sm">
                   <Button variant="ghost" className="text-blue-600 dark:text-blue-400" onClick={onResend} disabled={resendMutation.isPending}>
-                    {resendMutation.isPending ? '...' : t('resendOtp')}
+                    {resendMutation.isPending ? t('loadingEllipsis') : t('resendOtp')}
                   </Button>
                   {resendMessage && <p className="text-slate-500 dark:text-slate-400">{resendMessage}</p>}
                 </div>

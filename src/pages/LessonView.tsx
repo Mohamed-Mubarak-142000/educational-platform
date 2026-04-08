@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -16,6 +16,7 @@ import {
 } from '@/api/subjectApi';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { EmptyState } from '@/components/shared';
 import { Textarea } from '@/components/ui/textarea';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -40,19 +41,37 @@ import {
 } from 'lucide-react';
 import StudentQuizModal from '@/components/StudentQuizModal';
 import { useAuth } from '@/context/AuthContext';
+import LessonModelViewer from '@/components/LessonModelViewer';
 
 // ── Animated accordion for sidebar units ──────────────────────────
+
+const isYouTubeUrl = (url?: string) => !!url && (url.includes('youtube.com') || url.includes('youtu.be'));
+
+function getYouTubeEmbedUrl(url?: string) {
+  if (!url) return '';
+  const trimmed = url.trim();
+  if (!trimmed) return '';
+  if (trimmed.includes('youtube.com/embed/')) return trimmed;
+
+  const match = trimmed.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
+  if (match?.[1]) return `https://www.youtube.com/embed/${match[1]}`;
+  return '';
+}
 
 function SidebarUnit({
   unit,
   activeLessonId,
+  activePartId,
   subjectId: _subjectId,
   onLessonClick,
+  onPartClick,
 }: {
   unit: any;
   activeLessonId: string;
+  activePartId: string;
   subjectId: string;
   onLessonClick: (lesson: any) => void;
+  onPartClick: (lesson: any, part: any) => void;
 }) {
   const { data: lessons = [] } = useQuery({
     queryKey: ['unit-lessons', unit._id],
@@ -61,7 +80,6 @@ function SidebarUnit({
 
   const hasActive = lessons.some((l: any) => l._id === activeLessonId);
   const [open, setOpen] = useState(hasActive || unit.order === 1);
-  const { t } = useTranslation();
 
   // Re-open if active lesson moves into this unit
   useEffect(() => { if (hasActive) setOpen(true); }, [hasActive]);
@@ -100,34 +118,16 @@ function SidebarUnit({
             style={{ overflow: 'hidden' }}
           >
             <div className="pb-1">
-              {lessons.map((lesson: any) => {
-                const isActive = lesson._id === activeLessonId;
-                return (
-                  <button
-                    key={lesson._id}
-                    className={`w-full flex items-center gap-2.5 pl-8 pr-4 py-2.5 text-left transition-colors ${
-                      isActive
-                        ? 'bg-blue-50 dark:bg-blue-900/20 border-l-2 border-blue-600'
-                        : 'hover:bg-slate-50 dark:hover:bg-slate-800/40 border-l-2 border-transparent'
-                    }`}
-                    onClick={() => onLessonClick(lesson)}
-                  >
-                    {lesson.videoUrl ? (
-                      <PlayCircle className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
-                    ) : (
-                      <FileText className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
-                    )}
-                    <span className={`text-xs leading-snug truncate flex-1 ${isActive ? 'font-semibold text-blue-700 dark:text-blue-300' : 'text-slate-600 dark:text-slate-400'}`}>
-                      {lesson.title}
-                    </span>
-                    {lesson.duration && (
-                      <span className="text-xs text-slate-400 dark:text-slate-500 flex-shrink-0 ml-auto pl-1">
-                        {lesson.duration} {t('minutesShort')}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
+              {lessons.map((lesson: any) => (
+                <SidebarLesson
+                  key={lesson._id}
+                  lesson={lesson}
+                  activeLessonId={activeLessonId}
+                  activePartId={activePartId}
+                  onLessonClick={onLessonClick}
+                  onPartClick={onPartClick}
+                />
+              ))}
             </div>
           </motion.div>
         )}
@@ -136,9 +136,91 @@ function SidebarUnit({
   );
 }
 
+function SidebarLesson({
+  lesson,
+  activeLessonId,
+  activePartId,
+  onLessonClick,
+  onPartClick,
+}: {
+  lesson: any;
+  activeLessonId: string;
+  activePartId: string;
+  onLessonClick: (lesson: any) => void;
+  onPartClick: (lesson: any, part: any) => void;
+}) {
+  const { t } = useTranslation();
+  const { data: parts = [] } = useQuery({
+    queryKey: ['lesson-parts', lesson._id],
+    queryFn: () => getPartsByLesson(lesson._id),
+  });
+
+  const isActive = lesson._id === activeLessonId;
+
+  return (
+    <div className="space-y-1">
+      <button
+        className={`w-full flex items-center gap-2.5 pl-8 pr-4 py-2.5 text-left transition-colors ${
+          isActive
+            ? 'bg-blue-50 dark:bg-blue-900/20 border-l-2 border-blue-600'
+            : 'hover:bg-slate-50 dark:hover:bg-slate-800/40 border-l-2 border-transparent'
+        }`}
+        onClick={() => onLessonClick(lesson)}
+      >
+        {lesson.videoUrl ? (
+          <PlayCircle className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
+        ) : (
+          <FileText className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
+        )}
+        <span className={`text-xs leading-snug truncate flex-1 ${isActive ? 'font-semibold text-blue-700 dark:text-blue-300' : 'text-slate-600 dark:text-slate-400'}`}>
+          {lesson.title}
+        </span>
+        {lesson.duration && (
+          <span className="text-xs text-slate-400 dark:text-slate-500 flex-shrink-0 ml-auto pl-1">
+            {lesson.duration} {t('minutesShort')}
+          </span>
+        )}
+      </button>
+
+      {parts.length > 0 && (
+        <div className="ms-11 pb-1">
+          {parts.map((part: any, idx: number) => {
+            const partActive = isActive && part._id === activePartId;
+            return (
+              <button
+                key={part._id}
+                className={`w-full flex items-center gap-2 px-3 py-1.5 rounded-md text-left text-[11px] transition-colors ${
+                  partActive
+                    ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                    : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'
+                }`}
+                onClick={() => onPartClick(lesson, part)}
+              >
+                <span className="w-4 h-4 rounded bg-slate-200 dark:bg-slate-700 text-[10px] flex items-center justify-center flex-shrink-0">
+                  {idx + 1}
+                </span>
+                <span className="truncate">{part.title}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Lesson Parts Section ──────────────────────────────────────────
 
-function LessonPartsSection({ lessonId, studentId }: { lessonId: string; studentId?: string }) {
+function LessonPartsSection({
+  lessonId,
+  studentId,
+  activePartId,
+}: {
+  lessonId: string;
+  studentId?: string;
+  activePartId?: string;
+}) {
+  const { t } = useTranslation();
   const { data: parts = [], isLoading } = useQuery({
     queryKey: ['lesson-parts', lessonId],
     queryFn: () => getPartsByLesson(lessonId),
@@ -155,13 +237,24 @@ function LessonPartsSection({ lessonId, studentId }: { lessonId: string; student
       saveQuizGrade(studentId!, g.quizId, g.score, g.correct, g.total),
   });
 
-  if (isLoading || parts.length === 0) return null;
+  useEffect(() => {
+    if (!activePartId) return;
+    const el = document.getElementById(`part-${activePartId}`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [activePartId, parts.length]);
+
+  if (isLoading) return null;
+  if (parts.length === 0) {
+    return <EmptyState description={t('lessonNoParts')} className="py-8" />;
+  }
 
   return (
     <div className="space-y-4">
       <h2 className="flex items-center gap-2 text-base font-semibold text-slate-800 dark:text-slate-200">
         <Layers className="w-4 h-4 text-blue-600" />
-        Lesson Parts ({parts.length})
+        {t('lessonParts')} ({parts.length})
       </h2>
       <div className="space-y-4">
         {(parts as any[]).map((part, idx) => {
@@ -172,6 +265,7 @@ function LessonPartsSection({ lessonId, studentId }: { lessonId: string; student
               index={idx}
               studentId={studentId}
               grades={grades}
+              activePartId={activePartId}
               onSaveGrade={(quizId, score, correct, total) =>
                 saveGradeMutation.mutate({ quizId, score, correct, total })
               }
@@ -187,15 +281,20 @@ function PartCard({
   part,
   index,
   grades,
+  activePartId,
   onSaveGrade,
 }: {
   part: any;
   index: number;
   studentId?: string;
   grades: any[];
+  activePartId?: string;
   onSaveGrade: (quizId: string, score: number, correct: number, total: number) => void;
 }) {
-  const [open, setOpen] = useState(index === 0);
+  const { t } = useTranslation();
+  const isActivePart = !!activePartId && part._id === activePartId;
+  const [open, setOpen] = useState(index === 0 || isActivePart);
+  const partRef = useRef<HTMLDivElement | null>(null);
   const [quizOpen, setQuizOpen] = useState(false);
 
   const { data: partQuiz } = useQuery({
@@ -207,8 +306,19 @@ function PartCard({
     ? grades.find((g: any) => g.quizId === partQuiz._id)
     : null;
 
+  useEffect(() => {
+    if (isActivePart) {
+      setOpen(true);
+      partRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [isActivePart]);
+
   return (
-    <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden">
+    <div
+      id={`part-${part._id}`}
+      ref={partRef}
+      className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden"
+    >
       {/* Part header */}
       <button
         className="w-full flex items-center justify-between px-5 py-4 bg-slate-50 dark:bg-slate-900/60 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors text-left"
@@ -250,20 +360,24 @@ function PartCard({
               {/* Part video */}
               {part.media?.videoUrl && (
                 <div className="rounded-xl overflow-hidden aspect-video bg-black">
-                  <iframe src={part.media.videoUrl} title={part.title} className="w-full h-full" allowFullScreen />
+                  {isYouTubeUrl(part.media.videoUrl) ? (
+                    <iframe src={part.media.videoUrl} title={part.title} className="w-full h-full" allowFullScreen />
+                  ) : (
+                    <video src={part.media.videoUrl} controls className="w-full h-full" />
+                  )}
                 </div>
               )}
               {/* Part audio */}
               {part.media?.audioUrl && (
                 <div>
-                  <p className="text-xs font-medium text-slate-500 mb-1.5 flex items-center gap-1"><Volume2 className="w-3.5 h-3.5" />Audio</p>
+                  <p className="text-xs font-medium text-slate-500 mb-1.5 flex items-center gap-1"><Volume2 className="w-3.5 h-3.5" />{t('audioLabel')}</p>
                   <audio src={part.media.audioUrl} controls className="w-full" />
                 </div>
               )}
               {/* Model explanation for this part */}
               {part.media?.modelExplanation && (
                 <div className="bg-purple-50 dark:bg-purple-900/10 rounded-lg p-3 border border-purple-100 dark:border-purple-800/20">
-                  <p className="text-xs font-medium text-purple-700 dark:text-purple-300 mb-1 flex items-center gap-1"><Box className="w-3.5 h-3.5" />3D Model Notes</p>
+                  <p className="text-xs font-medium text-purple-700 dark:text-purple-300 mb-1 flex items-center gap-1"><Box className="w-3.5 h-3.5" />{t('modelNotesLabel')}</p>
                   <p className="text-sm text-slate-600 dark:text-slate-400">{part.media.modelExplanation}</p>
                 </div>
               )}
@@ -272,7 +386,7 @@ function PartCard({
                 <div className="bg-blue-50 dark:bg-blue-900/10 rounded-xl p-4 border border-blue-200 dark:border-blue-800/30 flex items-center justify-between gap-3">
                   <div>
                     <p className="font-medium text-sm text-slate-900 dark:text-slate-100">{partQuiz.title}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Part quiz</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{t('partQuizLabel')}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     {existingGrade ? (
@@ -282,13 +396,13 @@ function PartCard({
                           {existingGrade.score}%
                         </span>
                         <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setQuizOpen(true)}>
-                          Retry
+                          {t('retry')}
                         </Button>
                       </div>
                     ) : (
                       <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white h-8 text-xs" onClick={() => setQuizOpen(true)}>
                         <ClipboardList className="w-3.5 h-3.5 mr-1" />
-                        Take Quiz
+                        {t('takeQuiz')}
                       </Button>
                     )}
                   </div>
@@ -365,9 +479,7 @@ function CommentsSection({ lessonId }: { lessonId: string }) {
       </form>
       <div className="space-y-4">
         {comments.length === 0 ? (
-          <p className="text-sm text-slate-400 dark:text-slate-500 italic text-center py-4">
-            {t('lessonNoComments')}
-          </p>
+          <EmptyState description={t('lessonNoComments')} className="py-8" />
         ) : (
           comments.map((c: any) => (
             <div key={c._id} className="flex gap-3">
@@ -405,7 +517,13 @@ export default function LessonView() {
   const fromStudent = searchParams.get('from') === 'student' || user?.role === 'Student';
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeLessonId, setActiveLessonId] = useState<string>(lessonId || '');
+  const [activePartId, setActivePartId] = useState<string>(searchParams.get('partId') || '');
   const [quizOpen, setQuizOpen] = useState(false);
+
+  useEffect(() => {
+    if (lessonId) setActiveLessonId(lessonId);
+    setActivePartId(searchParams.get('partId') || '');
+  }, [lessonId, searchParams]);
 
   const { data: subject } = useQuery({
     queryKey: ['subject', subjectId],
@@ -434,9 +552,18 @@ export default function LessonView() {
 
   const handleLessonClick = (l: any) => {
     setActiveLessonId(l._id);
+    setActivePartId('');
     setSidebarOpen(false);
     const fromParam = fromStudent ? '&from=student' : '';
-    window.history.replaceState(null, '', `/lesson/${l._id}?subjectId=${subjectId}${fromParam}`);
+    navigate(`/lesson/${l._id}?subjectId=${subjectId}${fromParam}`, { replace: true });
+  };
+
+  const handlePartClick = (lesson: any, part: any) => {
+    setActiveLessonId(lesson._id);
+    setActivePartId(part._id);
+    setSidebarOpen(false);
+    const fromParam = fromStudent ? '&from=student' : '';
+    navigate(`/lesson/${lesson._id}?subjectId=${subjectId}${fromParam}&partId=${part._id}`, { replace: true });
   };
 
   const backPath = fromStudent
@@ -473,8 +600,10 @@ export default function LessonView() {
         <SidebarInner
           units={units}
           activeLessonId={activeLessonId}
+          activePartId={activePartId}
           subjectId={subjectId}
           onLessonClick={handleLessonClick}
+          onPartClick={handlePartClick}
           onClose={() => setSidebarOpen(false)}
           showClose
         />
@@ -488,8 +617,10 @@ export default function LessonView() {
         <SidebarInner
           units={units}
           activeLessonId={activeLessonId}
+          activePartId={activePartId}
           subjectId={subjectId}
           onLessonClick={handleLessonClick}
+          onPartClick={handlePartClick}
         />
       </aside>
 
@@ -572,9 +703,9 @@ export default function LessonView() {
             {/* Video Player */}
             {lesson.videoUrl ? (
               <div className="rounded-2xl overflow-hidden bg-black shadow-2xl aspect-video w-full">
-                {lesson.videoUrl.includes('youtube') ? (
+                {isYouTubeUrl(lesson.videoUrl) ? (
                   <iframe
-                    src={lesson.videoUrl}
+                    src={getYouTubeEmbedUrl(lesson.videoUrl) || lesson.videoUrl}
                     title={lesson.title}
                     className="w-full h-full"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -612,7 +743,7 @@ export default function LessonView() {
                   </div>
                   <div className="min-w-0">
                     <p className="font-semibold text-slate-900 dark:text-slate-100 truncate">{lessonQuiz.title}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Lesson quiz — test your knowledge</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{t('lessonQuizSubtitle')}</p>
                   </div>
                 </div>
                 <Button
@@ -620,7 +751,7 @@ export default function LessonView() {
                   onClick={() => setQuizOpen(true)}
                 >
                   <ClipboardList className="w-4 h-4 mr-2" />
-                  Start Quiz
+                  {t('startQuiz')}
                 </Button>
               </div>
             )}
@@ -657,9 +788,11 @@ export default function LessonView() {
               <div className="bg-rose-50 dark:bg-rose-900/10 rounded-2xl p-6 border border-rose-200 dark:border-rose-800/30">
                 <h2 className="flex items-center gap-2 text-base font-semibold text-slate-800 dark:text-slate-200 mb-3">
                   <Volume2 className="w-4 h-4 text-rose-600" />
-                  Audio Explanation
+                  {t('audioExplanation')}
                 </h2>
-                <audio src={lesson.audioUrl} controls className="w-full" />
+                <audio controls className="w-full" preload="none">
+                  <source src={lesson.audioUrl} />
+                </audio>
               </div>
             )}
 
@@ -668,22 +801,16 @@ export default function LessonView() {
               <div className="bg-purple-50 dark:bg-purple-900/10 rounded-2xl p-6 border border-purple-200 dark:border-purple-800/30 space-y-4">
                 <h2 className="flex items-center gap-2 text-base font-semibold text-slate-800 dark:text-slate-200">
                   <Box className="w-4 h-4 text-purple-600" />
-                  3D Model
+                  {t('model3dLabel')}
                 </h2>
                 {lesson.modelUrl && (
                   <div className="rounded-xl overflow-hidden border border-purple-200 dark:border-purple-800/40 aspect-video bg-slate-900">
-                    {/* @ts-expect-error model-viewer web component */}
-                    <model-viewer
-                      src={lesson.modelUrl}
-                      auto-rotate
-                      camera-controls
-                      style={{ width: '100%', height: '100%' }}
-                    />
+                    <LessonModelViewer modelUrl={lesson.modelUrl} />
                   </div>
                 )}
                 {lesson.modelExplanation && (
                   <div className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-purple-100 dark:border-purple-800/20">
-                    <p className="text-sm font-medium text-purple-700 dark:text-purple-300 mb-1.5">Explanation</p>
+                    <p className="text-sm font-medium text-purple-700 dark:text-purple-300 mb-1.5">{t('explanationLabel')}</p>
                     <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">{lesson.modelExplanation}</p>
                   </div>
                 )}
@@ -691,7 +818,7 @@ export default function LessonView() {
             )}
 
             {/* Lesson Parts */}
-            <LessonPartsSection lessonId={activeLessonId} studentId={user?._id} />
+            <LessonPartsSection lessonId={activeLessonId} studentId={user?._id} activePartId={activePartId} />
 
             {/* Comments */}
             <div className="bg-slate-50 dark:bg-slate-900/60 rounded-2xl p-6 border border-slate-200 dark:border-slate-800">
@@ -709,15 +836,19 @@ export default function LessonView() {
 function SidebarInner({
   units,
   activeLessonId,
+  activePartId,
   subjectId,
   onLessonClick,
+  onPartClick,
   onClose,
   showClose,
 }: {
   units: any[];
   activeLessonId: string;
+  activePartId: string;
   subjectId: string;
   onLessonClick: (l: any) => void;
+  onPartClick: (lesson: any, part: any) => void;
   onClose?: () => void;
   showClose?: boolean;
 }) {
@@ -743,15 +874,17 @@ function SidebarInner({
       <ScrollArea className="flex-1">
         <div className="py-1">
           {units.length === 0 ? (
-            <p className="text-xs text-slate-400 dark:text-slate-500 text-center py-8">{t('lessonNoUnits')}</p>
+            <EmptyState description={t('lessonNoUnits')} className="py-8" />
           ) : (
             units.map((unit: any) => (
               <SidebarUnit
                 key={unit._id}
                 unit={unit}
                 activeLessonId={activeLessonId}
+                activePartId={activePartId}
                 subjectId={subjectId}
                 onLessonClick={onLessonClick}
+                onPartClick={onPartClick}
               />
             ))
           )}

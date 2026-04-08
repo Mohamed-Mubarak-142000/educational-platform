@@ -192,7 +192,7 @@ export default function Landing() {
                <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 to-indigo-500/10 dark:from-blue-500/20 dark:to-indigo-500/20 rounded-3xl blur-3xl transform -rotate-6 scale-105 transition-colors duration-500" />
                <img 
                  src={heroImage} 
-                 alt="Biology Illustration" 
+                 alt={t('biologyIllustrationAlt')} 
                  className="relative z-10 w-full max-w-lg lg:max-w-none h-auto object-cover rounded-3xl shadow-2xl shadow-blue-900/20 border border-white/20 dark:border-white/10"
                />
                

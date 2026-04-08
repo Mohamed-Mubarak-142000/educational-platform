@@ -59,7 +59,7 @@ export default function AdminDashboard() {
               )}
             </div>
             <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/30" disabled={mutation.isPending}>
-              {mutation.isPending ? '...' : t('createTeacherAction')}
+              {mutation.isPending ? t('loadingEllipsis') : t('createTeacherAction')}
             </Button>
             {mutation.isSuccess && (
               <p className="text-green-600 text-sm">{t('createTeacherSuccess')}</p>

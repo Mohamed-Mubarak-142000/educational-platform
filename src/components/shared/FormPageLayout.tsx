@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft } from 'lucide-react';
 import { cardVariants, spacing } from '@/lib/constants';
+import { useTranslation } from 'react-i18next';
 
 export interface FormPageLayoutProps {
   /** Page title (e.g., 'Create Course', 'Edit Exam') */
@@ -42,10 +43,12 @@ export function FormPageLayout({
   subtitle,
   backTo,
   children,
-  backLabel = 'Back',
+  backLabel,
   className = '',
 }: FormPageLayoutProps) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const resolvedBackLabel = backLabel ?? t('back');
 
   return (
     <div className={`${spacing.pageContainer} ${className}`}>
@@ -57,7 +60,7 @@ export function FormPageLayout({
           className="flex items-center gap-2"
         >
           <ArrowLeft className="w-4 h-4" />
-          {backLabel}
+          {resolvedBackLabel}
         </Button>
       </div>
 

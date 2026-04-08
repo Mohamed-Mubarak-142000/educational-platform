@@ -36,6 +36,7 @@ import TeacherExams from './pages/TeacherExams';
 import TeacherSettings from './pages/TeacherSettings';
 import StudentOverview from './pages/StudentOverview';
 import StudentSubscriptions from './pages/StudentSubscriptions';
+import StudentPaymentsRecord from './pages/StudentPaymentsRecord';
 import StudentCourses from './pages/StudentCourses';
 import StudentLearn from './pages/StudentLearn';
 import StudentSubjectDetail from './pages/StudentSubjectDetail';
@@ -317,6 +318,15 @@ function App() {
             <Layout>
               <DashboardLayout>
                 <StudentSubscriptions />
+              </DashboardLayout>
+            </Layout>
+          </RequireAuth>
+        } />
+        <Route path="/student/payments-record" element={
+          <RequireAuth allowedRoles={['Student', 'Admin']}>
+            <Layout>
+              <DashboardLayout>
+                <StudentPaymentsRecord />
               </DashboardLayout>
             </Layout>
           </RequireAuth>

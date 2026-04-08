@@ -86,7 +86,7 @@ export default function ResetPassword() {
                     )}
                   </div>
                   <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/30" disabled={mutation.isPending || !canSubmit}>
-                    {mutation.isPending ? '...' : t('resetPasswordAction')}
+                    {mutation.isPending ? t('loadingEllipsis') : t('resetPasswordAction')}
                   </Button>
                   {mutation.isError && (
                     <p className="text-red-500 text-center text-sm">{t('resetPasswordFailed')}</p>

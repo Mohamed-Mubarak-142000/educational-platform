@@ -4,8 +4,9 @@ import { useAuth } from '@/context/AuthContext';
 import { getStageById, getSubjectsByStage } from '@/api/subjectApi';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
+import { EmptyState } from '@/components/shared';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, BookOpen, GraduationCap, AlertCircle } from 'lucide-react';
+import { ChevronRight, GraduationCap, AlertCircle } from 'lucide-react';
 import { spacing } from '@/lib/constants';
 
 const SUBJECT_COLORS: Record<string, string> = {
@@ -103,9 +104,9 @@ export default function StudentLearn() {
       ) : subjects.length === 0 ? (
         <Card className="border border-slate-200 dark:border-slate-800 border-dashed">
           <CardContent className="py-16 text-center">
-            <BookOpen className="w-12 h-12 mx-auto mb-4 text-slate-300 dark:text-slate-600" />
-            <p className="text-slate-500">{t('noSubjectsAvailable')}</p>
-            <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">{t('checkBackSoon')}</p>
+            <EmptyState
+              description={`${t('noSubjectsAvailable')} ${t('checkBackSoon')}`}
+            />
           </CardContent>
         </Card>
       ) : (

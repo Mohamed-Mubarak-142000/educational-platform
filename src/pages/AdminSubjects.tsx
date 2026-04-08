@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getStageById, getSubjectsByStage, createSubject, updateSubject, deleteSubject } from '@/api/subjectApi';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
+import { EmptyState } from '@/components/shared';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,7 +18,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Pencil, Trash2, Plus, Eye, BookOpen, ArrowLeft } from 'lucide-react';
+import { Pencil, Trash2, Plus, Eye, ArrowLeft } from 'lucide-react';
 import { cardVariants, buttonVariants, spacing } from '@/lib/constants';
 
 const SUBJECT_COLORS = [
@@ -137,11 +138,14 @@ export default function AdminSubjects() {
       ) : subjects.length === 0 ? (
         <Card className={cardVariants.default}>
           <CardContent className="py-16 text-center">
-            <BookOpen className="w-12 h-12 mx-auto mb-4 text-slate-300 dark:text-slate-600" />
-            <p className="text-slate-500 mb-4">{t('noSubjectsInStage')}</p>
-            <Button onClick={openCreate} className={buttonVariants.primary}>
-              <Plus className="w-4 h-4 mr-2" /> {t('addSubject')}
-            </Button>
+            <EmptyState
+              description={t('noSubjectsInStage')}
+              action={(
+                <Button onClick={openCreate} className={buttonVariants.primary}>
+                  <Plus className="w-4 h-4 mr-2" /> {t('addSubject')}
+                </Button>
+              )}
+            />
           </CardContent>
         </Card>
       ) : (
@@ -178,7 +182,7 @@ export default function AdminSubjects() {
                             size="sm"
                             className="h-8 w-8 p-0"
                             onClick={(e) => { e.stopPropagation(); openEdit(subject); }}
-                            title="Edit"
+                            title={t('edit')}
                           >
                             <Pencil className="w-3.5 h-3.5" />
                           </Button>
@@ -187,7 +191,7 @@ export default function AdminSubjects() {
                             size="sm"
                             className="h-8 w-8 p-0 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500"
                             onClick={(e) => { e.stopPropagation(); setDeleteId(subject._id); }}
-                            title="Delete"
+                            title={t('delete')}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </Button>
@@ -200,7 +204,7 @@ export default function AdminSubjects() {
                           {typeof subject.teacherId === 'object' ? subject.teacherId?.name : '—'}
                         </span>
                         <div className={`flex items-center gap-1 text-xs font-medium ${colors.text}`}>
-                          <Eye className="w-3 h-3" /> View
+                          <Eye className="w-3 h-3" /> {t('view')}
                         </div>
                       </div>
                     </CardContent>

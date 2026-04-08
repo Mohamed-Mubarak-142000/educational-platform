@@ -20,13 +20,13 @@ export default function AdminCourseDetail() {
   const course: any = courses.find((c: any) => c._id === id);
 
   if (isLoading) {
-    return <div className={`${spacing.pageContainer} py-12 text-center text-slate-500`}>Loading...</div>;
+    return <div className={`${spacing.pageContainer} py-12 text-center text-slate-500`}>{t('loading')}</div>;
   }
 
   if (!course) {
     return (
       <div className={`${spacing.pageContainer} py-12 text-center`}>
-        <p className="text-slate-500 mb-4">{t('courseNotFound') || 'Course not found'}</p>
+        <p className="text-slate-500 mb-4">{t('courseNotFound')}</p>
         <Button variant="outline" onClick={() => navigate('/admin/courses')}>
           <ArrowLeft className="w-4 h-4 mr-2" /> {t('backToCourses')}
         </Button>

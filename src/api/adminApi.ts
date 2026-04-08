@@ -5,6 +5,11 @@ export const getTeachers = async () => {
   return response.data;
 };
 
+export const getTeacherById = async (id: string) => {
+  const response = await api.get(`/users/teachers/${id}`);
+  return response.data;
+};
+
 export const createTeacher = async (data: any) => {
   const response = await api.post('/users/teachers', data);
   return response.data;
@@ -22,6 +27,11 @@ export const deleteTeacher = async (id: string) => {
 
 export const getStudents = async () => {
   const response = await api.get('/users/students');
+  return response.data;
+};
+
+export const getStudentById = async (id: string) => {
+  const response = await api.get(`/users/students/${id}`);
   return response.data;
 };
 

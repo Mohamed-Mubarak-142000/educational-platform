@@ -183,7 +183,7 @@ export default function StudentOverview() {
             <span className="text-3xl">{currentStage?.icon || '🎓'}</span>
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className="text-xl font-bold text-white truncate">{t('welcomeBack')}, {user?.name?.split(' ')[0] || 'Student'}</h1>
+            <h1 className="text-xl font-bold text-white truncate">{t('welcomeBack')}, {user?.name?.split(' ')[0] || t('studentLabel')}</h1>
             <p className="text-blue-100 text-sm mt-0.5">
               {currentStage ? `${currentStage.name} · ${subjects.length} ${t('subjectsCount')}` : t('noStageAssigned')}
             </p>
@@ -222,7 +222,7 @@ export default function StudentOverview() {
                     <Label className="text-xs text-slate-500 mb-1 block">
                       <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{t('phoneLabel')}</span>
                     </Label>
-                    <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+20 ..." className="h-9 text-sm" />
+                    <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={t('phonePlaceholder')} className="h-9 text-sm" />
                   </div>
 
                   <div>

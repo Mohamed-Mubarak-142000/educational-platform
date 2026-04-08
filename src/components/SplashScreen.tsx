@@ -58,7 +58,7 @@ export default function SplashScreen() {
                 />
               ))}
               <div className="w-24 h-24 rounded-3xl bg-white/20 backdrop-blur-sm border border-white/30 shadow-2xl flex items-center justify-center">
-                <img src="/academix-logo.svg" alt="Academix" className="w-14 h-14 drop-shadow-lg" />
+                <img src="/academix-logo.svg" alt={t('brandName')} className="w-14 h-14 drop-shadow-lg" />
               </div>
             </motion.div>
 

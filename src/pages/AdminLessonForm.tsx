@@ -125,12 +125,22 @@ export default function AdminLessonForm() {
 
   // ── Save mutation (create or update lesson + parts) ─────────────
 
+  const normalizeYouTubeUrl = (url?: string) => {
+    if (!url) return '';
+    const trimmed = url.trim();
+    if (!trimmed) return '';
+
+    const match = trimmed.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
+    if (match?.[1]) return `https://www.youtube.com/embed/${match[1]}`;
+    return trimmed;
+  };
+
   const saveMutation = useMutation({
     mutationFn: async (data: LessonFormData) => {
       const payload: Record<string, unknown> = {
         title: data.title,
         description: data.description,
-        videoUrl: data.media.videoUrl,
+        videoUrl: normalizeYouTubeUrl(data.media.videoUrl) || data.media.videoUrl,
         pdfUrl: data.media.pdfUrl,
         imageUrl: data.media.imageUrl,
         modelUrl: data.media.modelUrl,
@@ -157,7 +167,10 @@ export default function AdminLessonForm() {
               title: p.title,
               content: p.content,
               order: i + 1,
-              media: p.media,
+              media: {
+                ...p.media,
+                videoUrl: normalizeYouTubeUrl(p.media?.videoUrl) || p.media?.videoUrl,
+              },
               quiz: p.quiz,
             })
           )

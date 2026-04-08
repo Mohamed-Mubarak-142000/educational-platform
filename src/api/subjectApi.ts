@@ -29,6 +29,16 @@ export const createLesson = async (unitId: string, data: any) => (await api.post
 export const updateLesson = async (id: string, data: any) => (await api.put(`/lessons/${id}`, data)).data;
 export const deleteLesson = async (id: string) => (await api.delete(`/lessons/${id}`)).data;
 
+// ── Lesson Media Upload ──────────────────────────────────────────
+export const uploadLessonAsset = async (file: File) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await api.post('/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+};
+
 // ── Comments ──────────────────────────────────────────────────────
 export const getCommentsByLesson = async (lessonId: string) => (await api.get(`/lessons/${lessonId}/comments`)).data;
 export const addLessonComment = async (lessonId: string, text: string) => (await api.post(`/lessons/${lessonId}/comments`, { text })).data;

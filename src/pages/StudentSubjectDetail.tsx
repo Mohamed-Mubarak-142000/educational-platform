@@ -14,16 +14,19 @@ import {
   getSchedulesBySubject,
   enrollInLiveLesson,
 } from '@/api/subjectApi';
+import { submitPayment, uploadPaymentProof } from '@/api/adminApi';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
+import { EmptyState } from '@/components/shared';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useToast } from '@/components/ui/ToastProvider';
 import {
   ArrowLeft,
   ChevronDown,
   PlayCircle,
   FileText,
   Clock,
-  BookOpen,
   Layers,
   ClipboardList,
   Lock,
@@ -38,6 +41,8 @@ import { spacing } from '@/lib/constants';
 import StudentQuizModal from '@/components/StudentQuizModal';
 
 // ── Quiz badge ──────────────────────────────────────────────────────
+
+const unitPaymentMethods = ['Vodafone Cash', 'InstaPay'] as const;
 
 function QuizBadge({ attachedToId, label }: { attachedToId: string; label: string }) {
   const { t } = useTranslation();
@@ -76,7 +81,7 @@ function UnitRow({
   unit: any;
   subjectId: string;
   enrolled: boolean;
-  onSubscribe: () => void;
+  onSubscribe: (unit: any) => void;
   subscribing: boolean;
   availabilityStatus?: string;
   isBlocked?: boolean;
@@ -126,7 +131,7 @@ function UnitRow({
               <span className="hidden sm:flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/40 px-2 py-1 rounded-full">
                 <CheckCircle2 className="w-3 h-3" /> {t('enrolledBadge')}
               </span>
-              <QuizBadge attachedToId={unit._id} label={`${unit.title} Quiz`} />
+              <QuizBadge attachedToId={unit._id} label={t('quizTitleSuffix', { title: unit.title })} />
               <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}
                 onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }}>
                 <ChevronDown className="w-4 h-4 text-slate-500 cursor-pointer" />
@@ -148,11 +153,11 @@ function UnitRow({
               <Button
                 size="sm"
                 className="h-7 px-3 text-xs bg-blue-600 hover:bg-blue-700 text-white ml-1 flex-shrink-0 gap-1"
-                onClick={onSubscribe}
+                onClick={() => onSubscribe(unit)}
                 disabled={subscribing}
               >
                 <CreditCard className="w-3 h-3" />
-                {subscribing ? '...' : t('subscribeCta')}
+                  {subscribing ? t('loadingEllipsis') : t('subscribeCta')}
               </Button>
             </>
           )}
@@ -170,7 +175,7 @@ function UnitRow({
                 </div>
               ) : lessons.length === 0 ? (
                 <div className="px-6 py-6 text-center">
-                  <p className="text-sm text-slate-400 dark:text-slate-500">{t('noLessonsInUnit')}</p>
+                  <EmptyState description={t('noLessonsInUnit')} className="py-6" />
                 </div>
               ) : (
                 <div className="divide-y divide-slate-100 dark:divide-slate-800/50">
@@ -191,7 +196,7 @@ function UnitRow({
                           <Clock className="w-3 h-3" />{lesson.duration}m
                         </span>
                       )}
-                      <QuizBadge attachedToId={lesson._id} label={`${lesson.title} Quiz`} />
+                      <QuizBadge attachedToId={lesson._id} label={t('quizTitleSuffix', { title: lesson.title })} />
                       <Button size="sm" variant="ghost" className="h-7 px-2.5 text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex-shrink-0"
                         onClick={() => navigate(`/lesson/${lesson._id}?subjectId=${subjectId}&from=student`)}
                       >
@@ -237,7 +242,10 @@ function LiveSessionsSection({ subjectId, studentId }: { subjectId: string; stud
     },
   });
 
-  if (isLoading || schedules.length === 0) return null;
+  if (isLoading) return null;
+  if (schedules.length === 0) {
+    return <EmptyState description={t('noSchedule')} className="py-6" />;
+  }
 
   const dayOrder = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -311,14 +319,14 @@ function LiveSessionsSection({ subjectId, studentId }: { subjectId: string; stud
                     size="sm"
                     disabled={isFull || enrollMutation.isPending || !studentId}
                     onClick={() => enrollMutation.mutate(s._id)}
-                    title={isFull ? 'This group is full' : undefined}
+                    title={isFull ? t('groupFullTitle') : undefined}
                     className={`h-7 px-3 text-xs flex-shrink-0 ${
                       isFull
                         ? 'bg-slate-200 dark:bg-slate-700 text-slate-500 cursor-not-allowed'
                         : 'bg-violet-600 hover:bg-violet-700 text-white'
                     }`}
                   >
-                    {isFull ? t('groupFull') : enrollMutation.isPending ? '...' : t('joinGroup')}
+                    {isFull ? t('groupFull') : enrollMutation.isPending ? t('loadingEllipsis') : t('joinGroup')}
                   </Button>
                 )}
               </div>
@@ -338,6 +346,12 @@ export default function StudentSubjectDetail() {
   const { id: subjectId } = useParams<{ id: string }>();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { pushToast } = useToast();
+
+  const [paymentOpen, setPaymentOpen] = useState(false);
+  const [selectedUnit, setSelectedUnit] = useState<any | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<(typeof unitPaymentMethods)[number]>('Vodafone Cash');
+  const [paymentFile, setPaymentFile] = useState<File | null>(null);
 
   const { data: subject, isLoading: subjectLoading } = useQuery({
     queryKey: ['subject', subjectId],
@@ -369,18 +383,56 @@ export default function StudentSubjectDetail() {
     },
   });
 
+  const uploadMutation = useMutation({
+    mutationFn: uploadPaymentProof,
+    onError: () => pushToast({ type: 'error', title: t('toastUploadFailed') }),
+  });
+
+  const submitPaymentMutation = useMutation({
+    mutationFn: submitPayment,
+    onError: () => pushToast({ type: 'error', title: t('toastActionFailed') }),
+  });
+
+  const openPaymentDialog = (unit: any) => {
+    setSelectedUnit(unit);
+    setPaymentMethod('Vodafone Cash');
+    setPaymentFile(null);
+    setPaymentOpen(true);
+  };
+
+  const submitUnitPayment = async () => {
+    if (!selectedUnit) return;
+    if (!paymentFile) {
+      pushToast({ type: 'error', title: t('toastUploadRequired') });
+      return;
+    }
+
+    const upload = await uploadMutation.mutateAsync(paymentFile);
+    await submitPaymentMutation.mutateAsync({
+      plan: `Unit: ${selectedUnit.title}`,
+      amount: selectedUnit.price ?? selectedUnit.amount ?? 0,
+      method: paymentMethod,
+      screenshotUrl: upload.url,
+    });
+
+    await enrollMutation.mutateAsync(selectedUnit._id);
+    pushToast({ type: 'success', title: t('toastPaymentSubmitted') });
+    setPaymentOpen(false);
+    setPaymentFile(null);
+  };
+
   if (subjectLoading) {
     return (
-      <div className={`${spacing.pageContainer} py-12 text-center text-slate-500`}>Loading subject...</div>
+      <div className={`${spacing.pageContainer} py-12 text-center text-slate-500`}>{t('loadingSubject')}</div>
     );
   }
 
   if (!subject) {
     return (
       <div className={`${spacing.pageContainer} py-12 text-center`}>
-        <p className="text-slate-500 mb-4">Subject not found.</p>
+        <p className="text-slate-500 mb-4">{t('subjectNotFound')}</p>
         <Button variant="outline" onClick={() => navigate('/student/learn')}>
-          <ArrowLeft className="w-4 h-4 mr-2" /> Back to Learn
+          <ArrowLeft className="w-4 h-4 mr-2" /> {t('backToLearn')}
         </Button>
       </div>
     );
@@ -435,8 +487,7 @@ export default function StudentSubjectDetail() {
       ) : units.length === 0 ? (
         <Card className="border border-slate-200 dark:border-slate-800">
           <CardContent className="py-16 text-center">
-            <BookOpen className="w-12 h-12 mx-auto mb-4 text-slate-300 dark:text-slate-600" />
-            <p className="text-slate-500">{t('noUnitsYet')}</p>
+            <EmptyState description={t('noUnitsYet')} />
           </CardContent>
         </Card>
       ) : (
@@ -453,7 +504,7 @@ export default function StudentSubjectDetail() {
                 unit={unit}
                 subjectId={subjectId!}
                 enrolled={(enrolledUnitIds as string[]).includes(unit._id)}
-                onSubscribe={() => enrollMutation.mutate(unit._id)}
+                onSubscribe={openPaymentDialog}
                 subscribing={enrollMutation.isPending}
                 availabilityStatus={availStatus}
                 isBlocked={isBlocked}
@@ -463,6 +514,65 @@ export default function StudentSubjectDetail() {
           })}
         </div>
       )}
+
+      <Dialog open={paymentOpen} onOpenChange={setPaymentOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{t('submitPayment')}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-4 bg-slate-50 dark:bg-slate-900/60">
+              <p className="text-sm text-slate-500">{t('plan')}</p>
+              <p className="text-base font-semibold text-slate-900 dark:text-slate-100">
+                {selectedUnit ? `Unit: ${selectedUnit.title}` : '-'}
+              </p>
+              <p className="text-sm text-slate-500 mt-3">{t('amount')}</p>
+              <p className="text-base font-semibold text-slate-900 dark:text-slate-100">
+                {selectedUnit?.price ?? selectedUnit?.amount ?? 0}
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{t('paymentMethod')}</p>
+              <div className="flex flex-wrap gap-2">
+                {unitPaymentMethods.map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => setPaymentMethod(item)}
+                    className={`rounded-full px-4 py-2 text-sm border ${paymentMethod === item ? 'bg-blue-600 text-white border-blue-600' : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300'}`}
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 p-4 bg-slate-50/80 dark:bg-slate-900/60">
+              <p className="text-sm text-slate-500">{t('sendPaymentTo')}</p>
+              <p className="text-lg font-semibold">01050867135</p>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{t('uploadProof')}</p>
+              <input type="file" accept="image/*" onChange={(e) => setPaymentFile(e.target.files?.[0] || null)} />
+            </div>
+
+            <div className="flex items-center justify-end gap-2">
+              <Button variant="outline" onClick={() => setPaymentOpen(false)}>
+                {t('cancel')}
+              </Button>
+              <Button
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+                onClick={submitUnitPayment}
+                disabled={uploadMutation.isPending || submitPaymentMutation.isPending || enrollMutation.isPending}
+              >
+                {submitPaymentMutation.isPending ? t('loadingEllipsis') : t('submitPayment')}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* ── Live Sessions ── */}
       <LiveSessionsSection subjectId={subjectId!} studentId={user?._id} />

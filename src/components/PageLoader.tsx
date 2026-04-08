@@ -30,7 +30,7 @@ export default function PageLoader() {
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.45, ease: 'easeOut' }}
           >
-            <img src="/academix-logo.svg" alt="Academix" className="w-12 h-12" />
+            <img src="/academix-logo.svg" alt={t('brandName')} className="w-12 h-12" />
           </motion.div>
         </div>
 

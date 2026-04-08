@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import { EmptyState } from '@/components/shared';
 import { ArrowRight, BookOpen } from 'lucide-react';
 
 export default function Dashboard() {
@@ -26,11 +27,11 @@ export default function Dashboard() {
     mutationFn: enrollCourse, 
     onSuccess: () => { 
       refetch(); 
-      alert('Successfully Enrolled!'); 
+      alert(t('enrollSuccess')); 
     },
     onError: (err: unknown) => {
       const typedError = err as { response?: { data?: { message?: string } } };
-      alert(typedError.response?.data?.message || 'Failed to enroll');
+      alert(typedError.response?.data?.message || t('enrollFailed'));
     }
   });
 
@@ -64,7 +65,9 @@ export default function Dashboard() {
       </section>
 
       <section className="max-w-7xl mx-auto px-6">
-        {courses.length === 0 && <p className="text-slate-500 text-lg">{t('dashboardEmpty')}</p>}
+        {courses.length === 0 && (
+          <EmptyState description={t('dashboardEmpty')} className="py-10" />
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {(courses as any[]).map((course: Course, index: number) => (
             <motion.div
@@ -79,7 +82,7 @@ export default function Dashboard() {
                   <img src={course.thumbnail} alt={course.title} className="w-full h-56 object-cover" />
                 ) : (
                   <div className="w-full h-56 bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                    <span className="text-slate-400">No Image</span>
+                    <span className="text-slate-400">{t('noImage')}</span>
                   </div>
                 )}
                 <CardHeader>

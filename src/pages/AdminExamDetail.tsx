@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Pencil, Clock, FileText } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { EmptyState } from '@/components/shared';
 import { spacing, cardVariants } from '@/lib/constants';
 
 export default function AdminExamDetail() {
@@ -26,13 +27,13 @@ export default function AdminExamDetail() {
   const exam: any = exams.find((e: any) => e._id === id);
 
   if (isLoading) {
-    return <div className={`${spacing.pageContainer} py-12 text-center text-slate-500`}>Loading...</div>;
+    return <div className={`${spacing.pageContainer} py-12 text-center text-slate-500`}>{t('loading')}</div>;
   }
 
   if (!exam) {
     return (
       <div className={`${spacing.pageContainer} py-12 text-center`}>
-        <p className="text-slate-500 mb-4">{t('examNotFound') || 'Exam not found'}</p>
+        <p className="text-slate-500 mb-4">{t('examNotFound')}</p>
         <Button variant="outline" onClick={() => navigate('/admin/exams')}>
           <ArrowLeft className="w-4 h-4 mr-2" /> {t('backToExams')}
         </Button>
@@ -44,7 +45,7 @@ export default function AdminExamDetail() {
 
   const fields = [
     { icon: FileText, label: t('title'), value: exam.title },
-    { icon: Clock, label: t('timeLimit'), value: `${exam.timeLimit} ${t('minutesShort') || 'min'}` },
+    { icon: Clock, label: t('timeLimit'), value: `${exam.timeLimit} ${t('minutesShort')}` },
     { icon: null, label: t('lessonId'), value: lessonId },
     { icon: null, label: t('createdAt'), value: exam.createdAt ? new Date(exam.createdAt).toLocaleDateString() : '-' },
   ];
@@ -86,11 +87,11 @@ export default function AdminExamDetail() {
         {/* Results */}
         <Card className={cardVariants.default}>
           <CardHeader>
-            <CardTitle>{t('examResults') || 'Results'}</CardTitle>
+            <CardTitle>{t('examResults')}</CardTitle>
           </CardHeader>
           <CardContent>
             {results.length === 0 ? (
-              <p className="text-slate-500 py-4 text-center">{t('noResultsYet') || 'No results yet'}</p>
+              <EmptyState description={t('noResultsYet')} className="py-8" />
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">

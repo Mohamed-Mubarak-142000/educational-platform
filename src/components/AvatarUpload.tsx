@@ -51,12 +51,12 @@ export default function AvatarUpload({ preview, name, onChange, size = 'md' }: A
         type="button"
         onClick={handleClick}
         className={`relative ${sizeClass} rounded-full overflow-hidden border-4 border-blue-500 shadow-md cursor-pointer group focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2`}
-        aria-label={t('uploadAvatarAriaLabel', 'Upload avatar')}
+        aria-label={t('uploadAvatarAriaLabel')}
       >
         {preview ? (
           <img
             src={preview}
-            alt="Avatar preview"
+            alt={t('avatarPreviewAlt')}
             className="w-full h-full object-cover"
           />
         ) : (

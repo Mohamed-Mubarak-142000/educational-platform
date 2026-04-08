@@ -64,6 +64,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     { to: '/student/schedule', label: t('mySchedule'), icon: Calendar, end: false },
     { to: '/student/grades', label: t('myGrades'), icon: Award, end: false },
     { to: '/student/subscriptions', label: t('studentSubscriptions'), icon: CreditCard, end: false },
+    { to: '/student/payments-record', label: t('paymentsRecord'), icon: CreditCard, end: false },
     { to: '/student/courses', label: t('stageCourses'), icon: BookOpen, end: false },
   ];
 
@@ -186,7 +187,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <div className="px-4 pt-4 pb-4 relative">
               <div className="flex flex-col items-center">
                 <NavLink to={roleHome(role)} className="flex flex-col items-center gap-2" onClick={() => setMobileOpen(false)}>
-                  <img src="/academix-logo.svg" alt="Academix" className="w-10 h-10" />
+                  <img src="/academix-logo.svg" alt={t('brandName')} className="w-10 h-10" />
                   <span className="font-semibold text-base text-center whitespace-nowrap overflow-hidden">
                     {t('brandName')}
                   </span>
@@ -197,7 +198,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 type="button"
                 onClick={() => setMobileOpen(false)}
                 className="absolute top-3 end-3 p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                aria-label="Close menu"
+                aria-label={t('closeMenu')}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -227,7 +228,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <div className="px-4 pt-4 pb-4">
               <div className="flex flex-col items-center">
                 <NavLink to={roleHome(role)} className="flex flex-col items-center gap-2">
-                  <img src="/academix-logo.svg" alt="Academix" className="w-10 h-10" />
+                  <img src="/academix-logo.svg" alt={t('brandName')} className="w-10 h-10" />
                   <AnimatePresence>
                     {!collapsed && (
                       <motion.span
@@ -276,7 +277,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <Dialog open={firstLoginDialogOpen} onOpenChange={setFirstLoginDialogOpen}>
         <DialogContent className="max-w-md" onInteractOutside={(e) => e.preventDefault()}>
           <DialogHeader>
-            <DialogTitle className="sr-only">Security Notice</DialogTitle>
+            <DialogTitle className="sr-only">{t('securityNotice')}</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col items-center text-center gap-5 py-2">
             <div className="w-20 h-20 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
@@ -284,10 +285,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </div>
             <div className="space-y-2">
               <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
-                {t('firstLoginTitle') || 'Welcome! One quick step'}
+                {t('firstLoginTitle')}
               </h2>
               <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-                {t('firstLoginMessage') || 'Your account was created with a default password. For your security, please visit your profile page and set a new personal password before continuing.'}
+                {t('firstLoginMessage')}
               </p>
             </div>
             <div className="flex gap-3 w-full">
@@ -296,7 +297,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 className="flex-1"
                 onClick={() => setFirstLoginDialogOpen(false)}
               >
-                {t('later') || 'Remind me later'}
+                {t('remindMeLater')}
               </Button>
               <Button
                 className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
@@ -305,7 +306,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                   navigate('/change-password');
                 }}
               >
-                {t('changePassword') || 'Change Password'}
+                {t('changePassword')}
               </Button>
             </div>
           </div>

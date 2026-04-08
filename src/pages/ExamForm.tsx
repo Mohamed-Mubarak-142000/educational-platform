@@ -11,6 +11,7 @@ import { useQuery } from '@tanstack/react-query';
 import { createExam, getExams, updateExam } from '@/api/examApi';
 import { getCourses, getSections, getLessons } from '@/api/courseApi';
 import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/shared';
 import { Input } from '@/components/ui/input';
 import { useTranslation } from 'react-i18next';
 import { useCRUDOperations, useFormDialog } from '@/hooks';
@@ -319,9 +320,7 @@ export default function ExamForm() {
           </div>
 
           {questions.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              {t('noQuestionsYet')}
-            </div>
+            <EmptyState description={t('noQuestionsYet')} className="py-8" />
           )}
 
           {questions.map((question, qIndex) => (

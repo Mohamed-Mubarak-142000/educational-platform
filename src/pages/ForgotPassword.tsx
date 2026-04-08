@@ -56,7 +56,7 @@ export default function ForgotPassword() {
                     )}
                   </div>
                   <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/30" disabled={mutation.isPending}>
-                    {mutation.isPending ? '...' : t('sendResetLink')}
+                    {mutation.isPending ? t('loadingEllipsis') : t('sendResetLink')}
                   </Button>
                   {sent && (
                     <p className="text-green-600 text-center text-sm">{t('resetEmailSent')}</p>

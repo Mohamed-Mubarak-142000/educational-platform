@@ -167,7 +167,7 @@ export default function Register() {
                     </label>
                   </div>
                   <Button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-600/30" disabled={registerMutation.isPending}>
-                    {registerMutation.isPending ? '...' : t('register')}
+                    {registerMutation.isPending ? t('loadingEllipsis') : t('register')}
                   </Button>
                   {registerMutation.isError && (
                     <p className="text-red-500 text-center text-sm">

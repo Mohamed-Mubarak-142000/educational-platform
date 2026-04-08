@@ -44,7 +44,7 @@ export default function AdminTeachers() {
       key: 'profileImage', 
       label: t('photo'), 
       render: (v, row: any) => v ? (
-        <img src={v} alt="Profile" className="w-10 h-10 rounded-full object-cover" />
+        <img src={v} alt={t('profilePhotoAlt')} className="w-10 h-10 rounded-full object-cover" />
       ) : (
         <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-semibold">
           {(row?.name || 'U')[0]}

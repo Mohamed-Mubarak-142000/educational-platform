@@ -11,6 +11,7 @@ import {
   getSubjectsByStage,
 } from '@/api/subjectApi';
 import { Card, CardContent } from '@/components/ui/card';
+import { EmptyState } from '@/components/shared';
 import { Button } from '@/components/ui/button';
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -21,7 +22,6 @@ import {
   FileText,
   Clock,
   ClipboardList,
-  Layers,
   User,
   Lock,
   ArrowRight,
@@ -29,10 +29,39 @@ import {
 import { spacing } from '@/lib/constants';
 import StudentQuizModal from '@/components/StudentQuizModal';
 
+type TeacherRef = string | { _id: string; name: string };
+
+type Subject = {
+  _id: string;
+  name: string;
+  icon?: string;
+  teacherId: TeacherRef;
+};
+
+type Unit = {
+  _id: string;
+  title: string;
+  order: number;
+  subjectId: string;
+};
+
+type Lesson = {
+  _id: string;
+  title: string;
+  duration?: number;
+  videoUrl?: string;
+  pdfUrl?: string;
+};
+
+type Quiz = {
+  _id: string;
+  title?: string;
+};
+
 // ── Quiz badge ──────────────────────────────────────────────────────
 function QuizBadge({ attachedToId, label }: { attachedToId: string; label: string }) {
   const [open, setOpen] = useState(false);
-  const { data: quiz } = useQuery({
+  const { data: quiz } = useQuery<Quiz | null>({
     queryKey: ['unit-quiz', attachedToId],
     queryFn: () => getQuizByAttached(attachedToId),
   });
@@ -56,8 +85,8 @@ function EnrolledUnitCard({ unitId, navigate }: { unitId: string; navigate: Retu
   const { t } = useTranslation();
   const [open, setOpen] = useState(true);
 
-  const { data: unit } = useQuery({ queryKey: ['unit', unitId], queryFn: () => getUnitById(unitId) });
-  const { data: lessons = [] } = useQuery({ queryKey: ['unit-lessons', unitId], queryFn: () => getLessonsByUnit(unitId) });
+  const { data: unit } = useQuery<Unit>({ queryKey: ['unit', unitId], queryFn: () => getUnitById(unitId) });
+  const { data: lessons = [] } = useQuery<Lesson[]>({ queryKey: ['unit-lessons', unitId], queryFn: () => getLessonsByUnit(unitId) });
 
   if (!unit) return <div className="h-12 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />;
 
@@ -75,7 +104,7 @@ function EnrolledUnitCard({ unitId, navigate }: { unitId: string; navigate: Retu
           <span className="hidden sm:flex items-center gap-1 text-xs text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full">
             <BookOpen className="w-3 h-3" />{lessons.length}
           </span>
-          <QuizBadge attachedToId={unitId} label={`${unit.title} Quiz`} />
+          <QuizBadge attachedToId={unitId} label={t('quizTitleSuffix', { title: unit.title })} />
           <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }} onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }}>
             <ChevronDown className="w-4 h-4 text-slate-500 cursor-pointer" />
           </motion.span>
@@ -88,11 +117,11 @@ function EnrolledUnitCard({ unitId, navigate }: { unitId: string; navigate: Retu
             <div className="bg-white dark:bg-slate-950">
               {lessons.length === 0 ? (
                 <div className="px-6 py-5 text-center">
-                  <p className="text-sm text-slate-400 dark:text-slate-500">{t('noLessonsInUnit')}</p>
+                  <EmptyState description={t('noLessonsInUnit')} className="py-6" />
                 </div>
               ) : (
                 <div className="divide-y divide-slate-100 dark:divide-slate-800/50">
-                  {lessons.map((lesson: any, idx: number) => (
+                  {lessons.map((lesson, idx) => (
                     <div key={lesson._id} className="flex items-center gap-4 px-6 py-3 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors">
                       <span className="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-medium text-slate-500 flex-shrink-0">{idx + 1}</span>
                       <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -107,7 +136,7 @@ function EnrolledUnitCard({ unitId, navigate }: { unitId: string; navigate: Retu
                           <Clock className="w-3 h-3" />{lesson.duration}m
                         </span>
                       )}
-                      <QuizBadge attachedToId={lesson._id} label={`${lesson.title} Quiz`} />
+                      <QuizBadge attachedToId={lesson._id} label={t('quizTitleSuffix', { title: lesson.title })} />
                       <Button size="sm" variant="ghost" className="h-7 px-2.5 text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex-shrink-0"
                         onClick={() => navigate(`/lesson/${lesson._id}?subjectId=${unit.subjectId}&from=student`)}>
                         {t('view')}
@@ -193,7 +222,8 @@ function TeacherSection({
 }
 
 // ── Subject row for "available from teacher but not enrolled" ────────
-function AvailableSubjectRow({ subject, navigate }: { subject: any; navigate: ReturnType<typeof useNavigate> }) {
+function AvailableSubjectRow({ subject, navigate }: { subject: Subject; navigate: ReturnType<typeof useNavigate> }) {
+  const { t } = useTranslation();
   return (
     <button
       type="button"
@@ -203,7 +233,7 @@ function AvailableSubjectRow({ subject, navigate }: { subject: any; navigate: Re
       <span className="text-2xl flex-shrink-0">{subject.icon}</span>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">{subject.name}</p>
-        <p className="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1 mt-0.5"><Lock className="w-3 h-3" />Subscribe to access units</p>
+        <p className="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1 mt-0.5"><Lock className="w-3 h-3" />{t('subscribeToAccessUnits')}</p>
       </div>
       <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition-colors flex-shrink-0" />
     </button>
@@ -218,8 +248,9 @@ function UnitTeacherResolver({
   unitId: string;
   onResolved: (unitId: string, teacherId: string, teacherName: string) => void;
 }) {
-  const { data: unit } = useQuery({ queryKey: ['unit', unitId], queryFn: () => getUnitById(unitId) });
-  const { data: subject } = useQuery({
+  const { t } = useTranslation();
+  const { data: unit } = useQuery<Unit>({ queryKey: ['unit', unitId], queryFn: () => getUnitById(unitId) });
+  const { data: subject } = useQuery<Subject>({
     queryKey: ['subject', unit?.subjectId],
     queryFn: () => getSubjectById(unit!.subjectId),
     enabled: !!unit?.subjectId,
@@ -228,7 +259,7 @@ function UnitTeacherResolver({
   // Report upward when resolved
   if (unit && subject) {
     const tid = typeof subject.teacherId === 'object' ? subject.teacherId._id : subject.teacherId as string;
-    const tname = typeof subject.teacherId === 'object' ? subject.teacherId.name : 'Unknown Teacher';
+    const tname = typeof subject.teacherId === 'object' ? subject.teacherId.name : t('unknownTeacher');
     onResolved(unitId, tid, tname);
   }
 
@@ -241,14 +272,14 @@ export default function StudentCourses() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const { data: enrolledUnitIds = [], isLoading } = useQuery({
+  const { data: enrolledUnitIds = [], isLoading } = useQuery<string[]>({
     queryKey: ['enrolled-units', user?._id],
     queryFn: () => getEnrolledUnitIds(user!._id),
     enabled: !!user?._id,
   });
 
   // Stage subjects for "other available subjects" section
-  const { data: stageSubjects = [] } = useQuery({
+  const { data: stageSubjects = [] } = useQuery<Subject[]>({
     queryKey: ['subjects-by-stage', user?.stageId],
     queryFn: () => getSubjectsByStage(user!.stageId!),
     enabled: !!user?.stageId,
@@ -298,12 +329,14 @@ export default function StudentCourses() {
       ) : enrolledUnitIds.length === 0 ? (
         <Card className="border border-slate-200 dark:border-slate-800 border-dashed">
           <CardContent className="py-16 text-center">
-            <Layers className="w-12 h-12 mx-auto mb-4 text-slate-300 dark:text-slate-600" />
-            <p className="text-slate-500 mb-2">{t('notEnrolledYet')}</p>
-            <p className="text-sm text-slate-400 dark:text-slate-500 mb-5">{t('browseSubjectsHint')}</p>
-            <Button onClick={() => navigate('/student/learn')} className="bg-blue-600 hover:bg-blue-700 text-white">
-              {t('browseSubjects')}
-            </Button>
+            <EmptyState
+              description={`${t('notEnrolledYet')} ${t('browseSubjectsHint')}`}
+              action={(
+                <Button onClick={() => navigate('/student/learn')} className="bg-blue-600 hover:bg-blue-700 text-white">
+                  {t('browseSubjects')}
+                </Button>
+              )}
+            />
           </CardContent>
         </Card>
       ) : (
@@ -327,11 +360,9 @@ export default function StudentCourses() {
                 {t('otherSubjectsInStage')}
               </p>
               <div className="space-y-2">
-                {stageSubjects
-                  .filter(() => true)
-                  .map((subject: any) => (
-                    <AvailableSubjectRow key={subject._id} subject={subject} navigate={navigate} />
-                  ))}
+                {stageSubjects.map((subject) => (
+                  <AvailableSubjectRow key={subject._id} subject={subject} navigate={navigate} />
+                ))}
               </div>
             </div>
           )}

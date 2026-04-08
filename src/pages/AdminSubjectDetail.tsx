@@ -6,6 +6,7 @@ import {
   getSubjectById,
   getUnitsBySubject,
   getLessonsByUnit,
+  getPartsByLesson,
   createUnit,
   updateUnit,
   deleteUnit,
@@ -22,11 +23,13 @@ import {
   setUnitAvailability,
 } from '@/api/subjectApi';
 import { Card, CardContent } from '@/components/ui/card';
+import { EmptyState } from '@/components/shared';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogContent,
@@ -59,23 +62,130 @@ type UnitForm = { title: string; description: string };
 
 const emptyUnitForm: UnitForm = { title: '', description: '' };
 
-const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
 function AvailabilityBadge({ status }: { status?: string }) {
+  const { t } = useTranslation();
   if (!status || status === 'available') return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-800/40">
-      <Unlock className="w-2.5 h-2.5" />Available
+      <Unlock className="w-2.5 h-2.5" />{t('available')}
     </span>
   );
   if (status === 'locked') return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800/40">
-      <Lock className="w-2.5 h-2.5" />Locked
+      <Lock className="w-2.5 h-2.5" />{t('locked')}
     </span>
   );
   return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-800/40">
-      <CalendarClock className="w-2.5 h-2.5" />Upcoming
+      <CalendarClock className="w-2.5 h-2.5" />{t('upcoming')}
     </span>
+  );
+}
+
+function LessonRow({
+  lesson,
+  subjectId,
+  index,
+  onEditLesson,
+  onDeleteLesson,
+  onAddLessonQuiz,
+  navigate,
+}: {
+  lesson: any;
+  subjectId: string;
+  index: number;
+  onEditLesson: (lesson: any) => void;
+  onDeleteLesson: (lessonId: string) => void;
+  onAddLessonQuiz: (lessonId: string, lessonTitle: string) => void;
+  navigate: ReturnType<typeof useNavigate>;
+}) {
+  const { t } = useTranslation();
+  const { data: parts = [] } = useQuery({
+    queryKey: ['lesson-parts', lesson._id],
+    queryFn: () => getPartsByLesson(lesson._id),
+  });
+
+  const { data: lessonQuiz } = useQuery({
+    queryKey: ['unit-quiz', lesson._id],
+    queryFn: () => getQuizByAttached(lesson._id),
+  });
+
+  return (
+    <div className="px-6 py-3.5">
+      <div className="flex items-center gap-4 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors rounded-lg px-2 py-2">
+        <span className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-medium text-slate-500 flex-shrink-0">
+          {index + 1}
+        </span>
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          {lesson.videoUrl ? (
+            <PlayCircle className="w-4 h-4 text-blue-500 flex-shrink-0" />
+          ) : (
+            <FileText className="w-4 h-4 text-slate-400 flex-shrink-0" />
+          )}
+          <span
+            className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+            onClick={() => navigate(`/lesson/${lesson._id}?subjectId=${subjectId}`)}
+          >
+            {lesson.title}
+          </span>
+        </div>
+        {lesson.duration && (
+          <span className="hidden sm:flex items-center gap-1 text-xs text-slate-400 dark:text-slate-500 flex-shrink-0">
+            <Clock className="w-3 h-3" />
+            {lesson.duration}m
+          </span>
+        )}
+        {lessonQuiz && (
+          <span className="hidden sm:flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/40 px-2 py-1 rounded-full flex-shrink-0">
+            <ClipboardList className="w-3 h-3" /> {t('quizLabel')}
+          </span>
+        )}
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 w-7 p-0"
+            onClick={() => onEditLesson(lesson)}
+            title={t('editLesson')}
+          >
+            <Pencil className="w-3 h-3" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 w-7 p-0 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500"
+            onClick={() => onDeleteLesson(lesson._id)}
+            title={t('deleteLesson')}
+          >
+            <Trash2 className="w-3 h-3" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 w-7 p-0 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+            onClick={() => onAddLessonQuiz(lesson._id, lesson.title)}
+            title={t('manageLessonQuiz')}
+          >
+            <ClipboardList className="w-3 h-3" />
+          </Button>
+        </div>
+      </div>
+
+      {parts.length > 0 && (
+        <div className="mt-2 ms-10 space-y-1">
+          {parts.map((part: any, partIndex: number) => (
+            <div
+              key={part._id}
+              className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/40 px-3 py-1.5 rounded-lg"
+            >
+              <span className="w-4 h-4 rounded bg-slate-200 dark:bg-slate-700 text-[10px] flex items-center justify-center flex-shrink-0">
+                {partIndex + 1}
+              </span>
+              <span className="truncate">{part.title}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -106,6 +216,7 @@ function LessonsAccordionItem({
   onManageAvailability: (unit: any) => void;
   navigate: ReturnType<typeof useNavigate>;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(true);
 
   const { data: lessons = [], isLoading } = useQuery({
@@ -140,7 +251,7 @@ function LessonsAccordionItem({
         <div className="flex items-center gap-2 ml-4 flex-shrink-0">
           <span className="hidden sm:flex items-center gap-1 text-xs text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full">
             <BookOpen className="w-3 h-3" />
-            {lessons.length} lesson{lessons.length !== 1 ? 's' : ''}
+            {t('lessonCount', { count: lessons.length })}
           </span>
           <AvailabilityBadge status={availability?.status} />
           {/* Unit actions — always visible, stopPropagation so accordion doesn't toggle */}
@@ -150,7 +261,7 @@ function LessonsAccordionItem({
               size="sm"
               className="h-7 w-7 p-0"
               onClick={() => onEditUnit(unit)}
-              title="Edit unit"
+              title={t('editUnit')}
             >
               <Pencil className="w-3.5 h-3.5" />
             </Button>
@@ -159,7 +270,7 @@ function LessonsAccordionItem({
               size="sm"
               className="h-7 w-7 p-0 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500"
               onClick={() => onDeleteUnit(unit._id)}
-              title="Delete unit"
+              title={t('deleteUnit')}
             >
               <Trash2 className="w-3.5 h-3.5" />
             </Button>
@@ -168,7 +279,7 @@ function LessonsAccordionItem({
               size="sm"
               className="h-7 w-7 p-0 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400"
               onClick={() => onAddUnitQuiz(unit._id, unit.title)}
-              title="Manage unit quiz"
+              title={t('manageUnitQuiz')}
             >
               <ClipboardList className="w-3.5 h-3.5" />
             </Button>
@@ -177,7 +288,7 @@ function LessonsAccordionItem({
               size="sm"
               className="h-7 w-7 p-0 hover:bg-purple-50 dark:hover:bg-purple-900/20 text-purple-600 dark:text-purple-400"
               onClick={() => onManageAvailability(unit)}
-              title="Manage availability"
+              title={t('manageAvailability')}
             >
               <Settings2 className="w-3.5 h-3.5" />
             </Button>
@@ -208,68 +319,21 @@ function LessonsAccordionItem({
             </div>
           ) : lessons.length === 0 ? (
             <div className="px-6 py-6 text-center">
-              <p className="text-sm text-slate-400 dark:text-slate-500 mb-3">No lessons yet in this unit.</p>
+              <EmptyState description={t('noLessonsInUnit')} className="py-6" />
             </div>
           ) : (
             <div className="divide-y divide-slate-100 dark:divide-slate-800/50">
               {lessons.map((lesson: any, idx: number) => (
-                <div
+                <LessonRow
                   key={lesson._id}
-                  className="flex items-center gap-4 px-6 py-3.5 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors"
-                >
-                  <span className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-medium text-slate-500 flex-shrink-0">
-                    {idx + 1}
-                  </span>
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    {lesson.videoUrl ? (
-                      <PlayCircle className="w-4 h-4 text-blue-500 flex-shrink-0" />
-                    ) : (
-                      <FileText className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                    )}
-                    <span
-                      className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                      onClick={() => navigate(`/lesson/${lesson._id}?subjectId=${subjectId}`)}
-                    >
-                      {lesson.title}
-                    </span>
-                  </div>
-                  {lesson.duration && (
-                    <span className="hidden sm:flex items-center gap-1 text-xs text-slate-400 dark:text-slate-500 flex-shrink-0">
-                      <Clock className="w-3 h-3" />
-                      {lesson.duration}m
-                    </span>
-                  )}
-                  {/* Lesson actions — always visible */}
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 w-7 p-0"
-                      onClick={() => onEditLesson(lesson, unit._id)}
-                      title="Edit lesson"
-                    >
-                      <Pencil className="w-3 h-3" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 w-7 p-0 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500"
-                      onClick={() => onDeleteLesson(lesson._id)}
-                      title="Delete lesson"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 w-7 p-0 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400"
-                      onClick={() => onAddLessonQuiz(lesson._id, lesson.title)}
-                      title="Manage lesson quiz"
-                    >
-                      <ClipboardList className="w-3 h-3" />
-                    </Button>
-                  </div>
-                </div>
+                  lesson={lesson}
+                  subjectId={subjectId}
+                  index={idx}
+                  onEditLesson={(l) => onEditLesson(l, unit._id)}
+                  onDeleteLesson={onDeleteLesson}
+                  onAddLessonQuiz={onAddLessonQuiz}
+                  navigate={navigate}
+                />
               ))}
             </div>
           )}
@@ -280,7 +344,7 @@ function LessonsAccordionItem({
               className="text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 h-8 text-xs font-medium"
               onClick={(e) => { e.stopPropagation(); onAddLesson(unit._id); }}
             >
-              <Plus className="w-3.5 h-3.5 mr-1" /> Add Lesson
+              <Plus className="w-3.5 h-3.5 mr-1" /> {t('addLesson')}
             </Button>
           </div>
         </div>
@@ -311,6 +375,7 @@ function QuizDialog({
   attachedToId: string;
   attachedTitle: string;
 }) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [view, setView] = useState<'main' | 'question'>('main');
   const [createTitle, setCreateTitle] = useState('');
@@ -401,10 +466,10 @@ function QuizDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">
             <ClipboardList className="w-4 h-4 text-blue-600 flex-shrink-0" />
-            <span className="truncate">Quiz — {attachedTitle}</span>
+            <span className="truncate">{t('quizTitleWithAttachment', { title: attachedTitle })}</span>
             {quiz && (
               <span className="text-xs font-normal text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full flex-shrink-0">
-                {questions.length} Q{questions.length !== 1 ? 's' : ''}
+                {t('questionCount', { count: questions.length })}
               </span>
             )}
           </DialogTitle>
@@ -419,14 +484,14 @@ function QuizDialog({
                 /* ── Create quiz form ── */
                 <div className="space-y-3">
                   <p className="text-sm text-slate-500 dark:text-slate-400">
-                    No quiz attached to this {attachedTo} yet. Create one to get started.
+                    {t('noQuizAttached', { attachedTo })}
                   </p>
                   <div>
-                    <Label className="text-xs text-slate-500 mb-1 block">Quiz Title *</Label>
+                    <Label className="text-xs text-slate-500 mb-1 block">{t('quizTitleLabel')}</Label>
                     <Input
                       value={createTitle}
                       onChange={(e) => setCreateTitle(e.target.value)}
-                      placeholder={`e.g. ${attachedTitle} Quiz`}
+                      placeholder={t('quizTitlePlaceholder', { title: attachedTitle })}
                       onKeyDown={(e) => { if (e.key === 'Enter' && createTitle.trim()) createQuizMut.mutate(); }}
                     />
                   </div>
@@ -435,7 +500,7 @@ function QuizDialog({
                     onClick={() => createQuizMut.mutate()}
                     disabled={!createTitle.trim() || createQuizMut.isPending}
                   >
-                    {createQuizMut.isPending ? 'Creating...' : 'Create Quiz'}
+                    {createQuizMut.isPending ? t('creating') : t('createQuiz')}
                   </Button>
                 </div>
               ) : (
@@ -453,29 +518,29 @@ function QuizDialog({
                           autoFocus
                         />
                         <Button size="sm" className="h-7 px-3 text-xs" onClick={() => updateQuizMut.mutate(titleDraft)} disabled={!titleDraft.trim() || updateQuizMut.isPending}>
-                          {updateQuizMut.isPending ? '...' : 'Save'}
+                          {updateQuizMut.isPending ? t('loadingEllipsis') : t('save')}
                         </Button>
                         <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => setEditingTitle(false)}>
-                          Cancel
+                          {t('cancel')}
                         </Button>
                       </div>
                     ) : confirmDeleteQuiz ? (
                       <div className="flex-1 flex items-center gap-2 flex-wrap">
-                        <span className="text-xs text-red-600 dark:text-red-400 font-medium">Delete quiz and all questions?</span>
+                        <span className="text-xs text-red-600 dark:text-red-400 font-medium">{t('deleteQuizConfirm')}</span>
                         <Button size="sm" className="h-6 px-2 text-xs bg-red-600 hover:bg-red-700 text-white" onClick={() => deleteQuizMut.mutate()} disabled={deleteQuizMut.isPending}>
-                          {deleteQuizMut.isPending ? '...' : 'Yes, Delete'}
+                          {deleteQuizMut.isPending ? t('loadingEllipsis') : t('confirmDelete')}
                         </Button>
                         <Button size="sm" variant="ghost" className="h-6 px-2 text-xs" onClick={() => setConfirmDeleteQuiz(false)}>
-                          Cancel
+                          {t('cancel')}
                         </Button>
                       </div>
                     ) : (
                       <>
                         <span className="flex-1 text-sm font-medium text-slate-800 dark:text-slate-200 truncate">{quiz.title}</span>
-                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 flex-shrink-0" onClick={() => { setTitleDraft(quiz.title); setEditingTitle(true); }} title="Edit quiz title">
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 flex-shrink-0" onClick={() => { setTitleDraft(quiz.title); setEditingTitle(true); }} title={t('editQuizTitle')}>
                           <Pencil className="w-3 h-3" />
                         </Button>
-                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 flex-shrink-0 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500" onClick={() => setConfirmDeleteQuiz(true)} title="Delete quiz">
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 flex-shrink-0 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500" onClick={() => setConfirmDeleteQuiz(true)} title={t('deleteQuizTitle')}>
                           <Trash2 className="w-3 h-3" />
                         </Button>
                       </>
@@ -486,16 +551,16 @@ function QuizDialog({
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                        Questions ({questions.length})
+                        {t('questionsCount', { count: questions.length })}
                       </h4>
                       <Button variant="ghost" size="sm" className="text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 h-7 text-xs font-medium" onClick={openAddQuestion}>
-                        <Plus className="w-3 h-3 mr-1" /> Add Question
+                        <Plus className="w-3 h-3 mr-1" /> {t('addQuestion')}
                       </Button>
                     </div>
 
                     {questions.length === 0 ? (
                       <div className="py-6 text-center border border-dashed border-slate-200 dark:border-slate-700 rounded-lg">
-                        <p className="text-sm text-slate-400 dark:text-slate-500">No questions yet. Add the first question.</p>
+                        <EmptyState description={t('noQuestionsYet')} className="py-6" />
                       </div>
                     ) : (
                       <div className="space-y-2">
@@ -509,20 +574,20 @@ function QuizDialog({
                               <div className="flex items-center gap-1 flex-shrink-0">
                                 {deleteQId === q._id ? (
                                   <>
-                                    <span className="text-xs text-red-500">Delete?</span>
+                                    <span className="text-xs text-red-500">{t('deleteConfirmShort')}</span>
                                     <Button variant="ghost" size="sm" className="h-6 px-2 text-xs text-white bg-red-500 hover:bg-red-600" onClick={() => deleteQMut.mutate(q._id)} disabled={deleteQMut.isPending}>
-                                      Yes
+                                      {t('yes')}
                                     </Button>
                                     <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={() => setDeleteQId(null)}>
-                                      No
+                                      {t('no')}
                                     </Button>
                                   </>
                                 ) : (
                                   <>
-                                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => openEditQuestion(q)} title="Edit question">
+                                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => openEditQuestion(q)} title={t('editQuestion')}>
                                       <Pencil className="w-3 h-3" />
                                     </Button>
-                                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500" onClick={() => setDeleteQId(q._id)} title="Delete question">
+                                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500" onClick={() => setDeleteQId(q._id)} title={t('deleteQuestion')}>
                                       <Trash2 className="w-3 h-3" />
                                     </Button>
                                   </>
@@ -560,23 +625,23 @@ function QuizDialog({
             <div className="space-y-4 py-2">
               <div className="flex items-center gap-2">
                 <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => { setView('main'); setQForm(emptyQForm); setEditQId(null); }}>
-                  ← Back
+                  {t('back')}
                 </Button>
                 <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                  {editQId ? 'Edit Question' : 'New Question'}
+                  {editQId ? t('editQuestion') : t('newQuestion')}
                 </h3>
               </div>
               <div>
-                <Label className="text-xs text-slate-500 mb-1 block">Question *</Label>
+                <Label className="text-xs text-slate-500 mb-1 block">{t('questionRequiredLabel')}</Label>
                 <Textarea
                   value={qForm.text}
                   onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setQForm((f) => ({ ...f, text: e.target.value }))}
-                  placeholder="e.g. What is the powerhouse of the cell?"
+                  placeholder={t('questionPlaceholderExample')}
                   rows={2}
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs text-slate-500 block">Options * — click the letter to mark the correct answer</Label>
+                <Label className="text-xs text-slate-500 block">{t('questionOptionsHelp')}</Label>
                 {OPT_KEYS.map((key, i) => (
                   <div
                     key={key}
@@ -594,14 +659,14 @@ function QuizDialog({
                           ? 'border-green-500 bg-green-500 text-white'
                           : 'border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:border-slate-400'
                       }`}
-                      title={`Mark option ${OPT_LABELS[i]} as correct`}
+                      title={t('markOptionCorrect', { option: OPT_LABELS[i] })}
                     >
                       {OPT_LABELS[i]}
                     </button>
                     <Input
                       value={qForm[key]}
                       onChange={(e) => setQForm((f) => ({ ...f, [key]: e.target.value }))}
-                      placeholder={`Option ${OPT_LABELS[i]}...`}
+                      placeholder={t('optionPlaceholder', { option: OPT_LABELS[i] })}
                       className="h-8 text-sm border-0 shadow-none focus-visible:ring-0 bg-transparent p-0"
                     />
                   </div>
@@ -609,7 +674,7 @@ function QuizDialog({
               </div>
               <DialogFooter>
                 <Button variant="ghost" onClick={() => { setView('main'); setQForm(emptyQForm); setEditQId(null); }}>
-                  Cancel
+                  {t('cancel')}
                 </Button>
                 <Button
                   className={buttonVariants.primary}
@@ -617,8 +682,8 @@ function QuizDialog({
                   disabled={(editQId ? updateQMut.isPending : createQMut.isPending) || !qFormValid}
                 >
                   {(editQId ? updateQMut.isPending : createQMut.isPending)
-                    ? 'Saving...'
-                    : editQId ? 'Save Changes' : 'Add Question'}
+                    ? t('saving')
+                    : editQId ? t('saveChanges') : t('addQuestion')}
                 </Button>
               </DialogFooter>
             </div>
@@ -635,6 +700,21 @@ export default function AdminSubjectDetail() {
   const navigate = useNavigate();
   const { id: subjectId } = useParams<{ id: string }>();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
+  const monthNames = [
+    t('monthShortJan'),
+    t('monthShortFeb'),
+    t('monthShortMar'),
+    t('monthShortApr'),
+    t('monthShortMay'),
+    t('monthShortJun'),
+    t('monthShortJul'),
+    t('monthShortAug'),
+    t('monthShortSep'),
+    t('monthShortOct'),
+    t('monthShortNov'),
+    t('monthShortDec'),
+  ];
 
   // Unit dialog state
   const [unitFormOpen, setUnitFormOpen] = useState(false);
@@ -752,7 +832,7 @@ export default function AdminSubjectDetail() {
   if (!subject) {
     return (
       <div className={`${spacing.pageContainer} py-12 text-center`}>
-        <p className="text-slate-500 mb-4">Subject not found.</p>
+        <p className="text-slate-500 mb-4">{t('subjectNotFound')}</p>
         <Button variant="outline" onClick={() => navigate('/admin/subjects')}>
           <ArrowLeft className="w-4 h-4 mr-2" /> Back to Subjects
         </Button>
@@ -781,7 +861,7 @@ export default function AdminSubjectDetail() {
         </div>
         <Button onClick={openAddUnit} className={buttonVariants.primary}>
           <Plus className="w-4 h-4 mr-2" />
-          Add Unit
+          {t('addUnit')}
         </Button>
       </div>
 
@@ -793,7 +873,7 @@ export default function AdminSubjectDetail() {
         </div>
         <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
           <BookOpen className="w-4 h-4" />
-          <span>Lessons inside each unit</span>
+          <span>{t('lessonsInsideUnit')}</span>
         </div>
       </div>
 
@@ -807,11 +887,14 @@ export default function AdminSubjectDetail() {
       ) : units.length === 0 ? (
         <Card className={cardVariants.default}>
           <CardContent className="py-16 text-center">
-            <Layers className="w-12 h-12 mx-auto mb-4 text-slate-300 dark:text-slate-600" />
-            <p className="text-slate-500 mb-4">No units yet. Add the first unit to this subject.</p>
-            <Button onClick={openAddUnit} className={buttonVariants.primary}>
-              <Plus className="w-4 h-4 mr-2" /> Add Unit
-            </Button>
+            <EmptyState
+              description={t('noUnitsYet')}
+              action={(
+                <Button onClick={openAddUnit} className={buttonVariants.primary}>
+                  <Plus className="w-4 h-4 mr-2" /> {t('addUnit')}
+                </Button>
+              )}
+            />
           </CardContent>
         </Card>
       ) : (
@@ -839,33 +922,33 @@ export default function AdminSubjectDetail() {
       <Dialog open={unitFormOpen} onOpenChange={(open) => { if (!open) { setUnitFormOpen(false); setEditUnitId(null); setUnitForm(emptyUnitForm); } }}>
         <DialogContent className="sm:max-w-[440px]">
           <DialogHeader>
-            <DialogTitle>{editUnitId ? 'Edit Unit' : 'Add New Unit'}</DialogTitle>
+            <DialogTitle>{editUnitId ? t('editUnit') : t('addNewUnit')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div>
-              <Label className="text-xs text-slate-500 mb-1 block">Unit Title *</Label>
+              <Label className="text-xs text-slate-500 mb-1 block">{t('unitTitleLabel')}</Label>
               <Input
                 value={unitForm.title}
                 onChange={(e) => setUnitForm((f) => ({ ...f, title: e.target.value }))}
-                placeholder="e.g. Unit 1: Introduction to Cells"
+                placeholder={t('unitTitlePlaceholder')}
               />
             </div>
             <div>
-              <Label className="text-xs text-slate-500 mb-1 block">Description (optional)</Label>
+              <Label className="text-xs text-slate-500 mb-1 block">{t('descriptionOptional')}</Label>
               <Textarea
                 value={unitForm.description}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setUnitForm((f) => ({ ...f, description: e.target.value }))}
-                placeholder="Brief description of this unit..."
+                placeholder={t('unitDescriptionPlaceholder')}
                 rows={2}
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => { setUnitFormOpen(false); setEditUnitId(null); setUnitForm(emptyUnitForm); }}>
-              Cancel
+              {t('cancel')}
             </Button>
             <Button className={buttonVariants.primary} onClick={handleUnitSubmit} disabled={unitsPending || !unitForm.title.trim()}>
-              {unitsPending ? 'Saving...' : editUnitId ? 'Save Changes' : 'Add Unit'}
+              {unitsPending ? t('saving') : editUnitId ? t('saveChanges') : t('addUnit')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -874,10 +957,10 @@ export default function AdminSubjectDetail() {
       {/* Delete Unit Confirm */}
       <ConfirmDialog
         open={!!deleteUnitId}
-        title="Delete Unit"
-        description="This will permanently delete this unit and all its lessons. Are you sure?"
-        confirmLabel="Delete"
-        cancelLabel="Cancel"
+        title={t('deleteUnit')}
+        description={t('deleteUnitConfirm')}
+        confirmLabel={t('delete')}
+        cancelLabel={t('cancel')}
         onConfirm={() => { if (deleteUnitId) deleteUnitMutation.mutate(deleteUnitId); }}
         onCancel={() => setDeleteUnitId(null)}
       />
@@ -885,10 +968,10 @@ export default function AdminSubjectDetail() {
       {/* Delete Lesson Confirm */}
       <ConfirmDialog
         open={!!deleteLessonId}
-        title="Delete Lesson"
-        description="This will permanently delete this lesson. Are you sure?"
-        confirmLabel="Delete"
-        cancelLabel="Cancel"
+        title={t('deleteLesson')}
+        description={t('deleteLessonConfirm')}
+        confirmLabel={t('delete')}
+        cancelLabel={t('cancel')}
         onConfirm={() => { if (deleteLessonId) deleteLessonMutation.mutate(deleteLessonId); }}
         onCancel={() => setDeleteLessonId(null)}
       />
@@ -910,12 +993,12 @@ export default function AdminSubjectDetail() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Settings2 className="w-5 h-5 text-purple-600" />
-              Unit Availability — {availabilityUnit?.title}
+              {t('unitAvailabilityTitle', { title: availabilityUnit?.title ?? '' })}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div>
-              <Label className="text-xs text-slate-500 mb-2 block">Status</Label>
+              <Label className="text-xs text-slate-500 mb-2 block">{t('status')}</Label>
               <div className="flex gap-2 flex-wrap">
                 {(['available', 'locked', 'upcoming'] as const).map((s) => (
                   <button
@@ -928,7 +1011,7 @@ export default function AdminSubjectDetail() {
                         : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700'
                     }`}
                   >
-                    {s}
+                    {t(s)}
                   </button>
                 ))}
               </div>
@@ -937,20 +1020,20 @@ export default function AdminSubjectDetail() {
             {availabilityForm.status === 'upcoming' && (
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-xs text-slate-500 mb-1 block">Available from Month</Label>
+                  <Label className="text-xs text-slate-500 mb-1 block">{t('availableFromMonth')}</Label>
                   <select
                     value={availabilityForm.availableMonth}
                     onChange={(e) => setAvailabilityForm((p) => ({ ...p, availableMonth: e.target.value }))}
                     className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm px-3 py-2"
                   >
-                    <option value="">Select month</option>
-                    {MONTH_NAMES.map((m, i) => (
+                    <option value="">{t('selectMonth')}</option>
+                    {monthNames.map((m, i) => (
                       <option key={i + 1} value={i + 1}>{m}</option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <Label className="text-xs text-slate-500 mb-1 block">Year</Label>
+                  <Label className="text-xs text-slate-500 mb-1 block">{t('year')}</Label>
                   <Input
                     type="number"
                     placeholder={new Date().getFullYear().toString()}
@@ -962,16 +1045,16 @@ export default function AdminSubjectDetail() {
             )}
 
             <div>
-              <Label className="text-xs text-slate-500 mb-1 block">Note (optional)</Label>
+              <Label className="text-xs text-slate-500 mb-1 block">{t('noteOptional')}</Label>
               <Input
-                placeholder="e.g. Available from May 2026"
+                placeholder={t('availabilityNotePlaceholder')}
                 value={availabilityForm.note}
                 onChange={(e) => setAvailabilityForm((p) => ({ ...p, note: e.target.value }))}
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setAvailabilityDialogOpen(false)}>Cancel</Button>
+            <Button variant="ghost" onClick={() => setAvailabilityDialogOpen(false)}>{t('cancel')}</Button>
             <Button
               className={buttonVariants.primary}
               disabled={setAvailabilityMutation.isPending}
@@ -988,7 +1071,7 @@ export default function AdminSubjectDetail() {
                 });
               }}
             >
-              {setAvailabilityMutation.isPending ? 'Saving…' : 'Save'}
+              {setAvailabilityMutation.isPending ? t('saving') : t('save')}
             </Button>
           </DialogFooter>
         </DialogContent>

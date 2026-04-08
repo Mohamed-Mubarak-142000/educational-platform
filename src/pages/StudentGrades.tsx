@@ -9,6 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/context/AuthContext';
 import { getGradesByStudent } from '@/api/subjectApi';
 import { useTranslation } from 'react-i18next';
+import { EmptyState } from '@/components/shared';
 import { motion } from 'framer-motion';
 import {
   Award,
@@ -20,6 +21,15 @@ import {
   BarChart2,
 } from 'lucide-react';
 import { spacing } from '@/lib/constants';
+
+type Grade = {
+  _id: string;
+  quizId: string;
+  score: number;
+  correctCount: number;
+  totalQuestions: number;
+  completedAt: string;
+};
 
 function ScoreBadge({ score }: { score: number }) {
   const pass = score >= 60;
@@ -37,8 +47,9 @@ function ScoreBadge({ score }: { score: number }) {
   );
 }
 
-function GradeRow({ grade, index }: { grade: { _id: string; quizId: string; score: number; correctCount: number; totalQuestions: number; completedAt: string }; index: number }) {
-  const quizLabel = `Quiz ${grade.quizId.slice(-5)}`;
+function GradeRow({ grade, index }: { grade: Grade; index: number }) {
+  const { t } = useTranslation();
+  const quizLabel = `${t('quizLabel')} ${grade.quizId.slice(-5)}`;
 
   const date = new Date(grade.completedAt);
   const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -78,7 +89,7 @@ export default function StudentGrades() {
   const { t } = useTranslation();
   const { user } = useAuth();
 
-  const { data: grades = [], isLoading } = useQuery({
+  const { data: grades = [], isLoading } = useQuery<Grade[]>({
     queryKey: ['student-grades', user?._id],
     queryFn: () => getGradesByStudent(user!._id),
     enabled: !!user?._id,
@@ -86,10 +97,10 @@ export default function StudentGrades() {
 
   // Summary stats
   const total = grades.length;
-  const passed = grades.filter((g: any) => g.score >= 60).length;
+  const passed = grades.filter((g) => g.score >= 60).length;
   const avg =
     total > 0
-      ? Math.round(grades.reduce((sum: number, g: any) => sum + g.score, 0) / total)
+      ? Math.round(grades.reduce((sum, g) => sum + g.score, 0) / total)
       : 0;
   const passRate = total > 0 ? Math.round((passed / total) * 100) : 0;
 
@@ -137,13 +148,7 @@ export default function StudentGrades() {
             {t('loadingGrades')}
           </div>
         ) : grades.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center px-6">
-            <Award className="w-12 h-12 text-slate-300 dark:text-slate-700 mb-4" />
-            <p className="text-slate-600 dark:text-slate-400 font-medium">{t('noGradesYet')}</p>
-            <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
-              {t('noGradesDesc')}
-            </p>
-          </div>
+          <EmptyState description={`${t('noGradesYet')} ${t('noGradesDesc')}`} className="py-12" />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -164,7 +169,7 @@ export default function StudentGrades() {
                 </tr>
               </thead>
               <tbody>
-                {grades.map((grade: any, i: number) => (
+                {grades.map((grade, i) => (
                   <GradeRow key={grade._id} grade={grade} index={i} />
                 ))}
               </tbody>

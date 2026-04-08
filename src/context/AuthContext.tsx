@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getProfile, login, register, verifyOTP, updateProfile } from '../api/authApi';
 
 interface AuthContextType {
@@ -17,6 +17,7 @@ const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [token, setToken] = useState(localStorage.getItem('token') || '');
+  const queryClient = useQueryClient();
 
   const { data: user, isLoading, isError, refetch } = useQuery({
     queryKey: ['profile'],
@@ -62,6 +63,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = () => {
     localStorage.removeItem('token');
     setToken('');
+    queryClient.removeQueries({ queryKey: ['profile'] });
+    queryClient.setQueryData(['profile'], null);
   };
 
   const refreshProfile = () => {

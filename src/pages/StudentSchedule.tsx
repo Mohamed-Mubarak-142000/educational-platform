@@ -14,7 +14,20 @@ import { motion } from 'framer-motion';
 import { Calendar, Clock, GraduationCap, User2, BookOpen, Video } from 'lucide-react';
 import { spacing } from '@/lib/constants';
 
-const DAY_ORDER = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const DAY_ORDER = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] as const;
+
+type DayName = (typeof DAY_ORDER)[number];
+
+type StudentScheduleItem = {
+  _id: string;
+  day: DayName;
+  startTime: string;
+  endTime: string;
+  subjectName: string;
+  teacherName: string;
+  enrolledStudents: string[];
+  maxStudents: number;
+};
 
 function timeLabel(t: string) {
   const [h, m] = t.split(':').map(Number);
@@ -23,8 +36,8 @@ function timeLabel(t: string) {
   return `${hour}:${m.toString().padStart(2, '0')} ${ampm}`;
 }
 
-function dayColor(day: string) {
-  const colors: Record<string, string> = {
+function dayColor(day: DayName) {
+  const colors: Record<DayName, string> = {
     Sunday: 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-800/40 text-rose-800 dark:text-rose-200',
     Monday: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800/40 text-blue-800 dark:text-blue-200',
     Tuesday: 'bg-violet-50 dark:bg-violet-900/20 border-violet-200 dark:border-violet-800/40 text-violet-800 dark:text-violet-200',
@@ -33,22 +46,22 @@ function dayColor(day: string) {
     Friday: 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300',
     Saturday: 'bg-pink-50 dark:bg-pink-900/20 border-pink-200 dark:border-pink-800/40 text-pink-800 dark:text-pink-200',
   };
-  return colors[day] ?? colors.Monday;
+  return colors[day];
 }
 
 export default function StudentSchedule() {
   const { t } = useTranslation();
   const { user } = useAuth();
 
-  const { data: schedule = [], isLoading } = useQuery({
+  const { data: schedule = [], isLoading } = useQuery<StudentScheduleItem[]>({
     queryKey: ['student-schedule', user?._id],
     queryFn: () => getStudentSchedules(user!._id),
     enabled: !!user?._id,
   });
 
   // Group by day
-  const byDay = DAY_ORDER.reduce<Record<string, typeof schedule>>((acc, day) => {
-    const items = schedule.filter((s: any) => s.day === day);
+  const byDay = DAY_ORDER.reduce<Partial<Record<DayName, StudentScheduleItem[]>>>((acc, day) => {
+    const items = schedule.filter((s) => s.day === day);
     if (items.length > 0) acc[day] = items;
     return acc;
   }, {});
@@ -85,16 +98,16 @@ export default function StudentSchedule() {
         </Card>
       ) : (
         <div className="space-y-6">
-          {Object.entries(byDay).map(([day, sessions]) => (
+          {(Object.entries(byDay) as Array<[DayName, StudentScheduleItem[]]>).map(([day, sessions]) => (
             <motion.div
               key={day}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25 }}
             >
-              <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t('dayName_' + day as any)}</h2>
+              <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t(`dayName_${day}`)}</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {sessions.map((session: any) => (
+                {sessions.map((session) => (
                   <div
                     key={session._id}
                     className={`rounded-2xl border p-5 shadow-sm ${dayColor(day)} transition-all hover:shadow-md`}
@@ -139,16 +152,18 @@ export default function StudentSchedule() {
           <CardContent>
             <div className="grid grid-cols-7 gap-1">
               {DAY_ORDER.map((day) => {
-                const hasSessions = !!byDay[day];
+                const daySessions = byDay[day];
+                const dayCount = daySessions?.length ?? 0;
+                const hasSessions = dayCount > 0;
                 return (
                   <div key={day} className="flex flex-col items-center gap-1">
-                    <span className="text-xs text-slate-500 font-medium">{t('dayAbbr_' + day as any)}</span>
+                    <span className="text-xs text-slate-500 font-medium">{t(`dayAbbr_${day}`)}</span>
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border transition-colors ${
                       hasSessions
                         ? 'bg-blue-600 text-white border-blue-600'
                         : 'bg-slate-100 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700'
                     }`}>
-                      {hasSessions ? byDay[day].length : '·'}
+                      {hasSessions ? dayCount : '·'}
                     </div>
                   </div>
                 );

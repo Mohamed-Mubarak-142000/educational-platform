@@ -201,16 +201,16 @@ export default function TeacherApplicationSection() {
                 className="w-24 h-24 rounded-full border-2 border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center cursor-pointer hover:border-blue-500 transition overflow-hidden bg-slate-50 dark:bg-slate-800"
               >
                 {profilePreview ? (
-                  <img src={profilePreview} alt="Profile" className="w-full h-full object-cover" />
+                  <img src={profilePreview} alt={t('profilePhotoAlt')} className="w-full h-full object-cover" />
                 ) : (
                   <div className="flex flex-col items-center gap-1 text-slate-400">
                     <Upload className="w-6 h-6" />
-                    <span className="text-xs">Photo</span>
+                    <span className="text-xs">{t('photoLabel')}</span>
                   </div>
                 )}
               </div>
               <input ref={profileRef} type="file" accept="image/*" className="hidden" onChange={handleProfileChange} />
-              <p className="text-xs text-slate-500">Click to upload profile picture</p>
+              <p className="text-xs text-slate-500">{t('clickToUploadPhoto')}</p>
             </div>
 
             {/* Name / Email / Phone row */}
@@ -221,7 +221,7 @@ export default function TeacherApplicationSection() {
                   {t('fullName')} <span className="text-red-500">*</span>
                 </label>
                 <Input
-                  placeholder="Dr. Ahmed Hassan"
+                  placeholder={t('fullNamePlaceholder')}
                   value={form.name}
                   onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
                 />
@@ -233,7 +233,7 @@ export default function TeacherApplicationSection() {
                 </label>
                 <Input
                   type="tel"
-                  placeholder="+20 100 000 0000"
+                  placeholder={t('phonePlaceholder')}
                   value={form.phone}
                   onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
                 />
@@ -245,7 +245,7 @@ export default function TeacherApplicationSection() {
                 </label>
                 <Input
                   type="email"
-                  placeholder="yourname@example.com"
+                  placeholder={t('emailPlaceholder')}
                   value={form.email}
                   onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
                 />

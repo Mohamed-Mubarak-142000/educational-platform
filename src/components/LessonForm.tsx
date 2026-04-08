@@ -17,6 +17,7 @@
 
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/shared';
 import { Input } from '@/components/ui/input';
 import { FormField } from '@/components/shared';
 import {
@@ -37,6 +38,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { inputVariants } from '@/lib/constants';
+import { uploadLessonAsset } from '@/api/subjectApi';
 
 // ── Types (exported so AdminLessonForm can map API data) ──────────
 
@@ -95,6 +97,15 @@ function genId(prefix = 'tmp') {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 }
 
+async function blobToDataUrl(blob: Blob) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(new Error('Failed to read audio blob'));
+    reader.readAsDataURL(blob);
+  });
+}
+
 function emptyPart(): LessonPart {
   return { id: genId('part'), title: '', content: '', media: emptyMedia(), quiz: [] };
 }
@@ -112,14 +123,17 @@ type MediaSectionProps = {
   onChange: (m: LessonMedia) => void;
   /** Unique prefix used for <input id> attributes to avoid duplicates */
   idPrefix: string;
+  onUploadStateChange?: (busy: boolean) => void;
 };
 
-function MediaSection({ media, onChange, idPrefix }: MediaSectionProps) {
+function MediaSection({ media, onChange, idPrefix, onUploadStateChange }: MediaSectionProps) {
   const { t } = useTranslation();
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [modelFile, setModelFile] = useState<File | null>(null);
+  const [modelUploading, setModelUploading] = useState(false);
+  const [modelUploadError, setModelUploadError] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [audioPreviewUrl, setAudioPreviewUrl] = useState(media.audioUrl);
   const recorderRef = useRef<MediaRecorder | null>(null);
@@ -127,7 +141,7 @@ function MediaSection({ media, onChange, idPrefix }: MediaSectionProps) {
 
   const set = (key: keyof LessonMedia, value: string) => onChange({ ...media, [key]: value });
 
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>, type: 'video' | 'pdf' | 'image' | 'model') => {
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>, type: 'video' | 'pdf' | 'image' | 'model') => {
     const file = e.target.files?.[0];
     if (!file) return;
     const url = URL.createObjectURL(file);
@@ -135,7 +149,21 @@ function MediaSection({ media, onChange, idPrefix }: MediaSectionProps) {
       case 'video': setVideoFile(file); break;
       case 'pdf':   setPdfFile(file);   onChange({ ...media, pdfUrl: url });   break;
       case 'image': setImageFile(file); onChange({ ...media, imageUrl: url }); break;
-      case 'model': setModelFile(file); onChange({ ...media, modelUrl: url }); break;
+      case 'model':
+        setModelFile(file);
+        setModelUploadError('');
+        setModelUploading(true);
+        onUploadStateChange?.(true);
+        try {
+          const upload = await uploadLessonAsset(file);
+          onChange({ ...media, modelUrl: upload.url });
+        } catch {
+          setModelUploadError(t('toastUploadFailed'));
+        } finally {
+          setModelUploading(false);
+          onUploadStateChange?.(false);
+        }
+        break;
     }
   };
 
@@ -146,12 +174,15 @@ function MediaSection({ media, onChange, idPrefix }: MediaSectionProps) {
       recorderRef.current = recorder;
       chunksRef.current = [];
       recorder.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
-      recorder.onstop = () => {
+      recorder.onstop = async () => {
         const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
-        const url = URL.createObjectURL(blob);
-        setAudioPreviewUrl(url);
-        onChange({ ...media, audioUrl: url });
-        stream.getTracks().forEach((t) => t.stop());
+        try {
+          const dataUrl = await blobToDataUrl(blob);
+          setAudioPreviewUrl(dataUrl);
+          onChange({ ...media, audioUrl: dataUrl });
+        } finally {
+          stream.getTracks().forEach((t) => t.stop());
+        }
       };
       recorder.start();
       setIsRecording(true);
@@ -196,7 +227,7 @@ function MediaSection({ media, onChange, idPrefix }: MediaSectionProps) {
             ? <span className="text-xs text-slate-500 truncate max-w-[180px]">{pdfFile.name}</span>
             : media.pdfUrl
               ? <a href={media.pdfUrl} target="_blank" rel="noopener noreferrer"
-                  className="text-xs text-emerald-600 underline">Current PDF</a>
+                  className="text-xs text-emerald-600 underline">{t('currentPdf')}</a>
               : null}
         </div>
       </FormField>
@@ -205,7 +236,7 @@ function MediaSection({ media, onChange, idPrefix }: MediaSectionProps) {
       <FormField label={t('imageContent')} helpText={t('uploadImageOrEnterUrl')}>
         <div className="space-y-2">
           {media.imageUrl && (
-            <img src={media.imageUrl} alt="Preview"
+            <img src={media.imageUrl} alt={t('imagePreviewAlt')}
               className="max-w-xs max-h-32 rounded-lg border border-slate-200 dark:border-slate-700 object-cover" />
           )}
           <div className="flex items-center gap-3 flex-wrap">
@@ -238,10 +269,17 @@ function MediaSection({ media, onChange, idPrefix }: MediaSectionProps) {
                 className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition text-xs font-medium">
                 <Box className="w-3.5 h-3.5" />{t('uploadModel3d')}
               </label>
-              {modelFile && <span className="text-xs text-slate-500 truncate max-w-[180px]">{modelFile.name}</span>}
+              {modelFile && (
+                <span className="text-xs text-slate-500 truncate max-w-[180px]">
+                  {modelFile.name}{modelUploading ? ` — ${t('uploadingMedia')}` : ''}
+                </span>
+              )}
             </div>
             <Input placeholder={t('orEnterModelUrl')} value={media.modelUrl}
               onChange={(e) => set('modelUrl', e.target.value)} />
+            {modelUploadError && (
+              <p className="text-xs text-red-500">{modelUploadError}</p>
+            )}
           </div>
         </FormField>
 
@@ -324,9 +362,7 @@ function PartQuizSection({
       </div>
 
       {quiz.length === 0 ? (
-        <p className="text-xs text-slate-400 text-center py-4 border-dashed border-2 border-slate-200 dark:border-slate-700 rounded-lg">
-          {t('noQuestionsYet')}
-        </p>
+        <EmptyState description={t('noQuestionsYet')} className="py-6" />
       ) : (
         <div className="space-y-3">
           {quiz.map((q, qi) => (
@@ -378,6 +414,7 @@ function PartCard({
   onUpdate,
   onRemove,
   onMove,
+  onUploadStateChange,
 }: {
   part: LessonPart;
   index: number;
@@ -385,6 +422,7 @@ function PartCard({
   onUpdate: (updated: LessonPart) => void;
   onRemove: () => void;
   onMove: (dir: 'up' | 'down') => void;
+  onUploadStateChange: (busy: boolean) => void;
 }) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(true);
@@ -421,7 +459,7 @@ function PartCard({
           </button>
           <button type="button" onClick={() => setExpanded((v) => !v)}
             className="p-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 transition"
-            title={expanded ? 'Collapse' : 'Expand'}>
+            title={expanded ? t('collapse') : t('expand')}>
             <ChevronRight className={`w-4 h-4 text-slate-500 transition-transform duration-200 ${expanded ? 'rotate-90' : ''}`} />
           </button>
         </div>
@@ -457,6 +495,7 @@ function PartCard({
                   media={part.media}
                   onChange={(m) => onUpdate({ ...part, media: m })}
                   idPrefix={`part-${part.id}`}
+                  onUploadStateChange={onUploadStateChange}
                 />
               </div>
             )}
@@ -497,6 +536,7 @@ function PartCard({
 
 export default function LessonForm({ initialData, onSubmit, onCancel, isLoading }: LessonFormProps) {
   const { t } = useTranslation();
+  const [uploadingCount, setUploadingCount] = useState(0);
 
   const [formData, setFormData] = useState<LessonFormData>({
     title: initialData?.title ?? '',
@@ -511,6 +551,10 @@ export default function LessonForm({ initialData, onSubmit, onCancel, isLoading 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({ ...formData });
+  };
+
+  const handleUploadStateChange = (busy: boolean) => {
+    setUploadingCount((count) => Math.max(0, count + (busy ? 1 : -1)));
   };
 
   const addPart = () =>
@@ -570,6 +614,7 @@ export default function LessonForm({ initialData, onSubmit, onCancel, isLoading 
             media={formData.media}
             onChange={(m) => setFormData((p) => ({ ...p, media: m }))}
             idPrefix="main"
+            onUploadStateChange={handleUploadStateChange}
           />
         </div>
       )}
@@ -606,6 +651,7 @@ export default function LessonForm({ initialData, onSubmit, onCancel, isLoading 
                 onUpdate={(updated) => updatePart(part.id, updated)}
                 onRemove={() => removePart(part.id)}
                 onMove={(dir) => movePart(part.id, dir)}
+                onUploadStateChange={handleUploadStateChange}
               />
             ))}
           </div>
@@ -616,7 +662,7 @@ export default function LessonForm({ initialData, onSubmit, onCancel, isLoading 
       <FormField label={t('order')} helpText={t('lessonOrder')}>
         <Input
           type="number"
-          placeholder="1"
+          placeholder={t('orderPlaceholder')}
           value={formData.order}
           onChange={(e) => setFormData((p) => ({ ...p, order: parseInt(e.target.value) || 1 }))}
           min="1"
@@ -632,7 +678,7 @@ export default function LessonForm({ initialData, onSubmit, onCancel, isLoading 
         </Button>
         <Button
           type="submit"
-          disabled={isLoading || !formData.title.trim()}
+          disabled={isLoading || uploadingCount > 0 || !formData.title.trim()}
           className="bg-blue-600 hover:bg-blue-700 text-white"
         >
           {isLoading ? t('saving') : t('saveLesson')}

@@ -1,20 +1,22 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { getStudents, getSubscriptions } from '@/api/adminApi';
+import { getStudentById, getSubscriptions } from '@/api/adminApi';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Pencil, Mail, Phone, User } from 'lucide-react';
+import { ArrowLeft, Pencil, Mail, Phone, User, BookOpen } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { spacing, cardVariants } from '@/lib/constants';
+import { EmptyState } from '@/components/shared';
 
 export default function AdminStudentDetail() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
-  const { data: students = [], isLoading } = useQuery({
-    queryKey: ['students'],
-    queryFn: getStudents,
+  const { data: student, isLoading } = useQuery({
+    queryKey: ['student', id],
+    queryFn: () => getStudentById(id as string),
+    enabled: Boolean(id),
   });
 
   const { data: subscriptions = [] } = useQuery({
@@ -22,20 +24,19 @@ export default function AdminStudentDetail() {
     queryFn: getSubscriptions,
   });
 
-  const student: any = students.find((s: any) => s._id === id);
   const subscription: any = subscriptions.find((sub: any) => {
     const subId = sub.studentId?._id || sub.studentId;
     return subId === id;
   });
 
   if (isLoading) {
-    return <div className={`${spacing.pageContainer} py-12 text-center text-slate-500`}>Loading...</div>;
+    return <div className={`${spacing.pageContainer} py-12 text-center text-slate-500`}>{t('loading')}</div>;
   }
 
   if (!student) {
     return (
       <div className={`${spacing.pageContainer} py-12 text-center`}>
-        <p className="text-slate-500 mb-4">{t('studentNotFound') || 'Student not found'}</p>
+        <p className="text-slate-500 mb-4">{t('studentNotFound')}</p>
         <Button variant="outline" onClick={() => navigate('/admin/students')}>
           <ArrowLeft className="w-4 h-4 mr-2" /> {t('backToStudents')}
         </Button>
@@ -52,6 +53,8 @@ export default function AdminStudentDetail() {
     { icon: null, label: t('subscription'), value: subscription?.status || t('inactive') },
     { icon: null, label: t('joined'), value: student.createdAt ? new Date(student.createdAt).toLocaleDateString() : '-' },
   ];
+
+  const subscribedSubjects = student?.subscribedSubjects || [];
 
   return (
     <div className={spacing.pageContainer}>
@@ -115,6 +118,56 @@ export default function AdminStudentDetail() {
               </div>
             ))}
           </dl>
+        </CardContent>
+      </Card>
+
+      <Card className={`${cardVariants.default} mt-6`}>
+        <CardHeader className="border-b border-slate-200 dark:border-slate-800">
+          <div className="flex items-center gap-2">
+            <BookOpen className="w-4 h-4 text-blue-600" />
+            <CardTitle className="text-lg">
+              {t('subscribedSubjects')}
+            </CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-6">
+          {subscribedSubjects.length === 0 ? (
+            <EmptyState description={t('noSubjects')} />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {subscribedSubjects.map((subject: any) => (
+                <div
+                  key={subject._id}
+                  className="border border-slate-200 dark:border-slate-800 rounded-lg p-4 cursor-pointer hover:border-blue-400 hover:shadow-sm transition"
+                  onClick={() => navigate(`/admin/subjects/${subject._id}`)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      navigate(`/admin/subjects/${subject._id}`);
+                    }
+                  }}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-lg">
+                      {subject.icon || '📘'}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
+                        {subject.name}
+                      </p>
+                      <p className="text-xs text-slate-500 line-clamp-2">
+                        {subject.description || t('noDescription')}
+                      </p>
+                      {subject.teacherId?.name && (
+                        <p className="text-xs text-slate-400 mt-2">{subject.teacherId.name}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

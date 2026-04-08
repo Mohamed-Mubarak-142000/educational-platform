@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
+import { EmptyState } from '@/components/shared';
 import { Clock, CheckCircle2, XCircle, ClipboardList, Trophy } from 'lucide-react';
 
 // ── Types ──────────────────────────────────────────────────────────
@@ -138,10 +139,7 @@ export default function StudentQuizModal({
                     ))}
                   </div>
                 ) : questions.length === 0 ? (
-                  <div className="py-16 text-center text-slate-400 dark:text-slate-500">
-                    <ClipboardList className="w-10 h-10 mx-auto mb-3 opacity-40" />
-                    <p>{t('quizNoQuestions')}</p>
-                  </div>
+                  <EmptyState description={t('quizNoQuestions')} className="py-12" />
                 ) : (
                   (questions as any[]).map((q, idx) => {
                     const chosen = answers[q._id];

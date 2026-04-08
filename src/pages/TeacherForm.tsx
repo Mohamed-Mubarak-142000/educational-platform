@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { createTeacher, getTeachers, updateTeacher } from '@/api/adminApi';
-import { getStages, getSubjectsByStage } from '@/api/subjectApi';
+import { getStages, getSubjects, getSubjectsByStage } from '@/api/subjectApi';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTranslation } from 'react-i18next';
@@ -62,6 +62,13 @@ export default function TeacherForm() {
     queryFn: getStages,
   });
 
+  // Fetch all subjects for edit-mode mapping (subject -> stage)
+  const { data: allSubjects = [] } = useQuery({
+    queryKey: ['subjects'],
+    queryFn: getSubjects,
+    enabled: isEditMode,
+  });
+
   // Fetch subjects for the selected stage only
   const { data: subjects = [], isLoading: subjectsLoading } = useQuery({
     queryKey: ['subjects-by-stage', formState.stageId],
@@ -71,22 +78,33 @@ export default function TeacherForm() {
 
   // Populate form in edit mode — also try to restore the stage selection
   useEffect(() => {
-    if (isEditMode && teachers.length > 0 && stages.length > 0) {
-      const teacher = teachers.find((t: { _id: string; name: string; email: string; phone?: string; subject?: string; stageId?: string; status?: string; profileImage?: string }) => t._id === id);
-      if (teacher) {
-        const imagePreview = teacher.profileImage || '';
-        setFormState({
-          name: teacher.name || '',
-          email: teacher.email || '',
-          phone: teacher.phone || '',
-          subject: teacher.subject || '',
-          status: teacher.status || 'Active',
-          profileImage: imagePreview,
-          stageId: teacher.stageId || '',
-        });
+    if (!isEditMode || teachers.length === 0) return;
+
+    const teacher = teachers.find((t: { _id: string; name: string; email: string; phone?: string; subject?: string; stageId?: string; status?: string; profileImage?: string }) => t._id === id);
+    if (!teacher) return;
+
+    const imagePreview = teacher.profileImage || '';
+    let resolvedStageId = teacher.stageId || '';
+    let resolvedSubject = teacher.subject || '';
+
+    if (resolvedSubject && allSubjects.length > 0) {
+      const match = allSubjects.find((s: any) => s._id === resolvedSubject || s.name === resolvedSubject);
+      if (match) {
+        resolvedSubject = match.name;
+        if (!resolvedStageId) resolvedStageId = match.stageId;
       }
     }
-  }, [isEditMode, id, teachers, stages, setFormState]);
+
+    setFormState({
+      name: teacher.name || '',
+      email: teacher.email || '',
+      phone: teacher.phone || '',
+      subject: resolvedSubject,
+      status: teacher.status || 'Active',
+      profileImage: imagePreview,
+      stageId: resolvedStageId,
+    });
+  }, [isEditMode, id, teachers, allSubjects, setFormState]);
 
   const displayPreview = profileImageFile ? profileImagePreview : formState.profileImage;
 
@@ -185,7 +203,7 @@ export default function TeacherForm() {
             />
           </FormField>
 
-          <FormField label={t('stage') || 'Stage'}>
+          <FormField label={t('stage')}>
             <select
               value={formState.stageId}
               onChange={(e) => handleStageChange(e.target.value)}
@@ -193,7 +211,7 @@ export default function TeacherForm() {
               disabled={stagesLoading}
             >
               <option value="">
-                {stagesLoading ? (t('loadingStages') || 'Loading stages…') : (t('selectStage') || 'Select stage')}
+                {stagesLoading ? t('loadingStages') : t('selectStage')}
               </option>
               {stages.map((stage: any) => (
                 <option key={stage._id} value={stage._id}>
@@ -212,12 +230,12 @@ export default function TeacherForm() {
             >
               <option value="">
                 {!formState.stageId
-                  ? (t('selectStageFirst') || 'Select a stage first')
+                  ? t('selectStageFirst')
                   : subjectsLoading
-                  ? (t('loadingSubjects') || 'Loading subjects…')
+                  ? t('loadingSubjects')
                   : subjects.length === 0
-                  ? (t('noSubjectsInStage') || 'No subjects in this stage')
-                  : (t('selectSubject') || 'Select subject')}
+                  ? t('noSubjectsInStage')
+                  : t('selectSubject')}
               </option>
               {subjects.map((s: any) => (
                 <option key={s._id} value={s.name}>

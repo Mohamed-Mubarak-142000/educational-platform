@@ -116,7 +116,7 @@ export default function Login() {
                     className={`w-full ${buttonVariants.primaryShadow}`}
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? '...' : t('login')}
+                    {isSubmitting ? t('loadingEllipsis') : t('login')}
                   </Button>
                   {loginMutation.isError && (
                     <p className="text-red-500 text-center text-sm">

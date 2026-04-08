@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { EmptyState } from '@/components/shared';
 
 export default function TeacherDashboard() {
   const { t, i18n } = useTranslation();
@@ -11,7 +12,7 @@ export default function TeacherDashboard() {
         <p className="text-slate-600 dark:text-slate-400">{t('teacherDashboardSubtitle')}</p>
       </div>
       <div className="mt-8 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/70 p-6 shadow-xl">
-        <p className="text-slate-600 dark:text-slate-400">{t('teacherDashboardEmpty')}</p>
+        <EmptyState description={t('teacherDashboardEmpty')} className="py-10" />
       </div>
     </div>
   );

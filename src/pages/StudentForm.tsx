@@ -179,10 +179,10 @@ export default function StudentForm() {
             />
           </FormField>
 
-          <FormField label="Parent Email" helpText="For parent notifications and progress monitoring">
+          <FormField label={t('parentEmailLabel')} helpText={t('parentEmailHelp')}>
             <Input
               type="email"
-              placeholder="parent@example.com"
+              placeholder={t('parentEmailPlaceholder')}
               value={formState.parentEmail}
               onChange={(e) => setFormState({ ...formState, parentEmail: e.target.value })}
             />
@@ -200,13 +200,13 @@ export default function StudentForm() {
             </select>
           </FormField>
 
-          <FormField label="Academic Stage" helpText="The stage determines which subjects appear in the student's dashboard">
+          <FormField label={t('academicStageLabel')} helpText={t('academicStageHelp')}>
             <select
               value={formState.stageId}
               onChange={(e) => setFormState({ ...formState, stageId: e.target.value })}
               className={inputVariants.default}
             >
-              <option value="">Select stage…</option>
+              <option value="">{t('selectStagePlaceholder')}</option>
               {stages.map((stage: any) => (
                 <option key={stage._id} value={stage._id}>
                   {stage.icon} {stage.name}
@@ -220,7 +220,7 @@ export default function StudentForm() {
         <div className="border border-slate-200 dark:border-slate-700 rounded-xl p-5 bg-blue-50/40 dark:bg-blue-900/10">
           <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
             <Video className="w-4 h-4 text-blue-600" />
-            Live Lessons Subscription
+            {t('liveLessonsSubscriptionTitle')}
           </h3>
           <label className="flex items-start gap-3 cursor-pointer">
             <input
@@ -230,9 +230,9 @@ export default function StudentForm() {
               className="mt-0.5 w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
             />
             <div>
-              <p className="text-sm font-medium text-slate-800 dark:text-slate-200">Subscribe to Live Lessons</p>
+              <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{t('subscribeLiveLessonsTitle')}</p>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Enables the student to enroll in teacher-led live sessions. Monthly payment required to activate.
+                {t('subscribeLiveLessonsDesc')}
               </p>
             </div>
           </label>
@@ -242,8 +242,7 @@ export default function StudentForm() {
           <div className="flex items-start gap-2">
             <GraduationCap className="w-4 h-4 text-slate-500 mt-0.5" />
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Once a stage is assigned, My Courses will show <strong>Your Academic Stage Courses</strong> — only subjects for the selected stage.
-              If live lessons are subscribed, the student can pick a teacher and schedule (max 5 students per group).
+              {t('academicStageCoursesNotice')}
             </p>
           </div>
         </div>
