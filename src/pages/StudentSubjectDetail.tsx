@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { getLocalizedName } from '@/lib/localeUtils';
 import {
   getSubjectById,
   getUnitsBySubject,
@@ -13,6 +14,12 @@ import {
   getUnitAvailability,
   getSchedulesBySubject,
   enrollInLiveLesson,
+  type Subject,
+  type Unit,
+  type Lesson,
+  type Quiz,
+  type UnitAvailability,
+  type TeacherSchedule,
 } from '@/api/subjectApi';
 import { submitPayment, uploadPaymentProof } from '@/api/adminApi';
 import { useAuth } from '@/context/AuthContext';
@@ -44,10 +51,19 @@ import StudentQuizModal from '@/components/StudentQuizModal';
 
 const unitPaymentMethods = ['Vodafone Cash', 'InstaPay'] as const;
 
+const DAY_ORDER = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] as const;
+type DayName = (typeof DAY_ORDER)[number];
+
+type LiveSchedule = TeacherSchedule & { day: DayName };
+
+function isDayName(day: string): day is DayName {
+  return DAY_ORDER.includes(day as DayName);
+}
+
 function QuizBadge({ attachedToId, label }: { attachedToId: string; label: string }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const { data: quiz } = useQuery({
+  const { data: quiz } = useQuery<Quiz | null>({
     queryKey: ['unit-quiz', attachedToId],
     queryFn: () => getQuizByAttached(attachedToId),
   });
@@ -78,10 +94,10 @@ function UnitRow({
   isBlocked,
   navigate,
 }: {
-  unit: any;
+  unit: Unit;
   subjectId: string;
   enrolled: boolean;
-  onSubscribe: (unit: any) => void;
+  onSubscribe: (unit: Unit) => void;
   subscribing: boolean;
   availabilityStatus?: string;
   isBlocked?: boolean;
@@ -90,7 +106,7 @@ function UnitRow({
   const { t } = useTranslation();
   const [open, setOpen] = useState(enrolled);
 
-  const { data: lessons = [], isLoading } = useQuery({
+  const { data: lessons = [], isLoading } = useQuery<Lesson[]>({
     queryKey: ['unit-lessons', unit._id],
     queryFn: () => getLessonsByUnit(unit._id),
     enabled: enrolled,
@@ -179,7 +195,7 @@ function UnitRow({
                 </div>
               ) : (
                 <div className="divide-y divide-slate-100 dark:divide-slate-800/50">
-                  {lessons.map((lesson: any, idx: number) => (
+                  {lessons.map((lesson, idx) => (
                     <div key={lesson._id} className="flex items-center gap-4 px-6 py-3.5 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors">
                       <span className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-medium text-slate-500 flex-shrink-0">{idx + 1}</span>
                       <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -228,11 +244,15 @@ function LiveSessionsSection({ subjectId, studentId }: { subjectId: string; stud
   const { t } = useTranslation();
   const queryClient = useQueryClient();
 
-  const { data: schedules = [], isLoading } = useQuery({
+  const { data: schedules = [], isLoading } = useQuery<TeacherSchedule[]>({
     queryKey: ['subject-schedules', subjectId],
     queryFn: () => getSchedulesBySubject(subjectId),
     enabled: !!subjectId,
   });
+
+  const normalized: LiveSchedule[] = schedules.filter(
+    (item): item is LiveSchedule => isDayName(item.day)
+  );
 
   const enrollMutation = useMutation({
     mutationFn: (scheduleId: string) => enrollInLiveLesson(studentId!, scheduleId),
@@ -243,11 +263,9 @@ function LiveSessionsSection({ subjectId, studentId }: { subjectId: string; stud
   });
 
   if (isLoading) return null;
-  if (schedules.length === 0) {
+  if (normalized.length === 0) {
     return <EmptyState description={t('noSchedule')} className="py-6" />;
   }
-
-  const dayOrder = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
   function timeLabel(t: string) {
     const [h, m] = t.split(':').map(Number);
@@ -255,8 +273,8 @@ function LiveSessionsSection({ subjectId, studentId }: { subjectId: string; stud
     return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${ampm}`;
   }
 
-  const sorted = [...schedules].sort(
-    (a, b) => dayOrder.indexOf(a.day) - dayOrder.indexOf(b.day)
+  const sorted = [...normalized].sort(
+    (a, b) => DAY_ORDER.indexOf(a.day) - DAY_ORDER.indexOf(b.day)
   );
 
   return (
@@ -269,7 +287,7 @@ function LiveSessionsSection({ subjectId, studentId }: { subjectId: string; stud
         </span>
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {sorted.map((s: any) => {
+        {sorted.map((s) => {
           const isFull = (s.enrolledStudents?.length ?? 0) >= s.maxStudents;
           const isEnrolled = studentId ? s.enrolledStudents?.includes(studentId) : false;
           const spots = s.maxStudents - (s.enrolledStudents?.length ?? 0);
@@ -292,7 +310,7 @@ function LiveSessionsSection({ subjectId, studentId }: { subjectId: string; stud
                   <p className="font-semibold text-sm text-slate-900 dark:text-slate-100">
                     {s.teacherName ?? 'Unknown Teacher'}
                   </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{s.day}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{t(`dayName_${s.day}`)}</p>
                 </div>
                 {isEnrolled && (
                   <span className="flex items-center gap-1 text-xs text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-300 dark:border-emerald-700/50 px-2 py-0.5 rounded-full flex-shrink-0">
@@ -341,7 +359,7 @@ function LiveSessionsSection({ subjectId, studentId }: { subjectId: string; stud
 // ── Main Page ──────────────────────────────────────────────────────
 
 export default function StudentSubjectDetail() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { id: subjectId } = useParams<{ id: string }>();
   const { user } = useAuth();
@@ -349,29 +367,29 @@ export default function StudentSubjectDetail() {
   const { pushToast } = useToast();
 
   const [paymentOpen, setPaymentOpen] = useState(false);
-  const [selectedUnit, setSelectedUnit] = useState<any | null>(null);
+  const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<(typeof unitPaymentMethods)[number]>('Vodafone Cash');
   const [paymentFile, setPaymentFile] = useState<File | null>(null);
 
-  const { data: subject, isLoading: subjectLoading } = useQuery({
+  const { data: subject, isLoading: subjectLoading } = useQuery<Subject>({
     queryKey: ['subject', subjectId],
     queryFn: () => getSubjectById(subjectId!),
     enabled: !!subjectId,
   });
 
-  const { data: units = [], isLoading: unitsLoading } = useQuery({
+  const { data: units = [], isLoading: unitsLoading } = useQuery<Unit[]>({
     queryKey: ['units', subjectId],
     queryFn: () => getUnitsBySubject(subjectId!),
     enabled: !!subjectId,
   });
 
-  const { data: enrolledUnitIds = [] } = useQuery({
+  const { data: enrolledUnitIds = [] } = useQuery<string[]>({
     queryKey: ['enrolled-units', user?._id],
     queryFn: () => getEnrolledUnitIds(user!._id),
     enabled: !!user?._id,
   });
 
-  const { data: availabilityList = [] } = useQuery({
+  const { data: availabilityList = [] } = useQuery<UnitAvailability[]>({
     queryKey: ['unit-availability'],
     queryFn: getUnitAvailability,
   });
@@ -393,7 +411,7 @@ export default function StudentSubjectDetail() {
     onError: () => pushToast({ type: 'error', title: t('toastActionFailed') }),
   });
 
-  const openPaymentDialog = (unit: any) => {
+  const openPaymentDialog = (unit: Unit) => {
     setSelectedUnit(unit);
     setPaymentMethod('Vodafone Cash');
     setPaymentFile(null);
@@ -438,7 +456,7 @@ export default function StudentSubjectDetail() {
     );
   }
 
-  const enrolledCount = units.filter((u: any) => (enrolledUnitIds as string[]).includes(u._id)).length;
+  const enrolledCount = units.filter((unit) => enrolledUnitIds.includes(unit._id)).length;
 
   return (
     <div className={spacing.pageContainer}>
@@ -452,7 +470,7 @@ export default function StudentSubjectDetail() {
           <div className="flex items-center gap-2">
             <span className="text-2xl">{subject.icon}</span>
             <div>
-              <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">{subject.name}</h1>
+              <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">{getLocalizedName(subject, i18n.language)}</h1>
               {subject.description && (
                 <p className="text-sm text-slate-500 dark:text-slate-400">{subject.description}</p>
               )}
@@ -492,18 +510,18 @@ export default function StudentSubjectDetail() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {units.map((unit: any, idx: number) => {
-            const avail = availabilityList.find((a: any) => a.unitId === unit._id);
+          {units.map((unit, idx) => {
+            const avail = availabilityList.find((item) => item.unitId === unit._id);
             const availStatus = avail?.status;
             // Enforce order: all previous units must be enrolled before this one is accessible
-            const prevEnrolled = units.slice(0, idx).every((u: any) => (enrolledUnitIds as string[]).includes(u._id));
-            const isBlocked = idx > 0 && !prevEnrolled && !(enrolledUnitIds as string[]).includes(unit._id);
+            const prevEnrolled = units.slice(0, idx).every((prior) => enrolledUnitIds.includes(prior._id));
+            const isBlocked = idx > 0 && !prevEnrolled && !enrolledUnitIds.includes(unit._id);
             return (
               <UnitRow
                 key={unit._id}
                 unit={unit}
                 subjectId={subjectId!}
-                enrolled={(enrolledUnitIds as string[]).includes(unit._id)}
+                enrolled={enrolledUnitIds.includes(unit._id)}
                 onSubscribe={openPaymentDialog}
                 subscribing={enrollMutation.isPending}
                 availabilityStatus={availStatus}

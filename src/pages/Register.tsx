@@ -14,8 +14,24 @@ import { SiteFooter } from '@/components/ui/SiteFooter';
 import { Link, useNavigate } from 'react-router-dom';
 import { Activity, CheckCircle, Microscope, Video } from 'lucide-react';
 import { getStages } from '@/api/subjectApi';
+import { getLocalizedName } from '@/lib/localeUtils';
 
 const pendingEmailKey = 'pendingVerificationEmail';
+
+type Stage = {
+  _id: string;
+  name: string;
+  nameAr?: string;
+  icon?: string;
+};
+
+type ApiError = {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+};
 
 export default function Register() {
   const { t, i18n } = useTranslation();
@@ -23,7 +39,7 @@ export default function Register() {
   const { registerMutation } = useAuth();
   const navigate = useNavigate();
 
-  const { data: stages = [] } = useQuery({
+  const { data: stages = [] } = useQuery<Stage[]>({
     queryKey: ['stages'],
     queryFn: getStages,
   });
@@ -142,9 +158,9 @@ export default function Register() {
                       className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     >
                       <option value="">{t('academicStage')}</option>
-                      {stages.map((stage: any) => (
+                      {stages.map((stage) => (
                         <option key={stage._id} value={stage._id}>
-                          {stage.icon} {stage.name}
+                          {stage.icon} {getLocalizedName(stage, i18n.language)}
                         </option>
                       ))}
                     </select>
@@ -171,7 +187,7 @@ export default function Register() {
                   </Button>
                   {registerMutation.isError && (
                     <p className="text-red-500 text-center text-sm">
-                      {(registerMutation.error as any)?.response?.data?.message || t('registrationFailed')}
+                      {(registerMutation.error as ApiError | null)?.response?.data?.message || t('registrationFailed')}
                     </p>
                   )}
                 </form>

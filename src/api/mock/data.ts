@@ -134,6 +134,8 @@ export interface MockCourse {
   title: string;
   description: string;
   teacherId: { _id: string; name: string } | string;
+  stageId: string;
+  subjectId: string;
   price: number;
   thumbnail?: string;
   createdAt: string;
@@ -146,6 +148,8 @@ export const MOCK_COURSES: MockCourse[] = [
     description:
       'A comprehensive introduction to the building blocks of life. Learn about cell structure, organelles, cell division, and cellular processes including respiration and photosynthesis.',
     teacherId: { _id: 'user-teacher-001', name: 'Dr. Ahmed Hassan' },
+    stageId: 'stage-002',
+    subjectId: 'subject-001',
     price: 299,
     createdAt: '2024-03-01T00:00:00.000Z',
   },
@@ -155,6 +159,8 @@ export const MOCK_COURSES: MockCourse[] = [
     description:
       'Explore the structure and function of the human body from head to toe. Covers all major organ systems: skeletal, muscular, cardiovascular, respiratory, and more.',
     teacherId: { _id: 'user-teacher-002', name: 'Dr. Sarah Mostafa' },
+    stageId: 'stage-002',
+    subjectId: 'subject-002',
     price: 349,
     createdAt: '2024-03-05T00:00:00.000Z',
   },
@@ -164,6 +170,8 @@ export const MOCK_COURSES: MockCourse[] = [
     description:
       'Dive into the mechanisms of heredity and the principles of evolution. Topics include Mendelian genetics, molecular genetics, natural selection, and speciation.',
     teacherId: { _id: 'user-teacher-001', name: 'Dr. Ahmed Hassan' },
+    stageId: 'stage-003',
+    subjectId: 'subject-003',
     price: 329,
     createdAt: '2024-03-10T00:00:00.000Z',
   },
@@ -173,6 +181,8 @@ export const MOCK_COURSES: MockCourse[] = [
     description:
       'An introduction to the microbial world: bacteria, viruses, fungi, and protozoa. Understand infection, immunity, and the role of microorganisms in health and disease.',
     teacherId: { _id: 'user-teacher-002', name: 'Dr. Sarah Mostafa' },
+    stageId: 'stage-003',
+    subjectId: 'subject-007',
     price: 279,
     createdAt: '2024-03-15T00:00:00.000Z',
   },
@@ -206,6 +216,7 @@ export const MOCK_SECTIONS: MockSection[] = [
 export interface MockLesson {
   _id: string;
   sectionId: string;
+  courseId?: string;
   title: string;
   description?: string;
   videoUrl?: string;

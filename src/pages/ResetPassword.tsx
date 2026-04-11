@@ -50,7 +50,7 @@ export default function ResetPassword() {
     mutation.mutate({
       email,
       token,
-      newPassword: data.newPassword,
+      password: data.newPassword,
     });
   };
 

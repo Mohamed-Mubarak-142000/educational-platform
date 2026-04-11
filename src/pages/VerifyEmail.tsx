@@ -11,8 +11,9 @@ import { Input } from '@/components/ui/input';
 import { SiteNavbar } from '@/components/ui/SiteNavbar';
 import { SiteFooter } from '@/components/ui/SiteFooter';
 import { useNavigate } from 'react-router-dom';
-import { roleHome } from '@/components/RequireAuth';
+import { roleHome, type Role } from '@/components/RequireAuth';
 import { useAuth } from '@/context/AuthContext';
+import type { AuthTokenResponse } from '@/api/authApi';
 
 const schema = z.object({
   email: z.string().email(),
@@ -22,6 +23,14 @@ const schema = z.object({
 const pendingEmailKey = 'pendingVerificationEmail';
 
 type FormValues = z.infer<typeof schema>;
+
+type ApiError = {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+};
 
 export default function VerifyEmail() {
   const { t, i18n } = useTranslation();
@@ -33,7 +42,7 @@ export default function VerifyEmail() {
   const resendMutation = useMutation({
     mutationFn: resendOTP,
     onSuccess: (data) => setResendMessage(data?.message || t('otpResent')),
-    onError: (error: any) => {
+    onError: (error: ApiError) => {
       setResendMessage(error?.response?.data?.message || t('otpResendFailed'));
     },
   });
@@ -58,13 +67,16 @@ export default function VerifyEmail() {
     verifyMutation.mutate(
       { email: data.email, otp: data.otp },
       {
-        onSuccess: (response: any) => {
+        onSuccess: (response) => {
+          const auth = response as AuthTokenResponse | null;
           localStorage.removeItem(pendingEmailKey);
-          if (response?.mustChangePassword) {
+          if (auth?.mustChangePassword) {
             navigate('/change-password');
             return;
           }
-          navigate(roleHome(response?.role));
+          const role = auth?.role;
+          const normalizedRole: Role | undefined = role === 'Admin' || role === 'Teacher' || role === 'Student' ? role : undefined;
+          navigate(roleHome(normalizedRole));
         },
       }
     );

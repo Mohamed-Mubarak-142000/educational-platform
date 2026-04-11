@@ -10,9 +10,18 @@ import { SiteNavbar } from '@/components/ui/SiteNavbar';
 import { SiteFooter } from '@/components/ui/SiteFooter';
 import { Link, useNavigate } from 'react-router-dom';
 import { Activity, CheckCircle, Microscope } from 'lucide-react';
-import { roleHome } from '@/components/RequireAuth';
+import { roleHome, type Role } from '@/components/RequireAuth';
 import { useRTL, useAuthForm } from '@/hooks';
 import { cardVariants, buttonVariants, badgeVariants, gradients, iconContainers, textColors } from '@/lib/constants';
+import type { AuthTokenResponse } from '@/api/authApi';
+
+type ApiError = {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+};
 
 export default function Login() {
   const { t } = useTranslation();
@@ -31,12 +40,15 @@ export default function Login() {
   const { form, onSubmit, isSubmitting } = useAuthForm<LoginFormData>({
     schema,
     mutation: loginMutation,
-    onSuccess: (response: any) => {
-      if (response?.mustChangePassword) {
+    onSuccess: (response) => {
+      const auth = response as AuthTokenResponse | null;
+      if (auth?.mustChangePassword) {
         navigate('/change-password');
         return;
       }
-      navigate(roleHome(response?.role));
+      const role = auth?.role;
+      const normalizedRole: Role | undefined = role === 'Admin' || role === 'Teacher' || role === 'Student' ? role : undefined;
+      navigate(roleHome(normalizedRole));
     },
   });
 
@@ -120,7 +132,7 @@ export default function Login() {
                   </Button>
                   {loginMutation.isError && (
                     <p className="text-red-500 text-center text-sm">
-                      {(loginMutation.error as any)?.response?.data?.message || t('toastActionFailed')}
+                      {(loginMutation.error as ApiError | null)?.response?.data?.message || t('toastActionFailed')}
                     </p>
                   )}
                   <div className="text-center text-sm text-slate-500 dark:text-slate-400">

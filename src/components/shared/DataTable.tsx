@@ -11,20 +11,25 @@ import {
 import { ChevronUp, ChevronDown, ChevronsUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { tableVariants } from '@/lib/constants';
-import { LoadingState } from './LoadingState';
+import { SkeletonBlock } from './Skeletons';
 import { EmptyState } from './EmptyState';
 import { useTranslation } from 'react-i18next';
 
-export interface TableColumn<T = any> {
+type TableMeta = {
+  align?: 'left' | 'center' | 'right';
+  className?: string;
+};
+
+export interface TableColumn<T = unknown> {
   key: string;
   label: string;
-  render?: (value: any, row: T) => React.ReactNode;
+  render?: (value: unknown, row: T) => React.ReactNode;
   align?: 'left' | 'center' | 'right';
   className?: string;
   sortable?: boolean;
 }
 
-export interface DataTableProps<T = any> {
+export interface DataTableProps<T = unknown> {
   columns: TableColumn<T>[];
   data: T[];
   actions?: (row: T) => React.ReactNode;
@@ -34,7 +39,7 @@ export interface DataTableProps<T = any> {
   pageSize?: number;
 }
 
-export function DataTable<T extends Record<string, any>>({
+export function DataTable<T extends Record<string, unknown>>({
   columns,
   data,
   actions,
@@ -46,8 +51,13 @@ export function DataTable<T extends Record<string, any>>({
   const { t } = useTranslation();
   const [sorting, setSorting] = useState<SortingState>([]);
 
-  const getNestedValue = (obj: any, path: string) => {
-    return path.split('.').reduce((acc: any, part: string) => acc?.[part], obj);
+  const getNestedValue = (obj: Record<string, unknown>, path: string): unknown => {
+    return path.split('.').reduce<unknown>((acc, part) => {
+      if (acc && typeof acc === 'object' && part in (acc as Record<string, unknown>)) {
+        return (acc as Record<string, unknown>)[part];
+      }
+      return undefined;
+    }, obj);
   };
 
   const tanstackColumns = useMemo<ColumnDef<T>[]>(() => {
@@ -92,7 +102,67 @@ export function DataTable<T extends Record<string, any>>({
   });
 
   if (isLoading) {
-    return <LoadingState />;
+    const headerGroups = table.getHeaderGroups();
+    const visibleColumns = headerGroups[0]?.headers ?? [];
+    const skeletonRows = Math.min(pageSize, 6);
+    const widths = ['w-16', 'w-24', 'w-28', 'w-20', 'w-32', 'w-12'];
+
+    return (
+      <div className={`space-y-3 ${className}`}>
+        <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
+          <table className="w-full text-sm">
+            <thead className={tableVariants.header}>
+              {headerGroups.map((headerGroup) => (
+                <tr key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    const meta = (header.column.columnDef.meta as TableMeta | undefined) ?? {};
+                    const align = meta.align || 'left';
+                    const isSortable = header.column.getCanSort();
+                    return (
+                      <th
+                        key={header.id}
+                        className={`px-4 py-3 font-semibold text-${align} whitespace-nowrap ${isSortable ? 'cursor-pointer select-none' : ''} ${meta.className || ''}`}
+                      >
+                        <span className="inline-flex items-center gap-1">
+                          {flexRender(header.column.columnDef.header, header.getContext())}
+                          {isSortable && (
+                            header.column.getIsSorted() === 'asc' ? (
+                              <ChevronUp className="w-3 h-3 text-blue-600" />
+                            ) : header.column.getIsSorted() === 'desc' ? (
+                              <ChevronDown className="w-3 h-3 text-blue-600" />
+                            ) : (
+                              <ChevronsUpDown className="w-3 h-3 text-slate-400" />
+                            )
+                          )}
+                        </span>
+                      </th>
+                    );
+                  })}
+                </tr>
+              ))}
+            </thead>
+            <tbody>
+              {Array.from({ length: skeletonRows }).map((_, rowIndex) => (
+                <tr key={`loading-${rowIndex}`} className={tableVariants.row}>
+                  {visibleColumns.map((header, colIndex) => {
+                    const meta = (header.column.columnDef.meta as TableMeta | undefined) ?? {};
+                    const align = meta.align || 'left';
+                    return (
+                      <td
+                        key={`loading-${rowIndex}-${header.id}`}
+                        className={`px-4 py-3 text-${align} ${tableVariants.cellBold}`}
+                      >
+                        <SkeletonBlock className={`h-4 ${widths[colIndex % widths.length]}`} />
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
   }
 
   if (!data || data.length === 0) {
@@ -107,7 +177,7 @@ export function DataTable<T extends Record<string, any>>({
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
-                  const meta = (header.column.columnDef.meta as any) ?? {};
+                  const meta = (header.column.columnDef.meta as TableMeta | undefined) ?? {};
                   const align = meta.align || 'left';
                   const isSortable = header.column.getCanSort();
                   return (
@@ -138,7 +208,7 @@ export function DataTable<T extends Record<string, any>>({
             {table.getRowModel().rows.map((row) => (
               <tr key={row.id} className={tableVariants.row}>
                 {row.getVisibleCells().map((cell) => {
-                  const meta = (cell.column.columnDef.meta as any) ?? {};
+                  const meta = (cell.column.columnDef.meta as TableMeta | undefined) ?? {};
                   const align = meta.align || 'left';
                   return (
                     <td

@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getMyPayments } from '@/api/adminApi';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoadingState, EmptyState, ErrorState, PageHeader } from '@/components/shared';
+import { SkeletonTable, EmptyState, ErrorState, PageHeader } from '@/components/shared';
 import { spacing, cardVariants } from '@/lib/constants';
 
 type PaymentRecord = {
@@ -33,7 +33,7 @@ export default function StudentPaymentsRecord() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <LoadingState />
+            <SkeletonTable columns={6} rows={6} />
           ) : isError ? (
             <ErrorState onRetry={() => refetch()} />
           ) : payments.length === 0 ? (

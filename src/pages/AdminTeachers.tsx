@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { deleteTeacher, getTeachers } from '@/api/adminApi';
+import { deleteTeacher, getTeachers, type Teacher } from '@/api/adminApi';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
@@ -18,7 +18,7 @@ export default function AdminTeachers() {
   const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(null);
 
   // CRUD operations hook
-  const { data: teachers, deleteMutation, isLoading, isError, refetch } = useCRUDOperations({
+  const { data: teachers, deleteMutation, isLoading, isError, refetch } = useCRUDOperations<Teacher, unknown, unknown>({
     queryKey: ['teachers'],
     queryFn: getTeachers,
     deleteFn: deleteTeacher,
@@ -39,11 +39,11 @@ export default function AdminTeachers() {
   };
 
   // Define table columns
-  const columns: TableColumn[] = [
+  const columns: TableColumn<Teacher>[] = [
     { 
       key: 'profileImage', 
       label: t('photo'), 
-      render: (v, row: any) => v ? (
+      render: (v, row) => typeof v === 'string' && v ? (
         <img src={v} alt={t('profilePhotoAlt')} className="w-10 h-10 rounded-full object-cover" />
       ) : (
         <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-semibold">
@@ -53,8 +53,8 @@ export default function AdminTeachers() {
     },
     { key: 'name', label: t('name') },
     { key: 'email', label: t('email') },
-    { key: 'subject', label: t('subject'), render: (v) => v || '-' },
-    { key: 'phone', label: t('phone'), render: (v) => v || '-' },
+    { key: 'subject', label: t('subject'), render: (v) => (typeof v === 'string' && v ? v : '-') },
+    { key: 'phone', label: t('phone'), render: (v) => (typeof v === 'string' && v ? v : '-') },
     { key: 'status', label: t('status') },
   ];
 
@@ -86,7 +86,7 @@ export default function AdminTeachers() {
             columns={columns}
             data={teachers}
             isLoading={isLoading}
-            actions={(teacher: any) => (
+            actions={(teacher) => (
               <div className="flex items-center justify-end gap-1">
                 <Button
                   variant="ghost"

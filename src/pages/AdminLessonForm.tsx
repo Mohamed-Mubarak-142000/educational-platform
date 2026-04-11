@@ -21,6 +21,9 @@ import {
   getPartsByLesson,
   createLessonPart,
   deleteLessonPart,
+  type LessonInput,
+  type LessonPart as LessonPartResponse,
+  type LessonPartQuizItem,
 } from '@/api/subjectApi';
 import LessonFormComponent, {
   type LessonFormData,
@@ -94,7 +97,7 @@ export default function AdminLessonForm() {
             audioUrl: lessonData.audioUrl ?? '',
           } satisfies LessonMedia,
           order: lessonData.order ?? 1,
-          parts: partsData.map((p: any): LessonPart => ({
+          parts: partsData.map((p: LessonPartResponse): LessonPart => ({
             id: p._id,
             title: p.title,
             content: p.content ?? '',
@@ -106,7 +109,7 @@ export default function AdminLessonForm() {
               modelExplanation: p.media?.modelExplanation ?? '',
               audioUrl: p.media?.audioUrl ?? '',
             },
-            quiz: (p.quiz ?? []).map((q: any) => ({
+            quiz: (p.quiz ?? []).map((q: LessonPartQuizItem) => ({
               id: `q-${Math.random().toString(36).slice(2)}`,
               question: q.question,
               options: q.options as [string, string, string, string],
@@ -137,7 +140,7 @@ export default function AdminLessonForm() {
 
   const saveMutation = useMutation({
     mutationFn: async (data: LessonFormData) => {
-      const payload: Record<string, unknown> = {
+      const payload: LessonInput = {
         title: data.title,
         description: data.description,
         videoUrl: normalizeYouTubeUrl(data.media.videoUrl) || data.media.videoUrl,
@@ -155,14 +158,14 @@ export default function AdminLessonForm() {
         savedLesson = await updateLesson(lessonId, payload);
         // Delete all existing parts, then recreate from form state
         const existing = await getPartsByLesson(lessonId);
-        await Promise.all(existing.map((p: any) => deleteLessonPart(p._id)));
+        await Promise.all(existing.map((p: LessonPartResponse) => deleteLessonPart(p._id)));
       } else {
         savedLesson = await createLesson(unitId!, payload);
       }
 
       if (data.parts.length > 0) {
         await Promise.all(
-          data.parts.map((p: any, i) =>
+          data.parts.map((p, i) =>
             createLessonPart(savedLesson._id, {
               title: p.title,
               content: p.content,
@@ -171,7 +174,11 @@ export default function AdminLessonForm() {
                 ...p.media,
                 videoUrl: normalizeYouTubeUrl(p.media?.videoUrl) || p.media?.videoUrl,
               },
-              quiz: p.quiz,
+              quiz: p.quiz.map((q) => ({
+                question: q.question,
+                options: q.options,
+                correctIndex: q.correctIndex,
+              })),
             })
           )
         );

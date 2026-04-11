@@ -3,8 +3,7 @@
 declare namespace JSX {
   interface IntrinsicElements {
     // model-viewer web component
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    'model-viewer': any;
+    'model-viewer': Record<string, unknown>;
   }
 }
 

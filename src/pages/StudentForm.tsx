@@ -8,11 +8,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { createStudent, getStudents, updateStudent } from '@/api/adminApi';
-import { getStages } from '@/api/subjectApi';
+import { createStudent, getStudents, updateStudent, type Student, type StudentInput } from '@/api/adminApi';
+import { getStages, type Stage } from '@/api/subjectApi';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTranslation } from 'react-i18next';
+import { getLocalizedName } from '@/lib/localeUtils';
 import { useCRUDOperations, useFormDialog } from '@/hooks';
 import { buttonVariants, formClasses, inputVariants } from '@/lib/constants';
 import { FormPageLayout, FormField } from '@/components/shared';
@@ -20,7 +21,7 @@ import AvatarUpload from '@/components/AvatarUpload';
 import { GraduationCap, Video } from 'lucide-react';
 
 export default function StudentForm() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const isEditMode = !!id;
@@ -67,18 +68,18 @@ export default function StudentForm() {
   // Populate form in edit mode
   useEffect(() => {
     if (isEditMode && students.length > 0) {
-      const student = students.find((s: { _id: string; name: string; email: string; phone?: string; status?: string; profileImage?: string }) => s._id === id);
+      const student = students.find((s: Student) => s._id === id);
       if (student) {
         const imagePreview = student.profileImage || '';
         setFormState({
           name: student.name || '',
           email: student.email || '',
           phone: student.phone || '',
-          parentEmail: (student as any).parentEmail || '',
+          parentEmail: student.parentEmail || '',
           status: student.status || 'Active',
           profileImage: imagePreview,
           stageId: student.stageId || '',
-          subscribeLiveLessons: (student as any).subscribeLiveLessons ? 'true' : 'false',
+          subscribeLiveLessons: student.subscribeLiveLessons ? 'true' : 'false',
         });
         if (imagePreview) {
           setProfileImagePreview(imagePreview);
@@ -95,14 +96,14 @@ export default function StudentForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const data: Record<string, string> = {
+    const data: StudentInput = {
       name: formState.name,
       email: formState.email,
       phone: formState.phone,
       parentEmail: formState.parentEmail,
       status: formState.status,
       stageId: formState.stageId,
-      subscribeLiveLessons: formState.subscribeLiveLessons,
+      subscribeLiveLessons: formState.subscribeLiveLessons === 'true',
     };
 
     // TODO: Implement image upload to cloudinary
@@ -207,9 +208,9 @@ export default function StudentForm() {
               className={inputVariants.default}
             >
               <option value="">{t('selectStagePlaceholder')}</option>
-              {stages.map((stage: any) => (
+              {stages.map((stage: Stage) => (
                 <option key={stage._id} value={stage._id}>
-                  {stage.icon} {stage.name}
+                  {stage.icon} {getLocalizedName(stage, i18n.language)}
                 </option>
               ))}
             </select>

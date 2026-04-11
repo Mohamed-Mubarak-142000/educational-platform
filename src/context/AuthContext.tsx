@@ -1,14 +1,26 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getProfile, login, register, verifyOTP, updateProfile } from '../api/authApi';
+import { useQuery, useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
+import {
+  getProfile,
+  login,
+  register,
+  verifyOTP,
+  updateProfile,
+  type AuthTokenResponse,
+  type AuthUser,
+  type LoginPayload,
+  type RegisterPayload,
+  type UpdateProfilePayload,
+  type VerifyOtpPayload,
+} from '../api/authApi';
 
 interface AuthContextType {
-  user: any;
+  user: AuthUser | null;
   isLoading: boolean;
-  loginMutation: any;
-  registerMutation: any;
-  verifyMutation: any;
-  updateProfileMutation: any;
+  loginMutation: UseMutationResult<AuthTokenResponse, Error, LoginPayload>;
+  registerMutation: UseMutationResult<AuthTokenResponse, Error, RegisterPayload>;
+  verifyMutation: UseMutationResult<AuthTokenResponse, Error, VerifyOtpPayload>;
+  updateProfileMutation: UseMutationResult<AuthUser, Error, UpdateProfilePayload>;
   logout: () => void;
   refreshProfile: () => void;
 }
@@ -19,7 +31,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [token, setToken] = useState(localStorage.getItem('token') || '');
   const queryClient = useQueryClient();
 
-  const { data: user, isLoading, isError, refetch } = useQuery({
+  const { data: user, isLoading, isError, refetch } = useQuery<AuthUser | null>({
     queryKey: ['profile'],
     queryFn: getProfile,
     enabled: !!token,
@@ -74,7 +86,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, loginMutation, registerMutation, verifyMutation, updateProfileMutation, logout, refreshProfile }}>
+    <AuthContext.Provider value={{ user: user ?? null, isLoading, loginMutation, registerMutation, verifyMutation, updateProfileMutation, logout, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getStageById, getSubjectsByStage, createSubject, updateSubject, deleteSubject } from '@/api/subjectApi';
+import { getStageById, getSubjectsByStage, createSubject, updateSubject, deleteSubject, type Subject } from '@/api/subjectApi';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/shared';
@@ -20,6 +20,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { Pencil, Trash2, Plus, Eye, ArrowLeft } from 'lucide-react';
 import { cardVariants, buttonVariants, spacing } from '@/lib/constants';
+import { getLocalizedName } from '@/lib/localeUtils';
 
 const SUBJECT_COLORS = [
   { value: 'emerald', bg: 'bg-emerald-100 dark:bg-emerald-900/30', text: 'text-emerald-700 dark:text-emerald-300', border: 'border-emerald-200 dark:border-emerald-800' },
@@ -36,10 +37,10 @@ function getColorClasses(color: string) {
   return SUBJECT_COLORS.find((c) => c.value === color) ?? SUBJECT_COLORS[1];
 }
 
-const emptyForm = { name: '', description: '', icon: '📚', color: 'blue' as SubjectColor };
+const emptyForm = { name: '', nameAr: '', description: '', icon: '📚', color: 'blue' as SubjectColor };
 
 export default function AdminSubjects() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { stageId } = useParams<{ stageId: string }>();
   const queryClient = useQueryClient();
@@ -79,9 +80,15 @@ export default function AdminSubjects() {
   });
 
   const openCreate = () => { setEditId(null); setForm(emptyForm); setFormOpen(true); };
-  const openEdit = (subject: any) => {
+  const openEdit = (subject: Subject) => {
     setEditId(subject._id);
-    setForm({ name: subject.name, description: subject.description, icon: subject.icon, color: subject.color });
+    setForm({
+      name: subject.name,
+      nameAr: subject.nameAr ?? '',
+      description: subject.description ?? '',
+      icon: subject.icon ?? '📚',
+      color: (subject.color as SubjectColor) ?? 'blue',
+    });
     setFormOpen(true);
   };
   const closeForm = () => { setFormOpen(false); setEditId(null); setForm(emptyForm); };
@@ -110,7 +117,7 @@ export default function AdminSubjects() {
             <span className="text-slate-300 dark:text-slate-600">/</span>
             <span className="flex items-center gap-1.5">
               <span>{stage.icon}</span>
-              <span className="font-medium text-slate-700 dark:text-slate-300">{stage.name}</span>
+              <span className="font-medium text-slate-700 dark:text-slate-300">{getLocalizedName(stage, i18n.language)}</span>
             </span>
           </>
         )}
@@ -119,7 +126,7 @@ export default function AdminSubjects() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-            {stage ? `${stage.name} — ${t('subjectPlural')}` : t('subjectPlural')}
+            {stage ? `${getLocalizedName(stage, i18n.language)} — ${t('subjectPlural')}` : t('subjectPlural')}
           </h1>
           {stage && <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{stage.description}</p>}
         </div>
@@ -156,8 +163,8 @@ export default function AdminSubjects() {
           variants={{ visible: { transition: { staggerChildren: 0.07 } } }}
         >
           <AnimatePresence>
-            {subjects.map((subject: any) => {
-              const colors = getColorClasses(subject.color);
+            {subjects.map((subject: Subject) => {
+              const colors = getColorClasses(subject.color ?? 'blue');
               return (
                 <motion.div
                   key={subject._id}
@@ -197,7 +204,7 @@ export default function AdminSubjects() {
                           </Button>
                         </div>
                       </div>
-                      <h3 className={`font-bold text-base mb-1 ${colors.text}`}>{subject.name}</h3>
+                      <h3 className={`font-bold text-base mb-1 ${colors.text}`}>{getLocalizedName(subject, i18n.language)}</h3>
                       <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-3">{subject.description}</p>
                       <div className={`flex items-center justify-between pt-2 border-t ${colors.border}`}>
                         <span className="text-xs text-slate-400 dark:text-slate-500">
@@ -241,6 +248,15 @@ export default function AdminSubjects() {
                   placeholder={t('subjectNamePlaceholder')}
                 />
               </div>
+            </div>
+            <div>
+              <Label className="text-xs text-slate-500 mb-1 block">{t('subjectNameAr')}</Label>
+              <Input
+                value={form.nameAr}
+                onChange={(e) => setForm((f) => ({ ...f, nameAr: e.target.value }))}
+                placeholder={t('subjectNameArPlaceholder')}
+                dir="rtl"
+              />
             </div>
             <div>
               <Label className="text-xs text-slate-500 mb-1 block">{t('description')}</Label>

@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from 'react-i18next';
+import { getLocalizedName } from '@/lib/localeUtils';
 import {
   getEnrolledUnitIds,
   getUnitById,
@@ -9,6 +10,10 @@ import {
   getLessonsByUnit,
   getQuizByAttached,
   getSubjectsByStage,
+  type Subject,
+  type Unit,
+  type Lesson,
+  type Quiz,
 } from '@/api/subjectApi';
 import { Card, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/shared';
@@ -28,35 +33,6 @@ import {
 } from 'lucide-react';
 import { spacing } from '@/lib/constants';
 import StudentQuizModal from '@/components/StudentQuizModal';
-
-type TeacherRef = string | { _id: string; name: string };
-
-type Subject = {
-  _id: string;
-  name: string;
-  icon?: string;
-  teacherId: TeacherRef;
-};
-
-type Unit = {
-  _id: string;
-  title: string;
-  order: number;
-  subjectId: string;
-};
-
-type Lesson = {
-  _id: string;
-  title: string;
-  duration?: number;
-  videoUrl?: string;
-  pdfUrl?: string;
-};
-
-type Quiz = {
-  _id: string;
-  title?: string;
-};
 
 // ── Quiz badge ──────────────────────────────────────────────────────
 function QuizBadge({ attachedToId, label }: { attachedToId: string; label: string }) {
@@ -97,7 +73,7 @@ function EnrolledUnitCard({ unitId, navigate }: { unitId: string; navigate: Retu
         onClick={() => setOpen((o) => !o)}
       >
         <div className="flex items-center gap-3 min-w-0">
-          <span className="w-7 h-7 rounded-lg bg-blue-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">{unit.order}</span>
+          <span className="w-7 h-7 rounded-lg bg-blue-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">{unit.order ?? 0}</span>
           <p className="font-semibold text-sm text-slate-900 dark:text-slate-100 truncate">{unit.title}</p>
         </div>
         <div className="flex items-center gap-2 ml-4 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
@@ -127,7 +103,7 @@ function EnrolledUnitCard({ unitId, navigate }: { unitId: string; navigate: Retu
                       <div className="flex items-center gap-2 flex-1 min-w-0">
                         {lesson.videoUrl ? <PlayCircle className="w-4 h-4 text-blue-500 flex-shrink-0" /> : <FileText className="w-4 h-4 text-slate-400 flex-shrink-0" />}
                         <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
-                          onClick={() => navigate(`/lesson/${lesson._id}?subjectId=${unit.subjectId}&from=student`)}>
+                          onClick={() => navigate(`/lesson/${lesson._id}?subjectId=${unit.subjectId ?? ''}&from=student`)}>
                           {lesson.title}
                         </span>
                       </div>
@@ -138,7 +114,7 @@ function EnrolledUnitCard({ unitId, navigate }: { unitId: string; navigate: Retu
                       )}
                       <QuizBadge attachedToId={lesson._id} label={t('quizTitleSuffix', { title: lesson.title })} />
                       <Button size="sm" variant="ghost" className="h-7 px-2.5 text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex-shrink-0"
-                        onClick={() => navigate(`/lesson/${lesson._id}?subjectId=${unit.subjectId}&from=student`)}>
+                        onClick={() => navigate(`/lesson/${lesson._id}?subjectId=${unit.subjectId ?? ''}&from=student`)}>
                         {t('view')}
                       </Button>
                     </div>
@@ -223,7 +199,7 @@ function TeacherSection({
 
 // ── Subject row for "available from teacher but not enrolled" ────────
 function AvailableSubjectRow({ subject, navigate }: { subject: Subject; navigate: ReturnType<typeof useNavigate> }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   return (
     <button
       type="button"
@@ -232,7 +208,7 @@ function AvailableSubjectRow({ subject, navigate }: { subject: Subject; navigate
     >
       <span className="text-2xl flex-shrink-0">{subject.icon}</span>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">{subject.name}</p>
+        <p className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">{getLocalizedName(subject, i18n.language)}</p>
         <p className="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1 mt-0.5"><Lock className="w-3 h-3" />{t('subscribeToAccessUnits')}</p>
       </div>
       <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition-colors flex-shrink-0" />
@@ -252,15 +228,15 @@ function UnitTeacherResolver({
   const { data: unit } = useQuery<Unit>({ queryKey: ['unit', unitId], queryFn: () => getUnitById(unitId) });
   const { data: subject } = useQuery<Subject>({
     queryKey: ['subject', unit?.subjectId],
-    queryFn: () => getSubjectById(unit!.subjectId),
+    queryFn: () => getSubjectById(unit?.subjectId ?? ''),
     enabled: !!unit?.subjectId,
   });
 
   // Report upward when resolved
   if (unit && subject) {
-    const tid = typeof subject.teacherId === 'object' ? subject.teacherId._id : subject.teacherId as string;
-    const tname = typeof subject.teacherId === 'object' ? subject.teacherId.name : t('unknownTeacher');
-    onResolved(unitId, tid, tname);
+    const tid = typeof subject.teacherId === 'object' ? subject.teacherId._id : subject.teacherId;
+    const tname = typeof subject.teacherId === 'object' ? subject.teacherId.name : undefined;
+    if (tid) onResolved(unitId, tid, tname ?? t('unknownTeacher'));
   }
 
   return null; // purely data-fetching, no UI
@@ -360,7 +336,7 @@ export default function StudentCourses() {
                 {t('otherSubjectsInStage')}
               </p>
               <div className="space-y-2">
-                {stageSubjects.map((subject) => (
+                {stageSubjects.map((subject: Subject) => (
                   <AvailableSubjectRow key={subject._id} subject={subject} navigate={navigate} />
                 ))}
               </div>

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/context/AuthContext';
-import { getStages, getSubjectsByStage, getUnitsBySubject, getEnrolledUnitIds } from '@/api/subjectApi';
+import { getStages, getSubjectsByStage, getUnitsBySubject, getEnrolledUnitIds, type Stage, type Subject, type Unit } from '@/api/subjectApi';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,6 +34,7 @@ import { spacing } from '@/lib/constants';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { EmptyState } from '@/components/shared';
+import { getLocalizedName } from '@/lib/localeUtils';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
 
@@ -48,16 +49,18 @@ const PALETTE: Record<string, { bg: string; text: string; border: string; hex: s
 function palette(c: string) { return PALETTE[c] ?? PALETTE.blue; }
 
 // ── Subject progress card with mini doughnut ─────────────────────
-function SubjectCard({ subject, enrolledUnitIds, navigate }: { subject: any; enrolledUnitIds: string[]; navigate: ReturnType<typeof useNavigate> }) {
-  const { data: units = [] } = useQuery({
+
+function SubjectCard({ subject, enrolledUnitIds, navigate }: { subject: Subject; enrolledUnitIds: string[]; navigate: ReturnType<typeof useNavigate> }) {
+  const { i18n } = useTranslation();
+  const { data: units = [] } = useQuery<Unit[]>({
     queryKey: ['units', subject._id],
     queryFn: () => getUnitsBySubject(subject._id),
   });
 
   const total = units.length;
-  const enrolled = units.filter((u: any) => enrolledUnitIds.includes(u._id)).length;
+  const enrolled = units.filter((unit: Unit) => enrolledUnitIds.includes(unit._id)).length;
   const pct = total > 0 ? Math.round((enrolled / total) * 100) : 0;
-  const pal = palette(subject.color);
+  const pal = palette(subject.color ?? 'blue');
 
   const donutData = {
     datasets: [{
@@ -85,7 +88,7 @@ function SubjectCard({ subject, enrolledUnitIds, navigate }: { subject: any; enr
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 mb-0.5">
           <span className="text-lg">{subject.icon}</span>
-          <span className={`font-semibold text-sm truncate ${pal.text}`}>{subject.name}</span>
+          <span className={`font-semibold text-sm truncate ${pal.text}`}>{getLocalizedName(subject, i18n.language)}</span>
         </div>
         <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{subject.description}</p>
         <div className="flex items-center gap-2 mt-1.5">
@@ -104,7 +107,7 @@ function SubjectCard({ subject, enrolledUnitIds, navigate }: { subject: any; enr
 export default function StudentOverview() {
   const navigate = useNavigate();
   const { user, updateProfileMutation, refreshProfile } = useAuth();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // ── Profile form (name + phone only; stage is read-only) ────────
   const [name, setName] = useState(user?.name || '');
@@ -118,18 +121,18 @@ export default function StudentOverview() {
     }
   }, [user]);
 
-  const { data: stages = [] } = useQuery({ queryKey: ['stages'], queryFn: getStages });
+  const { data: stages = [] } = useQuery<Stage[]>({ queryKey: ['stages'], queryFn: getStages });
 
   const stageId = user?.stageId || '';
-  const currentStage = stages.find((s: any) => s._id === stageId);
+  const currentStage = stages.find((stage) => stage._id === stageId);
 
-  const { data: subjects = [] } = useQuery({
+  const { data: subjects = [] } = useQuery<Subject[]>({
     queryKey: ['subjects-by-stage', stageId],
     queryFn: () => getSubjectsByStage(stageId),
     enabled: !!stageId,
   });
 
-  const { data: enrolledUnitIds = [] } = useQuery({
+  const { data: enrolledUnitIds = [] } = useQuery<string[]>({
     queryKey: ['enrolled-units', user?._id],
     queryFn: () => getEnrolledUnitIds(user!._id),
     enabled: !!user?._id,
@@ -152,12 +155,12 @@ export default function StudentOverview() {
 
   // ── Stats for bar chart ─────────────────────────────────────────
   const barData = {
-    labels: subjects.map((s: any) => s.name),
+    labels: subjects.map((subject: Subject) => getLocalizedName(subject, i18n.language)),
     datasets: [
       {
         label: 'Enrolled Units',
         data: subjects.map(() => 0), // placeholder; SubjectCards compute this individually
-        backgroundColor: subjects.map((s: any) => palette(s.color).hex),
+        backgroundColor: subjects.map((subject: Subject) => palette(subject.color ?? 'blue').hex),
         borderRadius: 6,
         borderSkipped: false,
       },
@@ -185,7 +188,7 @@ export default function StudentOverview() {
           <div className="flex-1 min-w-0">
             <h1 className="text-xl font-bold text-white truncate">{t('welcomeBack')}, {user?.name?.split(' ')[0] || t('studentLabel')}</h1>
             <p className="text-blue-100 text-sm mt-0.5">
-              {currentStage ? `${currentStage.name} · ${subjects.length} ${t('subjectsCount')}` : t('noStageAssigned')}
+              {currentStage ? `${getLocalizedName(currentStage, i18n.language)} · ${subjects.length} ${t('subjectsCount')}` : t('noStageAssigned')}
             </p>
           </div>
           <div className="flex gap-3 flex-shrink-0">
@@ -239,7 +242,7 @@ export default function StudentOverview() {
                     </Label>
                     <div className="flex items-center gap-2 h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-3 text-sm text-slate-700 dark:text-slate-300 cursor-not-allowed select-none">
                       {currentStage ? (
-                        <><span>{currentStage.icon}</span><span>{currentStage.name}</span></>
+                        <><span>{currentStage.icon}</span><span>{getLocalizedName(currentStage, i18n.language)}</span></>
                       ) : (
                         <span className="text-slate-400 italic">{t('notAssigned')}</span>
                       )}
@@ -283,7 +286,7 @@ export default function StudentOverview() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5"><GraduationCap className="w-3.5 h-3.5" />{t('stageLabel')}</span>
-                    <span className="font-semibold text-slate-900 dark:text-slate-100">{currentStage?.name || '—'}</span>
+                    <span className="font-semibold text-slate-900 dark:text-slate-100">{currentStage ? getLocalizedName(currentStage, i18n.language) : '—'}</span>
                   </div>
                 </div>
               </CardContent>
@@ -298,7 +301,7 @@ export default function StudentOverview() {
                 <GraduationCap className="w-5 h-5 text-blue-600" />
                 <h2 className="font-bold text-slate-900 dark:text-slate-100">
                   {t('mySubjects')}
-                  {currentStage && <span className="ms-2 text-sm font-normal text-slate-400">— {currentStage.name}</span>}
+                  {currentStage && <span className="ms-2 text-sm font-normal text-slate-400">— {getLocalizedName(currentStage, i18n.language)}</span>}
                 </h2>
               </div>
               {subjects.length > 0 && (
@@ -341,11 +344,11 @@ export default function StudentOverview() {
 
                 {/* Subject cards grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {subjects.map((subject: any) => (
+                  {subjects.map((subject: Subject) => (
                     <SubjectCard
                       key={subject._id}
                       subject={subject}
-                      enrolledUnitIds={enrolledUnitIds as string[]}
+                      enrolledUnitIds={enrolledUnitIds}
                       navigate={navigate}
                     />
                   ))}

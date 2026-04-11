@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { getCourses, enrollCourse } from '../api/courseApi';
+import { getCourses, enrollCourse, type Course } from '../api/courseApi';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
@@ -11,17 +11,7 @@ import { ArrowRight, BookOpen } from 'lucide-react';
 export default function Dashboard() {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === 'ar';
-  type Course = {
-    _id: string;
-    title: string;
-    description: string;
-    price: number;
-    thumbnail?: string;
-    teacherId?: { name?: string } | string;
-    [key: string]: unknown;
-  };
-
-  const { data: courses = [], isLoading, refetch } = useQuery({ queryKey: ['courses'], queryFn: getCourses });
+  const { data: courses = [], isLoading, refetch } = useQuery<Course[]>({ queryKey: ['courses'], queryFn: () => getCourses() });
   
   const enrollMutation = useMutation({ 
     mutationFn: enrollCourse, 
@@ -69,7 +59,7 @@ export default function Dashboard() {
           <EmptyState description={t('dashboardEmpty')} className="py-10" />
         )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {(courses as any[]).map((course: Course, index: number) => (
+          {courses.map((course: Course, index: number) => (
             <motion.div
               key={course._id}
               initial={{ opacity: 0, y: 30 }}

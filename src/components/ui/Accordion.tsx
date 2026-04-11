@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 
 export type AccordionItem = {
-  title: string;
+  title: ReactNode;
   content: ReactNode;
 };
 
@@ -66,7 +66,7 @@ export function Accordion({ items, allowMultiple = false, isRtl = false, classNa
                   transition={{ duration: 0.3, ease: 'easeInOut' }}
                   className="overflow-hidden"
                 >
-                  <div className="px-4 sm:px-5 pb-5 text-slate-600 dark:text-slate-300 leading-relaxed">
+                  <div className="px-4 sm:px-5 pb-5 pt-2 text-slate-600 dark:text-slate-300 leading-relaxed">
                     {item.content}
                   </div>
                 </motion.div>

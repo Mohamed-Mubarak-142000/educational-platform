@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Users, GraduationCap, BookOpen, FileText, CreditCard, Settings, ChevronLeft, LogOut, GraduationCap as LearnIcon, Calendar, UserSquare2, Award, ShieldAlert, X } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { roleHome } from '@/components/RequireAuth';
+import { roleHome, type Role } from '@/components/RequireAuth';
 import { useTranslation } from 'react-i18next';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { Button } from '@/components/ui/button';
@@ -40,6 +40,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }, [location.pathname]);
 
   const role = user?.role;
+  const normalizedRole: Role | undefined = role === 'Admin' || role === 'Teacher' || role === 'Student' ? role : undefined;
 
   const adminLinks = [
     { to: '/admin', label: t('adminOverview'), icon: LayoutDashboard, end: true },
@@ -53,13 +54,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   const teacherLinks = [
     { to: '/teacher', label: t('teacherOverview'), icon: LayoutDashboard, end: true },
-    { to: '/teacher/courses', label: t('teacherCourses'), icon: BookOpen, end: false },
+    { to: '/teacher/subjects', label: t('stagesAndSubjects'), icon: BookOpen, end: false },
+    { to: '/teacher/students', label: t('myStudents'), icon: GraduationCap, end: false },
     { to: '/teacher/exams', label: t('teacherExams'), icon: FileText, end: false },
     { to: '/teacher/settings', label: t('teacherSettings'), icon: Settings, end: false },
   ];
 
   const studentLinks = [
     { to: '/student', label: t('studentOverview'), icon: LayoutDashboard, end: true },
+    { to: '/student/teachers', label: t('teachersDirectoryTitle'), icon: Users, end: false },
     { to: '/student/learn', label: t('studentLearn'), icon: LearnIcon, end: false },
     { to: '/student/schedule', label: t('mySchedule'), icon: Calendar, end: false },
     { to: '/student/grades', label: t('myGrades'), icon: Award, end: false },
@@ -186,7 +189,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             {/* Logo section — identical to desktop */}
             <div className="px-4 pt-4 pb-4 relative">
               <div className="flex flex-col items-center">
-                <NavLink to={roleHome(role)} className="flex flex-col items-center gap-2" onClick={() => setMobileOpen(false)}>
+                <NavLink to={roleHome(normalizedRole)} className="flex flex-col items-center gap-2" onClick={() => setMobileOpen(false)}>
                   <img src="/academix-logo.svg" alt={t('brandName')} className="w-10 h-10" />
                   <span className="font-semibold text-base text-center whitespace-nowrap overflow-hidden">
                     {t('brandName')}
@@ -227,7 +230,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           >
             <div className="px-4 pt-4 pb-4">
               <div className="flex flex-col items-center">
-                <NavLink to={roleHome(role)} className="flex flex-col items-center gap-2">
+                <NavLink to={roleHome(normalizedRole)} className="flex flex-col items-center gap-2">
                   <img src="/academix-logo.svg" alt={t('brandName')} className="w-10 h-10" />
                   <AnimatePresence>
                     {!collapsed && (

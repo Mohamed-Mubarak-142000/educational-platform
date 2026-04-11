@@ -1,31 +1,33 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { getStudentById, getSubscriptions } from '@/api/adminApi';
+import { getStudentById, getSubscriptions, type Student, type Subscription } from '@/api/adminApi';
+import type { Subject } from '@/api/subjectApi';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Pencil, Mail, Phone, User, BookOpen } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { spacing, cardVariants } from '@/lib/constants';
 import { EmptyState } from '@/components/shared';
+import { getLocalizedName } from '@/lib/localeUtils';
 
 export default function AdminStudentDetail() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
-  const { data: student, isLoading } = useQuery({
+  const { data: student, isLoading } = useQuery<Student>({
     queryKey: ['student', id],
     queryFn: () => getStudentById(id as string),
     enabled: Boolean(id),
   });
 
-  const { data: subscriptions = [] } = useQuery({
+  const { data: subscriptions = [] } = useQuery<Subscription[]>({
     queryKey: ['subscriptions'],
     queryFn: getSubscriptions,
   });
 
-  const subscription: any = subscriptions.find((sub: any) => {
-    const subId = sub.studentId?._id || sub.studentId;
+  const subscription = subscriptions.find((sub) => {
+    const subId = typeof sub.studentId === 'object' ? sub.studentId?._id : sub.studentId;
     return subId === id;
   });
 
@@ -48,13 +50,13 @@ export default function AdminStudentDetail() {
     { icon: User, label: t('name'), value: student.name },
     { icon: Mail, label: t('email'), value: student.email },
     { icon: Phone, label: t('phone'), value: student.phone || '-' },
-    { icon: null, label: t('status'), value: student.status },
+    { icon: null, label: t('status'), value: student.status === 'Active' ? t('active') : student.status === 'Inactive' ? t('inactive') : '-' },
     { icon: null, label: t('plan'), value: subscription?.plan || t('noPlan') },
-    { icon: null, label: t('subscription'), value: subscription?.status || t('inactive') },
+    { icon: null, label: t('subscription'), value: subscription?.status === 'Active' ? t('active') : subscription?.status === 'Cancelled' ? t('cancelled') : t('inactive') },
     { icon: null, label: t('joined'), value: student.createdAt ? new Date(student.createdAt).toLocaleDateString() : '-' },
   ];
 
-  const subscribedSubjects = student?.subscribedSubjects || [];
+  const subscribedSubjects: Subject[] = student?.subscribedSubjects ?? [];
 
   return (
     <div className={spacing.pageContainer}>
@@ -92,7 +94,7 @@ export default function AdminStudentDetail() {
                   ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                   : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
               }`}>
-                {student.status}
+                {student.status === 'Active' ? t('active') : student.status === 'Inactive' ? t('inactive') : '-'}
               </span>
               {subscription && (
                 <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
@@ -135,7 +137,7 @@ export default function AdminStudentDetail() {
             <EmptyState description={t('noSubjects')} />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {subscribedSubjects.map((subject: any) => (
+              {subscribedSubjects.map((subject) => (
                 <div
                   key={subject._id}
                   className="border border-slate-200 dark:border-slate-800 rounded-lg p-4 cursor-pointer hover:border-blue-400 hover:shadow-sm transition"
@@ -154,12 +156,12 @@ export default function AdminStudentDetail() {
                     </div>
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
-                        {subject.name}
+                        {getLocalizedName(subject, i18n.language)}
                       </p>
                       <p className="text-xs text-slate-500 line-clamp-2">
                         {subject.description || t('noDescription')}
                       </p>
-                      {subject.teacherId?.name && (
+                      {typeof subject.teacherId === 'object' && subject.teacherId?.name && (
                         <p className="text-xs text-slate-400 mt-2">{subject.teacherId.name}</p>
                       )}
                     </div>

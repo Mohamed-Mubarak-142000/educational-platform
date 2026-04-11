@@ -3,12 +3,14 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from 'react-i18next';
 
-type Role = 'Admin' | 'Teacher' | 'Student';
+export type Role = 'Admin' | 'Teacher' | 'Student';
 
 type RequireAuthProps = {
   children: ReactNode;
   allowedRoles?: Role[];
 };
+
+const isRole = (value?: string): value is Role => value === 'Admin' || value === 'Teacher' || value === 'Student';
 
 const roleHome = (role?: Role) => {
   if (role === 'Admin') return '/admin';
@@ -33,12 +35,18 @@ export default function RequireAuth({ children, allowedRoles }: RequireAuthProps
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 
-  if (user.mustChangePassword && user.role !== 'Teacher' && location.pathname !== '/change-password') {
+  const role = isRole(user.role) ? user.role : undefined;
+
+  if (user.mustChangePassword && role !== 'Teacher' && location.pathname !== '/change-password') {
     return <Navigate to="/change-password" replace />;
   }
 
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
-    return <Navigate to={roleHome(user.role)} replace />;
+  if (allowedRoles && role && !allowedRoles.includes(role)) {
+    return <Navigate to={roleHome(role)} replace />;
+  }
+
+  if (allowedRoles && !role) {
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 
   return <>{children}</>;

@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { approvePayment, getPayments, rejectPayment } from '@/api/adminApi';
+import { approvePayment, getPayments, rejectPayment, type Payment } from '@/api/adminApi';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/components/ui/ToastProvider';
 import { useTranslation } from 'react-i18next';
-import { LoadingState, EmptyState, ErrorState } from '@/components/shared';
+import { SkeletonTable, EmptyState, ErrorState } from '@/components/shared';
 import { spacing, cardVariants } from '@/lib/constants';
 import { PageHeader } from '@/components/shared';
 
@@ -65,7 +65,7 @@ export default function AdminPayments() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <LoadingState />
+            <SkeletonTable columns={6} rows={6} />
           ) : isError ? (
             <ErrorState onRetry={() => refetch()} />
           ) : payments.length === 0 ? (
@@ -84,9 +84,11 @@ export default function AdminPayments() {
                 </tr>
               </thead>
               <tbody>
-                {payments.map((payment: any) => (
+                {payments.map((payment: Payment) => (
                   <tr key={payment._id} className="border-t border-slate-200/60 dark:border-slate-800">
-                    <td className="py-3 px-2 font-medium">{payment.studentId?.name}</td>
+                    <td className="py-3 px-2 font-medium">
+                      {typeof payment.studentId === 'object' ? payment.studentId?.name : '-'}
+                    </td>
                     <td className="py-3 px-2">{payment.plan}</td>
                     <td className="py-3 px-2">{payment.method}</td>
                     <td className="py-3 px-2">

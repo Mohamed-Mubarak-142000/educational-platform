@@ -1,13 +1,14 @@
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/context/AuthContext';
-import { getStageById, getSubjectsByStage } from '@/api/subjectApi';
+import { getStageById, getSubjectsByStage, type Stage, type Subject } from '@/api/subjectApi';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/shared';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, GraduationCap, AlertCircle } from 'lucide-react';
 import { spacing } from '@/lib/constants';
+import { getLocalizedName } from '@/lib/localeUtils';
 
 const SUBJECT_COLORS: Record<string, string> = {
   emerald: 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/50',
@@ -28,18 +29,18 @@ const STAGE_COLORS: Record<string, string> = {
 function sgColor(c: string) { return STAGE_COLORS[c] ?? STAGE_COLORS.blue; }
 
 export default function StudentLearn() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
   const stageId = user?.stageId || '';
 
-  const { data: stage } = useQuery({
+  const { data: stage } = useQuery<Stage>({
     queryKey: ['stage', stageId],
     queryFn: () => getStageById(stageId),
     enabled: !!stageId,
   });
 
-  const { data: subjects = [], isLoading } = useQuery({
+  const { data: subjects = [], isLoading } = useQuery<Subject[]>({
     queryKey: ['subjects-by-stage', stageId],
     queryFn: () => getSubjectsByStage(stageId),
     enabled: !!stageId,
@@ -75,10 +76,10 @@ export default function StudentLearn() {
     <div className={spacing.pageContainer}>
       {/* Stage header */}
       {stage && (
-        <div className={`bg-gradient-to-r ${sgColor(stage.color)} rounded-2xl px-6 py-5 mb-8 flex items-center gap-4`}>
+        <div className={`bg-gradient-to-r ${sgColor(stage.color ?? 'blue')} rounded-2xl px-6 py-5 mb-8 flex items-center gap-4`}>
           <span className="text-4xl">{stage.icon}</span>
           <div>
-            <h1 className="text-2xl font-bold text-white">{stage.name}</h1>
+            <h1 className="text-2xl font-bold text-white">{getLocalizedName(stage, i18n.language)}</h1>
             {stage.description && (
               <p className="text-sm text-white/80 mt-0.5">{stage.description}</p>
             )}
@@ -111,15 +112,15 @@ export default function StudentLearn() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {subjects.map((subject: any) => (
+          {subjects.map((subject: Subject) => (
             <button
               key={subject._id}
               onClick={() => navigate(`/student/subjects/${subject._id}`)}
-              className={`flex items-center gap-4 p-5 rounded-xl border text-left transition-transform hover:scale-[1.015] hover:shadow-md ${sColor(subject.color)}`}
+              className={`flex items-center gap-4 p-5 rounded-xl border text-left transition-transform hover:scale-[1.015] hover:shadow-md ${sColor(subject.color ?? 'blue')}`}
             >
               <span className="text-3xl flex-shrink-0">{subject.icon}</span>
               <div className="flex-1 min-w-0">
-                <p className="font-bold text-base truncate">{subject.name}</p>
+                <p className="font-bold text-base truncate">{getLocalizedName(subject, i18n.language)}</p>
                 {subject.description && (
                   <p className="text-xs opacity-70 truncate mt-0.5">{subject.description}</p>
                 )}

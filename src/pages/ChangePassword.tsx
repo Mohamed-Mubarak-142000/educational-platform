@@ -12,7 +12,7 @@ import { SiteNavbar } from '@/components/ui/SiteNavbar';
 import { SiteFooter } from '@/components/ui/SiteFooter';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { roleHome } from '@/components/RequireAuth';
+import { roleHome, type Role } from '@/components/RequireAuth';
 
 export default function ChangePassword() {
   const { t, i18n } = useTranslation();
@@ -36,7 +36,9 @@ export default function ChangePassword() {
     mutationFn: changePassword,
     onSuccess: () => {
       refreshProfile();
-      navigate(roleHome(user?.role));
+      const role = user?.role;
+      const normalizedRole: Role | undefined = role === 'Admin' || role === 'Teacher' || role === 'Student' ? role : undefined;
+      navigate(roleHome(normalizedRole));
     },
   });
 
@@ -54,7 +56,9 @@ export default function ChangePassword() {
   useEffect(() => {
     if (!user) return;
     if (!user.mustChangePassword) {
-      navigate(roleHome(user.role));
+      const role = user.role;
+      const normalizedRole: Role | undefined = role === 'Admin' || role === 'Teacher' || role === 'Student' ? role : undefined;
+      navigate(roleHome(normalizedRole));
     }
   }, [user, navigate]);
 

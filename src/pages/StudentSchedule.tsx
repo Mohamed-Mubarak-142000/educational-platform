@@ -7,7 +7,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/context/AuthContext';
-import { getStudentSchedules } from '@/api/subjectApi';
+import { getStudentSchedules, type TeacherSchedule } from '@/api/subjectApi';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion } from 'framer-motion';
@@ -18,16 +18,7 @@ const DAY_ORDER = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Frid
 
 type DayName = (typeof DAY_ORDER)[number];
 
-type StudentScheduleItem = {
-  _id: string;
-  day: DayName;
-  startTime: string;
-  endTime: string;
-  subjectName: string;
-  teacherName: string;
-  enrolledStudents: string[];
-  maxStudents: number;
-};
+type StudentScheduleItem = TeacherSchedule & { day: DayName };
 
 function timeLabel(t: string) {
   const [h, m] = t.split(':').map(Number);
@@ -49,24 +40,32 @@ function dayColor(day: DayName) {
   return colors[day];
 }
 
+function isDayName(day: string): day is DayName {
+  return DAY_ORDER.includes(day as DayName);
+}
+
 export default function StudentSchedule() {
   const { t } = useTranslation();
   const { user } = useAuth();
 
-  const { data: schedule = [], isLoading } = useQuery<StudentScheduleItem[]>({
+  const { data: schedule = [], isLoading } = useQuery<TeacherSchedule[]>({
     queryKey: ['student-schedule', user?._id],
     queryFn: () => getStudentSchedules(user!._id),
     enabled: !!user?._id,
   });
 
+  const normalized: StudentScheduleItem[] = schedule.filter(
+    (item): item is StudentScheduleItem => isDayName(item.day)
+  );
+
   // Group by day
   const byDay = DAY_ORDER.reduce<Partial<Record<DayName, StudentScheduleItem[]>>>((acc, day) => {
-    const items = schedule.filter((s) => s.day === day);
+    const items = normalized.filter((s) => s.day === day);
     if (items.length > 0) acc[day] = items;
     return acc;
   }, {});
 
-  const totalSessions = schedule.length;
+  const totalSessions = normalized.length;
 
   return (
     <div className={spacing.pageContainer}>
@@ -132,7 +131,7 @@ export default function StudentSchedule() {
                       </div>
                       <div className="flex items-center gap-2 opacity-70 text-xs">
                         <GraduationCap className="w-3.5 h-3.5" />
-                        <span>{t('studentsSeated', { enrolled: session.enrolledStudents.length, max: session.maxStudents })}</span>
+                        <span>{t('studentsSeated', { enrolled: session.enrolledStudents?.length ?? 0, max: session.maxStudents })}</span>
                       </div>
                     </div>
                   </div>

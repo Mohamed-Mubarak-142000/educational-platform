@@ -7,8 +7,8 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getTeacherApplications, reviewTeacherApplication } from '@/api/adminApi';
-import { Card } from '@/components/ui/card';
+import { getTeacherApplications, reviewTeacherApplication, type TeacherApplicationRecord } from '@/api/adminApi';
+import { Accordion } from '@/components/ui/Accordion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -27,18 +27,19 @@ import {
   Clock,
   FileText,
 } from 'lucide-react';
-import { spacing, cardVariants } from '@/lib/constants';
-import type { MockTeacherApplication } from '@/api/mock/data';
-import { PageHeader, LoadingState, EmptyState, ErrorState } from '@/components/shared';
+import { spacing } from '@/lib/constants';
+import { PageHeader, SkeletonBlock, SkeletonCardGrid, EmptyState, ErrorState, PdfViewer } from '@/components/shared';
 import { useTranslation } from 'react-i18next';
 
 // ── Helpers ────────────────────────────────────────────────────────
 
-function StatusBadge({ status }: { status: MockTeacherApplication['status'] }) {
+function StatusBadge({ status }: { status: TeacherApplicationRecord['status'] }) {
   const { t } = useTranslation();
   switch (status) {
     case 'Pending':
       return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">{t('applicationStatusPending')}</span>;
+    case 'Under Evaluation':
+      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">{t('applicationStatusUnderEvaluation')}</span>;
     case 'Accepted':
       return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">{t('applicationStatusAccepted')}</span>;
     case 'Rejected':
@@ -48,120 +49,133 @@ function StatusBadge({ status }: { status: MockTeacherApplication['status'] }) {
 
 // ── Application Card ───────────────────────────────────────────────
 
-function ApplicationCard({
+function ApplicationDetails({
   app,
+  onEvaluate,
   onAccept,
   onReject,
+  onViewCv,
+  isCvOpen,
 }: {
-  app: MockTeacherApplication;
+  app: TeacherApplicationRecord;
+  onEvaluate: (id: string) => void;
   onAccept: (id: string) => void;
   onReject: (id: string) => void;
+  onViewCv: (id: string) => void;
+  isCvOpen: boolean;
 }) {
   const { t } = useTranslation();
   const days = app.availableDays;
 
   return (
-    <Card className={`${cardVariants.default} overflow-hidden`}>
-      <div className="flex flex-col sm:flex-row items-start gap-4 p-5">
-        {/* Avatar */}
-        {app.profileImageUrl ? (
-          <img
-            src={app.profileImageUrl}
-            alt={app.name}
-            className="w-16 h-16 rounded-full object-cover flex-shrink-0 ring-2 ring-slate-200 dark:ring-slate-700"
-          />
-        ) : (
-          <div className="w-16 h-16 rounded-full flex-shrink-0 bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-2xl font-bold text-blue-700 dark:text-blue-300 ring-2 ring-slate-200 dark:ring-slate-700">
-            {app.name.charAt(0)}
+    <div className="space-y-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="space-y-1">
+          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">{t('email')}</p>
+          <p className="text-sm text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+            <Mail className="w-3.5 h-3.5" />{app.email}
+          </p>
+        </div>
+        <div className="space-y-1">
+          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">{t('phone')}</p>
+          <p className="text-sm text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+            <Phone className="w-3.5 h-3.5" />{app.phone}
+          </p>
+        </div>
+        <div className="space-y-1">
+          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">{t('availableDaysHours')}</p>
+          <div className="flex flex-wrap gap-2">
+            {days.map((day) => {
+              const hours = app.availableHours?.[day];
+              return (
+                <span
+                  key={day}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50"
+                >
+                  <Clock className="w-3 h-3" />
+                  {t(`dayName_${day}`)} {hours ? `${hours.start}–${hours.end}` : ''}
+                </span>
+              );
+            })}
           </div>
-        )}
-
-        {/* Info */}
-        <div className="flex-1 min-w-0 space-y-2">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="font-semibold text-lg text-slate-900 dark:text-slate-100">{app.name}</h3>
-            <StatusBadge status={app.status} />
-          </div>
-
-          <div className="flex flex-wrap gap-4 text-sm text-slate-600 dark:text-slate-400">
-            <span className="flex items-center gap-1.5"><Mail className="w-3.5 h-3.5" />{app.email}</span>
-            <span className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5" />{app.phone}</span>
-          </div>
-
-          {/* Available days */}
-          <div className="space-y-1">
-            <p className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
-              <Calendar className="w-3.5 h-3.5" />
-              {t('availableDaysHours')}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {days.map((day) => {
-                const hours = app.availableHours?.[day];
-                return (
-                  <span
-                    key={day}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50"
-                  >
-                    <Clock className="w-3 h-3" />
-                    {day} {hours ? `${hours.start}–${hours.end}` : ''}
-                  </span>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* CV link */}
-          {app.cvUrl && (
-            <a
-              href={app.cvUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+        </div>
+        <div className="space-y-1">
+          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">{t('viewCv')}</p>
+          {app.cvUrl ? (
+            <button
+              type="button"
+              onClick={() => onViewCv(app._id)}
               className="inline-flex items-center gap-1.5 text-sm text-blue-600 dark:text-blue-400 hover:underline"
             >
               <FileText className="w-4 h-4" />
-              {t('viewCv')}
-            </a>
-          )}
-
-          {/* Zoom link (if accepted) */}
-          {app.status === 'Accepted' && app.zoomLink && (
-            <p className="text-sm text-emerald-700 dark:text-emerald-400">
-              {t('zoomSession')} <a href={app.zoomLink} target="_blank" rel="noopener noreferrer" className="underline">{app.zoomLink}</a>
-            </p>
-          )}
-
-          {/* Rejection reason */}
-          {app.status === 'Rejected' && app.rejectionReason && (
-            <p className="text-sm text-red-600 dark:text-red-400">
-              {t('rejectionReasonPrefix')} {app.rejectionReason}
-            </p>
+              {isCvOpen ? t('close') : t('viewCv')}
+            </button>
+          ) : (
+            <p className="text-sm text-slate-500">-</p>
           )}
         </div>
-
-        {/* Actions */}
-        {app.status === 'Pending' && (
-          <div className="flex gap-2 flex-shrink-0">
-            <Button
-              size="sm"
-              onClick={() => onAccept(app._id)}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5"
-            >
-              <CheckCircle2 className="w-4 h-4" />
-              {t('accept')}
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onReject(app._id)}
-              className="border-red-300 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 gap-1.5"
-            >
-              <XCircle className="w-4 h-4" />
-              {t('reject')}
-            </Button>
-          </div>
-        )}
+        <div className="space-y-1">
+          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">{t('zoomSession')}</p>
+          {(app.status === 'Under Evaluation' || app.status === 'Accepted') && app.zoomLink ? (
+            <a href={app.zoomLink} target="_blank" rel="noopener noreferrer" className="text-sm text-emerald-700 dark:text-emerald-400 underline">
+              {app.zoomLink}
+            </a>
+          ) : (
+            <p className="text-sm text-slate-500">-</p>
+          )}
+        </div>
+        <div className="space-y-1">
+          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">{t('rejectionReason')}</p>
+          {app.status === 'Rejected' && app.rejectionReason ? (
+            <p className="text-sm text-red-600 dark:text-red-400">{app.rejectionReason}</p>
+          ) : (
+            <p className="text-sm text-slate-500">-</p>
+          )}
+        </div>
       </div>
-    </Card>
+
+      {/* Actions */}
+      {app.status === 'Pending' && (
+        <div className="flex gap-2 flex-shrink-0">
+          <Button
+            size="sm"
+            onClick={() => onEvaluate(app._id)}
+            className="bg-blue-600 hover:bg-blue-700 text-white gap-1.5"
+          >
+            <Calendar className="w-4 h-4" />
+            {t('startEvaluation')}
+          </Button>
+        </div>
+      )}
+
+      {app.status === 'Under Evaluation' && (
+        <div className="flex gap-2 flex-shrink-0">
+          <Button
+            size="sm"
+            onClick={() => onAccept(app._id)}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5"
+          >
+            <CheckCircle2 className="w-4 h-4" />
+            {t('accept')}
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => onReject(app._id)}
+            className="border-red-300 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 gap-1.5"
+          >
+            <XCircle className="w-4 h-4" />
+            {t('reject')}
+          </Button>
+        </div>
+      )}
+
+      {app.cvUrl && isCvOpen && (
+        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white">
+          <PdfViewer url={app.cvUrl as string} className="border-slate-200 dark:border-slate-800" />
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -170,33 +184,43 @@ function ApplicationCard({
 export default function AdminTeacherRequests() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const [openCvId, setOpenCvId] = useState<string | null>(null);
 
-  const { data: applications = [], isLoading, isError, refetch } = useQuery({
+  const { data: applications = [], isLoading, isError, refetch } = useQuery<TeacherApplicationRecord[]>({
     queryKey: ['teacher-applications'],
     queryFn: getTeacherApplications,
   });
 
+  // Evaluation dialog
+  const [evaluateId, setEvaluateId] = useState<string | null>(null);
+  const [zoomLink, setZoomLink] = useState('');
+
   // Accept dialog
   const [acceptId, setAcceptId] = useState<string | null>(null);
-  const [zoomLink, setZoomLink] = useState('');
 
   // Reject dialog
   const [rejectId, setRejectId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
 
   const reviewMutation = useMutation({
-    mutationFn: ({ id, action, payload }: { id: string; action: 'accept' | 'reject'; payload?: { zoomLink?: string; rejectionReason?: string } }) =>
+    mutationFn: ({ id, action, payload }: { id: string; action: 'evaluate' | 'accept' | 'reject'; payload?: { zoomLink?: string; rejectionReason?: string } }) =>
       reviewTeacherApplication(id, action, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teacher-applications'] });
     },
   });
 
+  const handleEvaluateConfirm = () => {
+    if (!evaluateId) return;
+    reviewMutation.mutate({ id: evaluateId, action: 'evaluate', payload: { zoomLink } });
+    setEvaluateId(null);
+    setZoomLink('');
+  };
+
   const handleAcceptConfirm = () => {
     if (!acceptId) return;
-    reviewMutation.mutate({ id: acceptId, action: 'accept', payload: { zoomLink } });
+    reviewMutation.mutate({ id: acceptId, action: 'accept' });
     setAcceptId(null);
-    setZoomLink('');
   };
 
   const handleRejectConfirm = () => {
@@ -206,8 +230,42 @@ export default function AdminTeacherRequests() {
     setRejectReason('');
   };
 
-  const pending = applications.filter((a: MockTeacherApplication) => a.status === 'Pending');
-  const reviewed = applications.filter((a: MockTeacherApplication) => a.status !== 'Pending');
+  const pending = applications.filter((a: TeacherApplicationRecord) => a.status === 'Pending');
+  const evaluating = applications.filter((a: TeacherApplicationRecord) => a.status === 'Under Evaluation');
+  const reviewed = applications.filter((a: TeacherApplicationRecord) => a.status === 'Accepted' || a.status === 'Rejected');
+
+  const buildItems = (items: TeacherApplicationRecord[]) =>
+    items.map((app) => ({
+      title: (
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            {app.profileImageUrl ? (
+              <img
+                src={app.profileImageUrl}
+                alt={app.name}
+                className="w-10 h-10 rounded-full object-cover ring-2 ring-slate-200 dark:ring-slate-700"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-base font-bold text-blue-700 dark:text-blue-300 ring-2 ring-slate-200 dark:ring-slate-700">
+                {app.name.charAt(0)}
+              </div>
+            )}
+            <span className="font-semibold text-slate-900 dark:text-slate-100">{app.name}</span>
+          </div>
+          <StatusBadge status={app.status} />
+        </div>
+      ),
+      content: (
+        <ApplicationDetails
+          app={app}
+          onEvaluate={(id) => { setEvaluateId(id); setZoomLink(''); }}
+          onAccept={(id) => { setAcceptId(id); }}
+          onReject={(id) => { setRejectId(id); setRejectReason(''); }}
+          onViewCv={(id) => setOpenCvId((current) => (current === id ? null : id))}
+          isCvOpen={openCvId === app._id}
+        />
+      ),
+    }));
 
   return (
     <div className={spacing.pageContainer}>
@@ -217,7 +275,19 @@ export default function AdminTeacherRequests() {
       />
 
       {isLoading ? (
-        <LoadingState />
+        <div className="space-y-8">
+          <section>
+            <div className="flex items-center gap-2 mb-3">
+              <SkeletonBlock className="h-5 w-8 rounded-full" />
+              <SkeletonBlock className="h-5 w-36" />
+            </div>
+            <SkeletonCardGrid variant="list" items={3} />
+          </section>
+          <section>
+            <SkeletonBlock className="h-5 w-24 mb-3" />
+            <SkeletonCardGrid variant="list" items={2} />
+          </section>
+        </div>
       ) : isError ? (
         <ErrorState onRetry={() => refetch()} />
       ) : (
@@ -231,16 +301,20 @@ export default function AdminTeacherRequests() {
             {pending.length === 0 ? (
               <EmptyState description={t('noPendingApplications')} />
             ) : (
-              <div className="space-y-4">
-                {pending.map((app: MockTeacherApplication) => (
-                  <ApplicationCard
-                    key={app._id}
-                    app={app}
-                    onAccept={(id) => { setAcceptId(id); setZoomLink(''); }}
-                    onReject={(id) => { setRejectId(id); setRejectReason(''); }}
-                  />
-                ))}
-              </div>
+              <Accordion items={buildItems(pending)} />
+            )}
+          </section>
+
+          {/* Under Evaluation */}
+          <section>
+            <h2 className="text-base font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-bold">{evaluating.length}</span>
+              {t('underEvaluation')}
+            </h2>
+            {evaluating.length === 0 ? (
+              <EmptyState description={t('noUnderEvaluationApplications')} />
+            ) : (
+              <Accordion items={buildItems(evaluating)} />
             )}
           </section>
 
@@ -248,28 +322,24 @@ export default function AdminTeacherRequests() {
           {reviewed.length > 0 && (
             <section>
               <h2 className="text-base font-semibold text-slate-700 dark:text-slate-300 mb-3">{t('reviewed')}</h2>
-              <div className="space-y-4">
-                {reviewed.map((app: MockTeacherApplication) => (
-                  <ApplicationCard key={app._id} app={app} onAccept={() => {}} onReject={() => {}} />
-                ))}
-              </div>
+              <Accordion items={buildItems(reviewed)} />
             </section>
           )}
         </div>
       )}
 
-      {/* Accept Dialog */}
-      <Dialog open={!!acceptId} onOpenChange={() => setAcceptId(null)}>
+      {/* Evaluation Dialog */}
+      <Dialog open={!!evaluateId} onOpenChange={() => setEvaluateId(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-              {t('acceptApplication')}
+              <Calendar className="w-5 h-5 text-blue-600" />
+              {t('startEvaluationTitle')}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <p className="text-sm text-slate-600 dark:text-slate-400">
-              {t('acceptEmailNote')}
+              {t('evaluationEmailNote')}
             </p>
             <div>
               <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1.5">
@@ -283,13 +353,40 @@ export default function AdminTeacherRequests() {
             </div>
           </div>
           <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setEvaluateId(null)}>{t('cancel')}</Button>
+            <Button
+              onClick={handleEvaluateConfirm}
+              disabled={!zoomLink.trim() || reviewMutation.isPending}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              {reviewMutation.isPending ? t('sending') : t('sendAndStartEvaluation')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Accept Dialog */}
+      <Dialog open={!!acceptId} onOpenChange={() => setAcceptId(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex flex-col items-center text-center gap-3">
+              <CheckCircle2 className="w-8 h-8 text-emerald-600" />
+              {t('acceptAfterEvaluation')}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              {t('acceptAfterEvaluationNote')}
+            </p>
+          </div>
+          <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setAcceptId(null)}>{t('cancel')}</Button>
             <Button
               onClick={handleAcceptConfirm}
-              disabled={!zoomLink.trim() || reviewMutation.isPending}
+              disabled={reviewMutation.isPending}
               className="bg-emerald-600 hover:bg-emerald-700 text-white"
             >
-              {reviewMutation.isPending ? t('sending') : t('sendAndAccept')}
+              {reviewMutation.isPending ? t('sending') : t('confirmAccept')}
             </Button>
           </DialogFooter>
         </DialogContent>

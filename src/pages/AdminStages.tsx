@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getStages, createStage, updateStage, deleteStage, getSubjectsByStage } from '@/api/subjectApi';
+import { getStages, createStage, updateStage, deleteStage, getSubjectsByStage, type Stage, type StageInput, type Subject } from '@/api/subjectApi';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { Pencil, Trash2, Plus, ChevronRight, BookOpen } from 'lucide-react';
 import { cardVariants, buttonVariants, spacing } from '@/lib/constants';
+import { getLocalizedName } from '@/lib/localeUtils';
 
 const STAGE_COLORS = [
   { value: 'emerald', bg: 'from-emerald-500 to-teal-600', light: 'bg-emerald-50 dark:bg-emerald-900/20', text: 'text-emerald-700 dark:text-emerald-300', border: 'border-emerald-200 dark:border-emerald-800' },
@@ -31,35 +32,23 @@ const STAGE_COLORS = [
 
 type StageColor = typeof STAGE_COLORS[number]['value'];
 
-type Stage = {
-  _id: string;
-  name: string;
-  description: string;
-  icon: string;
-  color: StageColor;
-  order: number;
-};
-
 type StageForm = {
   name: string;
+  nameAr: string;
   description: string;
   icon: string;
   color: StageColor;
-};
-
-type SubjectSummary = {
-  _id: string;
 };
 
 function getStageColor(color: string) {
   return STAGE_COLORS.find((c) => c.value === color) ?? STAGE_COLORS[1];
 }
 
-const emptyForm: StageForm = { name: '', description: '', icon: '📚', color: 'blue' };
+const emptyForm: StageForm = { name: '', nameAr: '', description: '', icon: '📚', color: 'blue' };
 
 function StageSubjectCount({ stageId }: { stageId: string }) {
   const { t } = useTranslation();
-  const { data: subjects = [] } = useQuery<SubjectSummary[]>({
+  const { data: subjects = [] } = useQuery<Subject[]>({
     queryKey: ['subjects-by-stage', stageId],
     queryFn: () => getSubjectsByStage(stageId),
   });
@@ -72,7 +61,7 @@ function StageSubjectCount({ stageId }: { stageId: string }) {
 }
 
 export default function AdminStages() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -89,12 +78,12 @@ export default function AdminStages() {
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['stages'] });
 
   const createMutation = useMutation({
-    mutationFn: (data: StageForm) => createStage(data),
+    mutationFn: (data: StageForm) => createStage(data as StageInput),
     onSuccess: () => { invalidate(); setFormOpen(false); setForm(emptyForm); },
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: StageForm }) => updateStage(id, data),
+    mutationFn: ({ id, data }: { id: string; data: StageForm }) => updateStage(id, data as StageInput),
     onSuccess: () => { invalidate(); setFormOpen(false); setEditId(null); setForm(emptyForm); },
   });
 
@@ -106,7 +95,13 @@ export default function AdminStages() {
   const openCreate = () => { setEditId(null); setForm(emptyForm); setFormOpen(true); };
   const openEdit = (stage: Stage) => {
     setEditId(stage._id);
-    setForm({ name: stage.name, description: stage.description, icon: stage.icon, color: stage.color });
+    setForm({
+      name: stage.name,
+      nameAr: stage.nameAr ?? '',
+      description: stage.description ?? '',
+      icon: stage.icon ?? '📚',
+      color: (stage.color as StageColor) ?? 'blue',
+    });
     setFormOpen(true);
   };
   const closeForm = () => { setFormOpen(false); setEditId(null); setForm(emptyForm); };
@@ -159,8 +154,8 @@ export default function AdminStages() {
           variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
         >
           <AnimatePresence>
-            {stages.map((stage) => {
-              const colors = getStageColor(stage.color);
+            {stages.map((stage: Stage) => {
+              const colors = getStageColor(stage.color ?? 'blue');
               return (
                 <motion.div
                   key={stage._id}
@@ -182,7 +177,7 @@ export default function AdminStages() {
                             {stage.icon}
                           </div>
                           <div>
-                            <h3 className={`font-bold text-lg ${colors.text}`}>{stage.name}</h3>
+                            <h3 className={`font-bold text-lg ${colors.text}`}>{getLocalizedName(stage, i18n.language)}</h3>
                             <StageSubjectCount stageId={stage._id} />
                           </div>
                         </div>
@@ -207,10 +202,10 @@ export default function AdminStages() {
                           </Button>
                         </div>
                       </div>
-                      <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 mb-4">{stage.description}</p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 mb-4">{stage.description || ''}</p>
                       <div className={`flex items-center justify-between pt-3 border-t ${colors.border}`}>
                         <span className="text-xs text-slate-400 dark:text-slate-500">
-                          {t('stageOrder', { n: stage.order })}
+                          {t('stageOrder', { n: stage.order ?? 0 })}
                         </span>
                         <div className={`flex items-center gap-1.5 text-xs font-medium ${colors.text} group-hover:gap-2.5 transition-all`}>
                           {t('viewSubjects')}
@@ -251,6 +246,15 @@ export default function AdminStages() {
                   placeholder={t('stageNamePlaceholder')}
                 />
               </div>
+            </div>
+            <div>
+              <Label className="text-xs text-slate-500 mb-1 block">{t('stageNameAr')}</Label>
+              <Input
+                value={form.nameAr}
+                onChange={(e) => setForm((f) => ({ ...f, nameAr: e.target.value }))}
+                placeholder={t('stageNameArPlaceholder')}
+                dir="rtl"
+              />
             </div>
             <div>
               <Label className="text-xs text-slate-500 mb-1 block">{t('description')}</Label>

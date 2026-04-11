@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { getLocalizedName } from '@/lib/localeUtils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getLessonById,
@@ -13,6 +14,13 @@ import {
   getPartsByLesson,
   saveQuizGrade,
   getGradesByStudent,
+  type Subject,
+  type Unit,
+  type Lesson,
+  type LessonPart,
+  type LessonComment,
+  type Quiz,
+  type QuizGrade,
 } from '@/api/subjectApi';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -66,40 +74,38 @@ function SidebarUnit({
   onLessonClick,
   onPartClick,
 }: {
-  unit: any;
+  unit: Unit;
   activeLessonId: string;
   activePartId: string;
   subjectId: string;
-  onLessonClick: (lesson: any) => void;
-  onPartClick: (lesson: any, part: any) => void;
+  onLessonClick: (lesson: Lesson) => void;
+  onPartClick: (lesson: Lesson, part: LessonPart) => void;
 }) {
-  const { data: lessons = [] } = useQuery({
+  const { data: lessons = [] } = useQuery<Lesson[]>({
     queryKey: ['unit-lessons', unit._id],
     queryFn: () => getLessonsByUnit(unit._id),
   });
 
-  const hasActive = lessons.some((l: any) => l._id === activeLessonId);
-  const [open, setOpen] = useState(hasActive || unit.order === 1);
-
-  // Re-open if active lesson moves into this unit
-  useEffect(() => { if (hasActive) setOpen(true); }, [hasActive]);
+  const hasActive = lessons.some((lesson) => lesson._id === activeLessonId);
+  const [open, setOpen] = useState(unit.order === 1);
+  const isOpen = open || hasActive;
 
   return (
     <div className="border-b border-slate-100 dark:border-slate-800/60 last:border-b-0">
       <button
         className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors text-left"
-        onClick={() => setOpen((o: boolean) => !o)}
+        onClick={() => setOpen((prev) => !prev)}
       >
         <div className="flex items-center gap-2 min-w-0">
           <span className="flex-shrink-0 w-6 h-6 rounded-md bg-blue-600 text-white text-xs font-bold flex items-center justify-center">
-            {unit.order}
+            {unit.order ?? 0}
           </span>
           <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate leading-snug">
             {unit.title}
           </span>
         </div>
         <motion.span
-          animate={{ rotate: open ? 180 : 0 }}
+          animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.2 }}
           className="flex-shrink-0 ml-2"
         >
@@ -108,7 +114,7 @@ function SidebarUnit({
       </button>
 
       <AnimatePresence initial={false}>
-        {open && (
+        {isOpen && (
           <motion.div
             key="content"
             initial={{ height: 0, opacity: 0 }}
@@ -118,7 +124,7 @@ function SidebarUnit({
             style={{ overflow: 'hidden' }}
           >
             <div className="pb-1">
-              {lessons.map((lesson: any) => (
+              {lessons.map((lesson) => (
                 <SidebarLesson
                   key={lesson._id}
                   lesson={lesson}
@@ -143,14 +149,14 @@ function SidebarLesson({
   onLessonClick,
   onPartClick,
 }: {
-  lesson: any;
+  lesson: Lesson;
   activeLessonId: string;
   activePartId: string;
-  onLessonClick: (lesson: any) => void;
-  onPartClick: (lesson: any, part: any) => void;
+  onLessonClick: (lesson: Lesson) => void;
+  onPartClick: (lesson: Lesson, part: LessonPart) => void;
 }) {
   const { t } = useTranslation();
-  const { data: parts = [] } = useQuery({
+  const { data: parts = [] } = useQuery<LessonPart[]>({
     queryKey: ['lesson-parts', lesson._id],
     queryFn: () => getPartsByLesson(lesson._id),
   });
@@ -184,7 +190,7 @@ function SidebarLesson({
 
       {parts.length > 0 && (
         <div className="ms-11 pb-1">
-          {parts.map((part: any, idx: number) => {
+          {parts.map((part, idx) => {
             const partActive = isActive && part._id === activePartId;
             return (
               <button
@@ -221,12 +227,12 @@ function LessonPartsSection({
   activePartId?: string;
 }) {
   const { t } = useTranslation();
-  const { data: parts = [], isLoading } = useQuery({
+  const { data: parts = [], isLoading } = useQuery<LessonPart[]>({
     queryKey: ['lesson-parts', lessonId],
     queryFn: () => getPartsByLesson(lessonId),
   });
 
-  const { data: grades = [] } = useQuery({
+  const { data: grades = [] } = useQuery<QuizGrade[]>({
     queryKey: ['student-grades', studentId],
     queryFn: () => getGradesByStudent(studentId!),
     enabled: !!studentId,
@@ -257,7 +263,7 @@ function LessonPartsSection({
         {t('lessonParts')} ({parts.length})
       </h2>
       <div className="space-y-4">
-        {(parts as any[]).map((part, idx) => {
+        {parts.map((part, idx) => {
           return (
             <PartCard
               key={part._id}
@@ -284,31 +290,31 @@ function PartCard({
   activePartId,
   onSaveGrade,
 }: {
-  part: any;
+  part: LessonPart;
   index: number;
   studentId?: string;
-  grades: any[];
+  grades: QuizGrade[];
   activePartId?: string;
   onSaveGrade: (quizId: string, score: number, correct: number, total: number) => void;
 }) {
   const { t } = useTranslation();
   const isActivePart = !!activePartId && part._id === activePartId;
-  const [open, setOpen] = useState(index === 0 || isActivePart);
+  const [open, setOpen] = useState(index === 0);
+  const isOpen = open || isActivePart;
   const partRef = useRef<HTMLDivElement | null>(null);
   const [quizOpen, setQuizOpen] = useState(false);
 
-  const { data: partQuiz } = useQuery({
+  const { data: partQuiz } = useQuery<Quiz | null>({
     queryKey: ['unit-quiz', part._id],
     queryFn: () => getQuizByAttached(part._id),
   });
 
   const existingGrade = partQuiz
-    ? grades.find((g: any) => g.quizId === partQuiz._id)
+    ? grades.find((grade) => grade.quizId === partQuiz._id)
     : null;
 
   useEffect(() => {
     if (isActivePart) {
-      setOpen(true);
       partRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [isActivePart]);
@@ -322,7 +328,7 @@ function PartCard({
       {/* Part header */}
       <button
         className="w-full flex items-center justify-between px-5 py-4 bg-slate-50 dark:bg-slate-900/60 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors text-left"
-        onClick={() => setOpen((o: boolean) => !o)}
+        onClick={() => setOpen((prev) => !prev)}
       >
         <div className="flex items-center gap-3">
           <span className="w-7 h-7 rounded-lg bg-blue-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
@@ -337,14 +343,14 @@ function PartCard({
               {existingGrade.score}%
             </span>
           )}
-          <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
+          <motion.span animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
             <ChevronDown className="w-4 h-4 text-slate-400" />
           </motion.span>
         </div>
       </button>
 
       <AnimatePresence initial={false}>
-        {open && (
+        {isOpen && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
@@ -418,7 +424,7 @@ function PartCard({
           open={quizOpen}
           onClose={() => setQuizOpen(false)}
           quizId={partQuiz._id}
-          quizTitle={partQuiz.title}
+          quizTitle={partQuiz.title ?? t('quizLabel')}
           onComplete={(score, correct, total) => {
             onSaveGrade(partQuiz._id, score, correct, total);
           }}
@@ -435,13 +441,13 @@ function CommentsSection({ lessonId }: { lessonId: string }) {
   const { t } = useTranslation();
   const [text, setText] = useState('');
 
-  const { data: comments = [] } = useQuery({
+  const { data: comments = [] } = useQuery<LessonComment[]>({
     queryKey: ['lesson-comments', lessonId],
     queryFn: () => getCommentsByLesson(lessonId),
   });
 
   const addMutation = useMutation({
-    mutationFn: (t: string) => addLessonComment(lessonId, t),
+    mutationFn: (commentText: string) => addLessonComment(lessonId, commentText),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['lesson-comments', lessonId] });
       setText('');
@@ -481,19 +487,19 @@ function CommentsSection({ lessonId }: { lessonId: string }) {
         {comments.length === 0 ? (
           <EmptyState description={t('lessonNoComments')} className="py-8" />
         ) : (
-          comments.map((c: any) => (
-            <div key={c._id} className="flex gap-3">
+          comments.map((comment) => (
+            <div key={comment._id} className="flex gap-3">
               <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-blue-700 dark:text-blue-300 font-bold text-xs flex-shrink-0">
-                {c.userId?.name?.charAt(0).toUpperCase() || '?'}
+                {comment.userId?.name?.charAt(0).toUpperCase() || '?'}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{c.userId?.name}</span>
+                  <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{comment.userId?.name}</span>
                   <span className="text-xs text-slate-400 dark:text-slate-500">
-                    {new Date(c.createdAt).toLocaleDateString()}
+                    {comment.createdAt ? new Date(comment.createdAt).toLocaleDateString() : '-'}
                   </span>
                 </div>
-                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{c.text}</p>
+                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{comment.text}</p>
               </div>
             </div>
           ))
@@ -511,59 +517,50 @@ export default function LessonView() {
   const { lessonId } = useParams<{ lessonId: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const subjectId = searchParams.get('subjectId') || '';
   const fromStudent = searchParams.get('from') === 'student' || user?.role === 'Student';
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeLessonId, setActiveLessonId] = useState<string>(lessonId || '');
-  const [activePartId, setActivePartId] = useState<string>(searchParams.get('partId') || '');
   const [quizOpen, setQuizOpen] = useState(false);
+  const activeLessonId = lessonId || '';
+  const activePartId = searchParams.get('partId') || '';
 
-  useEffect(() => {
-    if (lessonId) setActiveLessonId(lessonId);
-    setActivePartId(searchParams.get('partId') || '');
-  }, [lessonId, searchParams]);
-
-  const { data: subject } = useQuery({
+  const { data: subject } = useQuery<Subject>({
     queryKey: ['subject', subjectId],
     queryFn: () => getSubjectById(subjectId),
     enabled: !!subjectId,
   });
 
-  const { data: units = [] } = useQuery({
+  const { data: units = [] } = useQuery<Unit[]>({
     queryKey: ['units', subjectId],
     queryFn: () => getUnitsBySubject(subjectId),
     enabled: !!subjectId,
   });
 
   // Check for a quiz attached to this lesson
-  const { data: lessonQuiz } = useQuery({
+  const { data: lessonQuiz } = useQuery<Quiz | null>({
     queryKey: ['unit-quiz', activeLessonId],
     queryFn: () => getQuizByAttached(activeLessonId),
     enabled: !!activeLessonId,
   });
 
-  const { data: lesson, isLoading } = useQuery({
+  const { data: lesson, isLoading } = useQuery<Lesson>({
     queryKey: ['lesson', activeLessonId],
     queryFn: () => getLessonById(activeLessonId),
     enabled: !!activeLessonId,
   });
 
-  const handleLessonClick = (l: any) => {
-    setActiveLessonId(l._id);
-    setActivePartId('');
+  const handleLessonClick = (selectedLesson: Lesson) => {
     setSidebarOpen(false);
     const fromParam = fromStudent ? '&from=student' : '';
-    navigate(`/lesson/${l._id}?subjectId=${subjectId}${fromParam}`, { replace: true });
+    navigate(`/lesson/${selectedLesson._id}?subjectId=${subjectId}${fromParam}`, { replace: true });
   };
 
-  const handlePartClick = (lesson: any, part: any) => {
-    setActiveLessonId(lesson._id);
-    setActivePartId(part._id);
+  const handlePartClick = (selectedLesson: Lesson, part: LessonPart) => {
     setSidebarOpen(false);
     const fromParam = fromStudent ? '&from=student' : '';
-    navigate(`/lesson/${lesson._id}?subjectId=${subjectId}${fromParam}&partId=${part._id}`, { replace: true });
+    navigate(`/lesson/${selectedLesson._id}?subjectId=${subjectId}${fromParam}&partId=${part._id}`, { replace: true });
   };
 
   const backPath = fromStudent
@@ -670,7 +667,7 @@ export default function LessonView() {
                   <span className="text-slate-300 dark:text-slate-600">/</span>
                   <span className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
                     <span className="text-base leading-none">{subject.icon}</span>
-                    <span className="font-medium">{subject.name}</span>
+                    <span className="font-medium">{getLocalizedName(subject, i18n.language)}</span>
                   </span>
                 </>
               )}
@@ -762,7 +759,7 @@ export default function LessonView() {
                 open={quizOpen}
                 onClose={() => setQuizOpen(false)}
                 quizId={lessonQuiz._id}
-                quizTitle={lessonQuiz.title}
+                quizTitle={lessonQuiz.title ?? t('quizLabel')}
               />
             )}
 
@@ -843,12 +840,12 @@ function SidebarInner({
   onClose,
   showClose,
 }: {
-  units: any[];
+  units: Unit[];
   activeLessonId: string;
   activePartId: string;
   subjectId: string;
-  onLessonClick: (l: any) => void;
-  onPartClick: (lesson: any, part: any) => void;
+  onLessonClick: (lesson: Lesson) => void;
+  onPartClick: (lesson: Lesson, part: LessonPart) => void;
   onClose?: () => void;
   showClose?: boolean;
 }) {
@@ -876,7 +873,7 @@ function SidebarInner({
           {units.length === 0 ? (
             <EmptyState description={t('lessonNoUnits')} className="py-8" />
           ) : (
-            units.map((unit: any) => (
+            units.map((unit) => (
               <SidebarUnit
                 key={unit._id}
                 unit={unit}

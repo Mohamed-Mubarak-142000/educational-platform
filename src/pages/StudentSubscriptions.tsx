@@ -15,6 +15,18 @@ const plans = [
 
 const paymentMethods = ['Vodafone Cash', 'InstaPay'] as const;
 
+type Payment = {
+  _id: string;
+  plan: string;
+  method: string;
+  status: string;
+};
+
+type Subscription = {
+  plan?: string;
+  status?: string;
+};
+
 export default function StudentSubscriptions() {
   const { t } = useTranslation();
   const { pushToast } = useToast();
@@ -23,8 +35,8 @@ export default function StudentSubscriptions() {
   const [file, setFile] = useState<File | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  const { data: subscription } = useQuery({ queryKey: ['subscription'], queryFn: getMySubscription });
-  const { data: payments = [], refetch } = useQuery({ queryKey: ['my-payments'], queryFn: getMyPayments });
+  const { data: subscription } = useQuery<Subscription>({ queryKey: ['subscription'], queryFn: getMySubscription });
+  const { data: payments = [], refetch } = useQuery<Payment[]>({ queryKey: ['my-payments'], queryFn: getMyPayments });
 
   const uploadMutation = useMutation({
     mutationFn: uploadPaymentProof,
@@ -127,7 +139,7 @@ export default function StudentSubscriptions() {
             <p className="text-sm text-slate-500">{t('currentPlan')}</p>
             <p className="text-lg font-semibold">{subscription?.plan || t('noPlan')}</p>
             <p className="text-sm text-slate-500 mt-4">{t('status')}</p>
-            <p className="text-lg font-semibold">{subscription?.status || t('inactive')}</p>
+            <p className="text-lg font-semibold">{subscription?.status === 'Active' ? t('active') : subscription?.status === 'Cancelled' ? t('cancelled') : t('inactive')}</p>
           </CardContent>
         </Card>
       </div>
@@ -147,7 +159,7 @@ export default function StudentSubscriptions() {
                 </tr>
               </thead>
               <tbody>
-                {payments.map((payment: any) => (
+                {payments.map((payment) => (
                   <tr key={payment._id} className="border-t border-slate-200/60 dark:border-slate-800">
                     <td className="py-3">{payment.plan}</td>
                     <td className="py-3">{payment.method}</td>

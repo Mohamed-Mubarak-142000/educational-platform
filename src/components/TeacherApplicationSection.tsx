@@ -7,11 +7,14 @@
  */
 
 import { useState, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { submitTeacherApplication } from '@/api/adminApi';
+import { submitTeacherApplication, uploadTeacherApplicationFile } from '@/api/adminApi';
+import { getStages, getSubjectsByStage, type Stage, type Subject } from '@/api/subjectApi';
 import { useTranslation } from 'react-i18next';
+import { getLocalizedName } from '@/lib/localeUtils';
 import {
   GraduationCap,
   Upload,
@@ -34,6 +37,8 @@ interface AppForm {
   name: string;
   email: string;
   phone: string;
+  stageId: string;
+  subjectIds: string[];
   profileImageFile: File | null;
   cvFile: File | null;
   selectedDays: DayOfWeek[];
@@ -44,6 +49,8 @@ const emptyForm: AppForm = {
   name: '',
   email: '',
   phone: '',
+  stageId: '',
+  subjectIds: [],
   profileImageFile: null,
   cvFile: null,
   selectedDays: [],
@@ -51,12 +58,23 @@ const emptyForm: AppForm = {
 };
 
 export default function TeacherApplicationSection() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [form, setForm] = useState<AppForm>(emptyForm);
   const [profilePreview, setProfilePreview] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
+
+  const { data: stages = [] } = useQuery<Stage[]>({
+    queryKey: ['stages'],
+    queryFn: getStages,
+  });
+
+  const { data: subjectsByStage = [] } = useQuery<Subject[]>({
+    queryKey: ['subjects-by-stage', form.stageId],
+    queryFn: () => getSubjectsByStage(form.stageId),
+    enabled: Boolean(form.stageId),
+  });
 
   const profileRef = useRef<HTMLInputElement>(null);
   const cvRef = useRef<HTMLInputElement>(null);
@@ -74,8 +92,23 @@ export default function TeacherApplicationSection() {
     if (file) setForm((p) => ({ ...p, cvFile: file }));
   };
 
-  const toggleDay = (day: DayOfWeek) => {
+  const toggleSubject = (subjectId: string) => {
     setForm((prev) => {
+      const has = prev.subjectIds.includes(subjectId);
+      return {
+        ...prev,
+        subjectIds: has
+          ? prev.subjectIds.filter((id) => id !== subjectId)
+          : [...prev.subjectIds, subjectId],
+      };
+    });
+  };
+
+  const handleStageChange = (stageId: string) => {
+    setForm((prev) => ({ ...prev, stageId, subjectIds: [] }));
+  };
+
+  const toggleDay = (day: DayOfWeek) => {    setForm((prev) => {
       const has = prev.selectedDays.includes(day);
       if (has) {
         const newDays = prev.selectedDays.filter((d) => d !== day);
@@ -104,10 +137,12 @@ export default function TeacherApplicationSection() {
     if (!form.name.trim()) errs.push(t('errorNameRequired'));
     if (!form.email.trim() || !/\S+@\S+\.\S+/.test(form.email)) errs.push(t('errorEmailRequired'));
     if (!form.phone.trim()) errs.push(t('errorPhoneRequired'));
+    if (!form.stageId) errs.push(t('errorStageRequired'));
+    if (!form.subjectIds.length) errs.push(t('errorSubjectRequired'));
     if (form.selectedDays.length < 2) errs.push(t('errorSelectDays'));
     for (const day of form.selectedDays) {
       const h = form.hours[day];
-      if (!h || h.start >= h.end) errs.push(t('errorInvalidHours', { day }));
+      if (!h || h.start >= h.end) errs.push(t('errorInvalidHours', { day: t(`dayName_${day}`) }));
     }
     return errs;
   };
@@ -119,20 +154,34 @@ export default function TeacherApplicationSection() {
     setErrors([]);
     setIsSubmitting(true);
     try {
-      // In real app: upload files first, get URLs
-      const profileImageUrl = profilePreview || undefined;
-      const cvUrl = form.cvFile ? `https://placeholder.cv/${form.cvFile.name}` : undefined;
+      let profileImageUrl: string | undefined;
+      let cvUrl: string | undefined;
+
+      if (form.profileImageFile) {
+        const upload = await uploadTeacherApplicationFile(form.profileImageFile);
+        profileImageUrl = upload.url;
+      }
+
+      if (form.cvFile) {
+        const upload = await uploadTeacherApplicationFile(form.cvFile);
+        cvUrl = upload.url;
+      }
 
       await submitTeacherApplication({
         name: form.name,
         email: form.email,
         phone: form.phone,
+        stageId: form.stageId,
+        stageIds: form.stageId ? [form.stageId] : [],
+        subjectIds: form.subjectIds,
         profileImageUrl,
         cvUrl,
         availableDays: form.selectedDays,
         availableHours: form.hours as Record<DayOfWeek, HourEntry>,
       });
       setSubmitted(true);
+    } catch {
+      setErrors([t('toastUploadFailed')]);
     } finally {
       setIsSubmitting(false);
     }
@@ -252,6 +301,59 @@ export default function TeacherApplicationSection() {
               </div>
             </div>
 
+            {/* Stage → Subject */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                  <GraduationCap className="inline w-4 h-4 mr-1" />
+                  {t('stageLabel')} <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={form.stageId}
+                  onChange={(e) => handleStageChange(e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 text-sm px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">{t('selectStagePlaceholder')}</option>
+                  {stages.map((stage: Stage) => (
+                    <option key={stage._id} value={stage._id}>
+                      {stage.icon} {getLocalizedName(stage, i18n.language)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                  {t('subject')} <span className="text-red-500">*</span>
+                </label>
+                {!form.stageId ? (
+                  <p className="text-sm text-slate-400 dark:text-slate-500 italic py-2">{t('selectStageFirst')}</p>
+                ) : subjectsByStage.length === 0 ? (
+                  <p className="text-sm text-slate-400 dark:text-slate-500 italic py-2">{t('noSubjectsInStage')}</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {subjectsByStage.map((subject: Subject) => {
+                      const checked = form.subjectIds.includes(subject._id);
+                      return (
+                        <button
+                          key={subject._id}
+                          type="button"
+                          onClick={() => toggleSubject(subject._id)}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${
+                            checked
+                              ? 'bg-blue-600 text-white border-blue-600'
+                              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:border-blue-400'
+                          }`}
+                        >
+                          {checked && <CheckCircle2 className="w-3.5 h-3.5" />}
+                          {subject.icon} {getLocalizedName(subject, i18n.language)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* CV Upload */}
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
@@ -304,7 +406,7 @@ export default function TeacherApplicationSection() {
                       }`}
                     >
                       {selected ? <CheckCircle2 className="inline w-3.5 h-3.5 mr-1" /> : <Plus className="inline w-3.5 h-3.5 mr-1" />}
-                      {day}
+                      {t(`dayName_${day}`)}
                     </button>
                   );
                 })}
@@ -327,7 +429,7 @@ export default function TeacherApplicationSection() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {form.selectedDays.map((day) => (
                       <div key={day} className="flex flex-wrap items-center gap-2 bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
-                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300 w-24 flex-shrink-0">{day}</span>
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300 w-24 flex-shrink-0">{t(`dayName_${day}`)}</span>
                         <div className="flex flex-1 flex-wrap items-center gap-2 min-w-0">
                           <input
                             type="time"

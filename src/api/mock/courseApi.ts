@@ -50,15 +50,22 @@ function getCurrentUserId(): string {
 
 // ── Courses ────────────────────────────────────────────────────────
 
-export const getCourses = async () => {
+export const getCourses = async (params?: { teacherId?: string; stageId?: string; subjectId?: string }) => {
   await delay();
-  return [...courses];
+  let result = [...courses];
+  if (params?.teacherId) result = result.filter((c) => getCourseTeacherId(c) === params.teacherId);
+  if (params?.stageId) result = result.filter((c) => c.stageId === params.stageId);
+  if (params?.subjectId) result = result.filter((c) => c.subjectId === params.subjectId);
+  return result;
 };
 
 export const createCourse = async (data: Record<string, unknown>) => {
   await delay();
   const teacherIdRaw = (data.teacherId as string) || getCurrentUserId();
   const teacher = MOCK_USERS.find((u) => u._id === teacherIdRaw);
+  const stageId = data.stageId as string;
+  const subjectId = data.subjectId as string;
+  if (!stageId || !subjectId) throw makeApiError(400, 'Stage and subject are required');
   const newCourse: MockCourse = {
     _id: generateId('course'),
     title: data.title as string,
@@ -66,6 +73,8 @@ export const createCourse = async (data: Record<string, unknown>) => {
     teacherId: teacher
       ? { _id: teacher._id, name: teacher.name }
       : teacherIdRaw,
+    stageId,
+    subjectId,
     price: Number(data.price) || 0,
     thumbnail: data.thumbnail as string | undefined,
     createdAt: new Date().toISOString(),
@@ -122,15 +131,21 @@ export const getEnrolledCourses = async () => {
   return courses.filter((c) => enrolledIds.includes(c._id));
 };
 
-export const getMyCourses = async () => {
+export const getMyCourses = async (params?: { stageId?: string; subjectId?: string }) => {
   await delay();
   const teacherId = getCurrentUserId();
-  return courses.filter((c) => getCourseTeacherId(c) === teacherId);
+  let result = courses.filter((c) => getCourseTeacherId(c) === teacherId);
+  if (params?.stageId) result = result.filter((c) => c.stageId === params.stageId);
+  if (params?.subjectId) result = result.filter((c) => c.subjectId === params.subjectId);
+  return result;
 };
 
-export const getCoursesByTeacher = async (teacherId: string) => {
+export const getCoursesByTeacher = async (teacherId: string, params?: { stageId?: string; subjectId?: string }) => {
   await delay();
-  return courses.filter((c) => getCourseTeacherId(c) === teacherId);
+  let result = courses.filter((c) => getCourseTeacherId(c) === teacherId);
+  if (params?.stageId) result = result.filter((c) => c.stageId === params.stageId);
+  if (params?.subjectId) result = result.filter((c) => c.subjectId === params.subjectId);
+  return result;
 };
 
 // ── Sections & Lessons ─────────────────────────────────────────────
@@ -147,6 +162,33 @@ export const getLessons = async (sectionId: string) => {
   return lessons
     .filter((l) => l.sectionId === sectionId)
     .sort((a, b) => a.order - b.order);
+};
+
+export const getLessonsByCourse = async (courseId: string) => {
+  await delay();
+  return lessons
+    .filter((l) => l.courseId === courseId)
+    .sort((a, b) => a.order - b.order);
+};
+
+export const createLessonForCourse = async (courseId: string, data: Record<string, unknown>) => {
+  await delay();
+  const newLesson = {
+    _id: generateId('lesson'),
+    sectionId: '',
+    courseId,
+    title: data.title as string,
+    description: data.description as string | undefined,
+    videoUrl: data.videoUrl as string | undefined,
+    pdfUrl: data.pdfUrl as string | undefined,
+    imageUrl: data.imageUrl as string | undefined,
+    modelUrl: data.modelUrl as string | undefined,
+    order: Number(data.order) || 1,
+    duration: data.duration as number | undefined,
+    createdAt: new Date().toISOString(),
+  };
+  lessons.push(newLesson);
+  return newLesson;
 };
 
 // ── Discussions ────────────────────────────────────────────────────

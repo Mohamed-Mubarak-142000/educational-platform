@@ -17,6 +17,13 @@ import { Clock, CheckCircle2, XCircle, ClipboardList, Trophy } from 'lucide-reac
 
 type Phase = 'taking' | 'result';
 
+type QuizQuestion = {
+  _id: string;
+  text: string;
+  options: string[];
+  correctAnswer: number;
+};
+
 const OPT_LABELS = ['A', 'B', 'C', 'D'] as const;
 
 // Default quiz time limit in seconds (10 minutes)
@@ -60,7 +67,7 @@ export default function StudentQuizModal({
     }
   }, [open, quizId]);
 
-  const { data: questions = [], isLoading } = useQuery({
+  const { data: questions = [], isLoading } = useQuery<QuizQuestion[]>({
     queryKey: ['quiz-questions', quizId],
     queryFn: () => getQuestionsByQuiz(quizId),
     enabled: open && !!quizId,
@@ -70,7 +77,7 @@ export default function StudentQuizModal({
   const submit = useCallback(() => {
     setPhase('result');
     // Calculate score at submission time
-    const correct = (questions as unknown as { _id: string; correctAnswer: number }[]).filter(
+    const correct = questions.filter(
       (q) => answers[q._id] !== undefined && answers[q._id] === q.correctAnswer
     ).length;
     const total = questions.length;
@@ -87,7 +94,7 @@ export default function StudentQuizModal({
   }, [open, phase, timeLeft, isLoading, submit]);
 
   // ── Score calculation ────────────────────────────────────────────
-  const score = (questions as any[]).filter(
+  const score = questions.filter(
     (q) => answers[q._id] !== undefined && answers[q._id] === q.correctAnswer
   ).length;
 
@@ -141,7 +148,7 @@ export default function StudentQuizModal({
                 ) : questions.length === 0 ? (
                   <EmptyState description={t('quizNoQuestions')} className="py-12" />
                 ) : (
-                  (questions as any[]).map((q, idx) => {
+                  questions.map((q, idx) => {
                     const chosen = answers[q._id];
                     return (
                       <div key={q._id} className="space-y-3">
@@ -150,7 +157,7 @@ export default function StudentQuizModal({
                           {q.text}
                         </p>
                         <div className="grid grid-cols-1 gap-2">
-                          {(q.options as string[]).map((opt: string, i: number) => (
+                          {q.options.map((opt, i) => (
                             <button
                               key={i}
                               type="button"
@@ -218,7 +225,7 @@ export default function StudentQuizModal({
                 {/* Per-question review */}
                 <div className="space-y-3">
                   <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t('quizAnswerReview')}</h4>
-                  {(questions as any[]).map((q, idx) => {
+                  {questions.map((q, idx) => {
                     const chosen = answers[q._id];
                     const correct = q.correctAnswer;
                     const isCorrect = chosen === correct;
@@ -248,7 +255,7 @@ export default function StudentQuizModal({
                           </p>
                         </div>
                         <div className="grid grid-cols-2 gap-1.5 pl-6">
-                          {(q.options as string[]).map((opt: string, i: number) => {
+                          {q.options.map((opt, i) => {
                             const isChosenOption = i === chosen;
                             const isCorrectOption = i === correct;
                             let cls = 'text-xs px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 ';

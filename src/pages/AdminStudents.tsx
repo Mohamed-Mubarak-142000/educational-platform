@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { deleteStudent, getStudents, getSubscriptions } from '@/api/adminApi';
+import { deleteStudent, getStudents, getSubscriptions, type Student, type Subscription } from '@/api/adminApi';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
@@ -18,12 +18,12 @@ export default function AdminStudents() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
 
-  const { data: students = [], isLoading: studentsLoading, isError: studentsError, refetch: refetchStudents } = useQuery({
+  const { data: students = [], isLoading: studentsLoading, isError: studentsError, refetch: refetchStudents } = useQuery<Student[]>({
     queryKey: ['students'],
     queryFn: getStudents,
   });
   
-  const { data: subscriptions = [] } = useQuery({
+  const { data: subscriptions = [] } = useQuery<Subscription[]>({
     queryKey: ['subscriptions'],
     queryFn: getSubscriptions,
   });
@@ -37,9 +37,10 @@ export default function AdminStudents() {
   });
 
   const subscriptionMap = useMemo(() => {
-    const map = new Map<string, any>();
-    subscriptions.forEach((sub: any) => {
-      map.set(sub.studentId?._id || sub.studentId, sub);
+    const map = new Map<string, Subscription>();
+    subscriptions.forEach((sub) => {
+      const studentId = typeof sub.studentId === 'object' ? sub.studentId?._id : sub.studentId;
+      if (studentId) map.set(studentId, sub);
     });
     return map;
   }, [subscriptions]);
@@ -58,11 +59,11 @@ export default function AdminStudents() {
   };
 
   // Define table columns
-  const columns: TableColumn[] = [
+  const columns: TableColumn<Student>[] = [
     { 
       key: 'profileImage', 
       label: t('photo'), 
-      render: (v, row: any) => v ? (
+      render: (v, row) => typeof v === 'string' && v ? (
         <img src={v} alt={t('profilePhotoAlt')} className="w-10 h-10 rounded-full object-cover" />
       ) : (
         <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-semibold">
@@ -72,16 +73,19 @@ export default function AdminStudents() {
     },
     { key: 'name', label: t('name') },
     { key: 'email', label: t('email') },
-    { key: 'phone', label: t('phone'), render: (v) => v || '-' },
+    { key: 'phone', label: t('phone'), render: (v) => (typeof v === 'string' && v ? v : '-') },
     { 
       key: '_id', 
       label: t('plan'), 
-      render: (v) => subscriptionMap.get(v)?.plan || t('noPlan') 
+      render: (v) => (typeof v === 'string' ? subscriptionMap.get(v)?.plan || t('noPlan') : t('noPlan'))
     },
     { 
       key: '_id', 
       label: t('subscription'), 
-      render: (v) => subscriptionMap.get(v)?.status || t('inactive') 
+      render: (v) => {
+        const status = typeof v === 'string' ? subscriptionMap.get(v)?.status : undefined;
+        return status === 'Active' ? t('active') : status === 'Cancelled' ? t('cancelled') : t('inactive');
+      }
     },
   ];
 
@@ -113,7 +117,7 @@ export default function AdminStudents() {
             columns={columns}
             data={students}
             isLoading={studentsLoading}
-            actions={(student: any) => (
+            actions={(student) => (
               <div className="flex items-center justify-end gap-1">
                 <Button
                   variant="ghost"

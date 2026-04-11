@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { getCourseById, getSections, getLessons } from '../api/courseApi';
+import { getCourseById, getSections, getLessons, getLessonsByCourse, type Course, type CourseSection, type Lesson } from '../api/courseApi';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -9,30 +9,6 @@ import { Button } from '@/components/ui/button';
 import { PlayCircle, FileText, CheckCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { EmptyState } from '@/components/shared';
-
-type TeacherRef = string | { _id: string; name: string };
-
-type Course = {
-  _id: string;
-  title: string;
-  description?: string;
-  thumbnail?: string;
-  teacherId?: TeacherRef;
-};
-
-type Section = {
-  _id: string;
-  title: string;
-};
-
-type Lesson = {
-  _id: string;
-  title: string;
-  order: number;
-  duration?: number;
-  videoUrl?: string;
-  pdfUrl?: string;
-};
 
 export default function CourseView() {
   const { id } = useParams();
@@ -43,10 +19,16 @@ export default function CourseView() {
     queryFn: () => getCourseById(id as string),
   });
 
-  const { data: sections } = useQuery<Section[]>({
+  const { data: sections } = useQuery<CourseSection[]>({
     queryKey: ['sections', id],
     queryFn: () => getSections(id as string),
     enabled: !!id
+  });
+
+  const { data: courseLessons = [] } = useQuery<Lesson[]>({
+    queryKey: ['course-lessons', id],
+    queryFn: () => getLessonsByCourse(id as string),
+    enabled: !!id && (!sections || sections.length === 0),
   });
 
   if (courseLoading) return <div className="p-8 max-w-5xl mx-auto flex items-center justify-center h-screen">{t('loadingCourse')}</div>;
@@ -90,34 +72,74 @@ export default function CourseView() {
             <CardTitle>{t('courseCurriculumTitle')}</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <Tabs defaultValue={sections?.[0]?._id} className="flex flex-col md:flex-row min-h-[500px]">
-              <div className="md:w-64 border-r dark:border-slate-800">
-                <ScrollArea className="h-[500px]">
-                  <TabsList className="flex flex-col h-auto bg-transparent items-stretch p-0 rounded-none w-full">
-                    {sections?.map((section) => (
-                      <TabsTrigger 
-                        key={section._id} 
-                        value={section._id} 
-                        className={`justify-start px-6 py-4 data-[state=active]:bg-blue-50 dark:data-[state=active]:bg-slate-800 data-[state=active]:border-l-4 border-blue-600 rounded-none w-full ${isRtl ? 'text-right' : 'text-left'}`}
-                      >
-                        {section.title}
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-                </ScrollArea>
-              </div>
+            {sections && sections.length > 0 ? (
+              <Tabs defaultValue={sections?.[0]?._id} className="flex flex-col md:flex-row min-h-[500px]">
+                <div className="md:w-64 border-r dark:border-slate-800">
+                  <ScrollArea className="h-[500px]">
+                    <TabsList className="flex flex-col h-auto bg-transparent items-stretch p-0 rounded-none w-full">
+                      {sections?.map((section) => (
+                        <TabsTrigger 
+                          key={section._id} 
+                          value={section._id} 
+                          className={`justify-start px-6 py-4 data-[state=active]:bg-blue-50 dark:data-[state=active]:bg-slate-800 data-[state=active]:border-l-4 border-blue-600 rounded-none w-full ${isRtl ? 'text-right' : 'text-left'}`}
+                        >
+                          {section.title}
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+                  </ScrollArea>
+                </div>
 
-              <div className="flex-1 p-6 bg-white dark:bg-slate-950">
-                {sections?.map((section) => (
-                  <TabsContent key={section._id} value={section._id} className="mt-0 outline-none">
-                    <LessonsList sectionId={section._id} />
-                  </TabsContent>
-                ))}
+                <div className="flex-1 p-6 bg-white dark:bg-slate-950">
+                  {sections?.map((section) => (
+                    <TabsContent key={section._id} value={section._id} className="mt-0 outline-none">
+                      <LessonsList sectionId={section._id} />
+                    </TabsContent>
+                  ))}
+                </div>
+              </Tabs>
+            ) : (
+              <div className="p-6 bg-white dark:bg-slate-950">
+                <LessonsByCourseList lessons={courseLessons} />
               </div>
-            </Tabs>
+            )}
           </CardContent>
         </Card>
       </section>
+    </div>
+  );
+}
+
+function LessonsByCourseList({ lessons }: { lessons: Lesson[] }) {
+  const { t } = useTranslation();
+
+  if (lessons.length === 0) return <EmptyState description={t('noLessons')} className="py-8" />;
+
+  return (
+    <div className="space-y-4">
+      <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+        <PlayCircle className="w-5 h-5 text-blue-500"/> {t('courseLessonsTitle')}
+      </h3>
+      {lessons.map((lesson: Lesson, idx) => (
+        <div key={lesson._id} className="group p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-blue-500 transition-colors flex items-center justify-between bg-slate-50 hover:bg-white dark:bg-slate-900/50 dark:hover:bg-slate-900 shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold shadow-inner">
+              {lesson.order ?? idx + 1}
+            </div>
+            <div>
+              <p className="font-medium text-lg group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{lesson.title}</p>
+              <div className="flex items-center gap-3 text-sm text-slate-500 mt-1">
+                {lesson.duration && <span>{lesson.duration} {t('minutesShort')}</span>}
+                {lesson.videoUrl && <span className="flex items-center gap-1"><PlayCircle className="w-4 h-4"/> {t('videoLabel')}</span>}
+                {lesson.pdfUrl && <span className="flex items-center gap-1"><FileText className="w-4 h-4"/> {t('pdfLabel')}</span>}
+              </div>
+            </div>
+          </div>
+          <Button variant="ghost" size="icon" className="group-hover:bg-blue-50 group-hover:text-blue-600 rounded-full">
+            <CheckCircle className="w-6 h-6 text-slate-300 group-hover:text-blue-500 transition-colors" />
+          </Button>
+        </div>
+      ))}
     </div>
   );
 }
@@ -138,11 +160,11 @@ function LessonsList({ sectionId }: { sectionId: string }) {
       <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
         <PlayCircle className="w-5 h-5 text-blue-500"/> {t('courseLessonsTitle')}
       </h3>
-      {lessons?.map((lesson) => (
+      {lessons?.map((lesson: Lesson) => (
         <div key={lesson._id} className="group p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-blue-500 transition-colors flex items-center justify-between bg-slate-50 hover:bg-white dark:bg-slate-900/50 dark:hover:bg-slate-900 shadow-sm">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold shadow-inner">
-               {lesson.order}
+               {lesson.order ?? 0}
             </div>
             <div>
               <p className="font-medium text-lg group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{lesson.title}</p>

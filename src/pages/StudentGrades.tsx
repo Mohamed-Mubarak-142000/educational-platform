@@ -7,7 +7,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/context/AuthContext';
-import { getGradesByStudent } from '@/api/subjectApi';
+import { getGradesByStudent, type QuizGrade } from '@/api/subjectApi';
 import { useTranslation } from 'react-i18next';
 import { EmptyState } from '@/components/shared';
 import { motion } from 'framer-motion';
@@ -21,15 +21,6 @@ import {
   BarChart2,
 } from 'lucide-react';
 import { spacing } from '@/lib/constants';
-
-type Grade = {
-  _id: string;
-  quizId: string;
-  score: number;
-  correctCount: number;
-  totalQuestions: number;
-  completedAt: string;
-};
 
 function ScoreBadge({ score }: { score: number }) {
   const pass = score >= 60;
@@ -47,13 +38,13 @@ function ScoreBadge({ score }: { score: number }) {
   );
 }
 
-function GradeRow({ grade, index }: { grade: Grade; index: number }) {
+function GradeRow({ grade, index }: { grade: QuizGrade; index: number }) {
   const { t } = useTranslation();
   const quizLabel = `${t('quizLabel')} ${grade.quizId.slice(-5)}`;
 
-  const date = new Date(grade.completedAt);
-  const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  const date = grade.completedAt ? new Date(grade.completedAt) : null;
+  const dateStr = date ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '-';
+  const timeStr = date ? date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '';
 
   return (
     <motion.tr
@@ -72,7 +63,7 @@ function GradeRow({ grade, index }: { grade: Grade; index: number }) {
         <ScoreBadge score={grade.score} />
       </td>
       <td className="py-3.5 px-4 text-sm text-slate-600 dark:text-slate-400 text-center">
-        {grade.correctCount} / {grade.totalQuestions}
+        {grade.correctCount ?? 0} / {grade.totalQuestions ?? 0}
       </td>
       <td className="py-3.5 px-4 text-sm text-slate-500 dark:text-slate-400 whitespace-nowrap">
         <div className="flex items-center gap-1.5">
@@ -89,7 +80,7 @@ export default function StudentGrades() {
   const { t } = useTranslation();
   const { user } = useAuth();
 
-  const { data: grades = [], isLoading } = useQuery<Grade[]>({
+  const { data: grades = [], isLoading } = useQuery<QuizGrade[]>({
     queryKey: ['student-grades', user?._id],
     queryFn: () => getGradesByStudent(user!._id),
     enabled: !!user?._id,
@@ -170,7 +161,7 @@ export default function StudentGrades() {
               </thead>
               <tbody>
                 {grades.map((grade, i) => (
-                  <GradeRow key={grade._id} grade={grade} index={i} />
+                  <GradeRow key={grade._id ?? `${grade.quizId}-${i}`} grade={grade} index={i} />
                 ))}
               </tbody>
             </table>

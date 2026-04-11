@@ -1,53 +1,62 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { useTranslation } from 'react-i18next';
-import { useEffect } from 'react';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import CourseView from './pages/CourseView';
-import Curriculums from './pages/Curriculums';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
-import ChangePassword from './pages/ChangePassword';
-import VerifyEmail from './pages/VerifyEmail';
-import AdminOverview from './pages/AdminOverview';
-import AdminTeachers from './pages/AdminTeachers';
-import AdminStudents from './pages/AdminStudents';
-import AdminCourses from './pages/AdminCourses';
-import AdminSubjects from './pages/AdminSubjects';
-import AdminStages from './pages/AdminStages';
-import AdminSubjectDetail from './pages/AdminSubjectDetail';
-import AdminLessonForm from './pages/AdminLessonForm';
-import LessonView from './pages/LessonView';
-import AdminExams from './pages/AdminExams';
-import AdminPayments from './pages/AdminPayments';
-import AdminTeacherDetail from './pages/AdminTeacherDetail';
-import AdminStudentDetail from './pages/AdminStudentDetail';
-import AdminCourseDetail from './pages/AdminCourseDetail';
-import AdminExamDetail from './pages/AdminExamDetail';
-import AdminTeacherRequests from './pages/AdminTeacherRequests';
-import CourseForm from './pages/CourseForm';
-import ExamForm from './pages/ExamForm';
-import TeacherForm from './pages/TeacherForm';
-import StudentForm from './pages/StudentForm';
-import TeacherOverview from './pages/TeacherOverview';
-import TeacherCourses from './pages/TeacherCourses';
-import TeacherExams from './pages/TeacherExams';
-import TeacherSettings from './pages/TeacherSettings';
-import StudentOverview from './pages/StudentOverview';
-import StudentSubscriptions from './pages/StudentSubscriptions';
-import StudentPaymentsRecord from './pages/StudentPaymentsRecord';
-import StudentCourses from './pages/StudentCourses';
-import StudentLearn from './pages/StudentLearn';
-import StudentSubjectDetail from './pages/StudentSubjectDetail';
-import StudentSchedule from './pages/StudentSchedule';
-import StudentGrades from './pages/StudentGrades';
+import { useEffect, lazy, Suspense } from 'react';
 import { SiteNavbar } from '@/components/ui/SiteNavbar';
-import RequireAuth, { roleHome } from '@/components/RequireAuth';
+import RequireAuth, { roleHome, type Role } from '@/components/RequireAuth';
 import DashboardLayout from '@/components/DashboardLayout';
 import PageLoader from '@/components/PageLoader';
 import SplashScreen from '@/components/SplashScreen';
 import { SidebarProvider } from '@/context/SidebarContext';
+
+const Landing = lazy(() => import('./pages/Landing'));
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const CourseView = lazy(() => import('./pages/CourseView'));
+const Curriculums = lazy(() => import('./pages/Curriculums'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const ChangePassword = lazy(() => import('./pages/ChangePassword'));
+const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
+const AdminOverview = lazy(() => import('./pages/AdminOverview'));
+const AdminTeachers = lazy(() => import('./pages/AdminTeachers'));
+const AdminStudents = lazy(() => import('./pages/AdminStudents'));
+const AdminCourses = lazy(() => import('./pages/AdminCourses'));
+const AdminSubjects = lazy(() => import('./pages/AdminSubjects'));
+const AdminStages = lazy(() => import('./pages/AdminStages'));
+const AdminSubjectDetail = lazy(() => import('./pages/AdminSubjectDetail'));
+const AdminLessonForm = lazy(() => import('./pages/AdminLessonForm'));
+const LessonView = lazy(() => import('./pages/LessonView'));
+const AdminExams = lazy(() => import('./pages/AdminExams'));
+const AdminPayments = lazy(() => import('./pages/AdminPayments'));
+const AdminTeacherDetail = lazy(() => import('./pages/AdminTeacherDetail'));
+const AdminStudentDetail = lazy(() => import('./pages/AdminStudentDetail'));
+const AdminCourseDetail = lazy(() => import('./pages/AdminCourseDetail'));
+const AdminExamDetail = lazy(() => import('./pages/AdminExamDetail'));
+const AdminTeacherRequests = lazy(() => import('./pages/AdminTeacherRequests'));
+const CourseForm = lazy(() => import('./pages/CourseForm'));
+const ExamForm = lazy(() => import('./pages/ExamForm'));
+const TeacherForm = lazy(() => import('./pages/TeacherForm'));
+const StudentForm = lazy(() => import('./pages/StudentForm'));
+const TeacherOverview = lazy(() => import('./pages/TeacherOverview'));
+const CourseLessonForm = lazy(() => import('./pages/CourseLessonForm'));
+const TeacherStudents = lazy(() => import('./pages/TeacherStudents'));
+const TeacherExams = lazy(() => import('./pages/TeacherExams'));
+const TeacherSettings = lazy(() => import('./pages/TeacherSettings'));
+const TeacherStages = lazy(() => import('./pages/TeacherStages'));
+const TeacherSubjects = lazy(() => import('./pages/TeacherSubjects'));
+const TeacherSubjectDetail = lazy(() => import('./pages/TeacherSubjectDetail'));
+const TeacherLessonForm = lazy(() => import('./pages/TeacherLessonForm'));
+const StudentOverview = lazy(() => import('./pages/StudentOverview'));
+const StudentSubscriptions = lazy(() => import('./pages/StudentSubscriptions'));
+const StudentPaymentsRecord = lazy(() => import('./pages/StudentPaymentsRecord'));
+const StudentCourses = lazy(() => import('./pages/StudentCourses'));
+const StudentLearn = lazy(() => import('./pages/StudentLearn'));
+const StudentSubjectDetail = lazy(() => import('./pages/StudentSubjectDetail'));
+const StudentSchedule = lazy(() => import('./pages/StudentSchedule'));
+const StudentGrades = lazy(() => import('./pages/StudentGrades'));
+const StudentTeachers = lazy(() => import('./pages/StudentTeachers'));
+const StudentTeacherProfile = lazy(() => import('./pages/StudentTeacherProfile'));
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -62,11 +71,11 @@ function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-import Landing from './pages/Landing';
-
 function App() {
   const { i18n } = useTranslation();
   const { user, isLoading } = useAuth();
+  const role = user?.role;
+  const normalizedRole: Role | undefined = role === 'Admin' || role === 'Teacher' || role === 'Student' ? role : undefined;
   
   useEffect(() => {
     document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
@@ -79,11 +88,12 @@ function App() {
     <>
       <SplashScreen />
       <Router>
+      <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/curriculums" element={<Curriculums />} />
-        <Route path="/login" element={!user ? <Login /> : <Navigate to={roleHome(user?.role)} />} />
-        <Route path="/register" element={!user ? <Register /> : <Navigate to={roleHome(user?.role)} />} />
+        <Route path="/login" element={!user ? <Login /> : <Navigate to={roleHome(normalizedRole)} />} />
+        <Route path="/register" element={!user ? <Register /> : <Navigate to={roleHome(normalizedRole)} />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
@@ -94,7 +104,7 @@ function App() {
         } />
         <Route path="/dashboard" element={
           <RequireAuth>
-            <Navigate to={roleHome(user?.role)} />
+            <Navigate to={roleHome(normalizedRole)} />
           </RequireAuth>
         } />
         <Route path="/admin" element={
@@ -223,6 +233,24 @@ function App() {
             </Layout>
           </RequireAuth>
         } />
+        <Route path="/admin/courses/:courseId/lessons/new" element={
+          <RequireAuth allowedRoles={['Admin']}>
+            <Layout>
+              <DashboardLayout>
+                <CourseLessonForm />
+              </DashboardLayout>
+            </Layout>
+          </RequireAuth>
+        } />
+        <Route path="/admin/courses/:courseId/lessons/:lessonId/edit" element={
+          <RequireAuth allowedRoles={['Admin']}>
+            <Layout>
+              <DashboardLayout>
+                <CourseLessonForm />
+              </DashboardLayout>
+            </Layout>
+          </RequireAuth>
+        } />
         <Route path="/admin/exams" element={
           <RequireAuth allowedRoles={['Admin']}>
             <Layout>
@@ -277,11 +305,11 @@ function App() {
             </Layout>
           </RequireAuth>
         } />
-        <Route path="/teacher/courses" element={
+        <Route path="/teacher/students" element={
           <RequireAuth allowedRoles={['Teacher', 'Admin']}>
             <Layout>
               <DashboardLayout>
-                <TeacherCourses />
+                <TeacherStudents />
               </DashboardLayout>
             </Layout>
           </RequireAuth>
@@ -300,6 +328,51 @@ function App() {
             <Layout>
               <DashboardLayout>
                 <TeacherSettings />
+              </DashboardLayout>
+            </Layout>
+          </RequireAuth>
+        } />
+        <Route path="/teacher/subjects" element={
+          <RequireAuth allowedRoles={['Teacher', 'Admin']}>
+            <Layout>
+              <DashboardLayout>
+                <TeacherStages />
+              </DashboardLayout>
+            </Layout>
+          </RequireAuth>
+        } />
+        <Route path="/teacher/stages/:stageId/subjects" element={
+          <RequireAuth allowedRoles={['Teacher', 'Admin']}>
+            <Layout>
+              <DashboardLayout>
+                <TeacherSubjects />
+              </DashboardLayout>
+            </Layout>
+          </RequireAuth>
+        } />
+        <Route path="/teacher/subjects/:id" element={
+          <RequireAuth allowedRoles={['Teacher', 'Admin']}>
+            <Layout>
+              <DashboardLayout>
+                <TeacherSubjectDetail />
+              </DashboardLayout>
+            </Layout>
+          </RequireAuth>
+        } />
+        <Route path="/teacher/subjects/:subjectId/units/:unitId/lessons/new" element={
+          <RequireAuth allowedRoles={['Teacher', 'Admin']}>
+            <Layout>
+              <DashboardLayout>
+                <TeacherLessonForm />
+              </DashboardLayout>
+            </Layout>
+          </RequireAuth>
+        } />
+        <Route path="/teacher/subjects/:subjectId/units/:unitId/lessons/:lessonId/edit" element={
+          <RequireAuth allowedRoles={['Teacher', 'Admin']}>
+            <Layout>
+              <DashboardLayout>
+                <TeacherLessonForm />
               </DashboardLayout>
             </Layout>
           </RequireAuth>
@@ -345,6 +418,24 @@ function App() {
             <Layout>
               <DashboardLayout>
                 <StudentLearn />
+              </DashboardLayout>
+            </Layout>
+          </RequireAuth>
+        } />
+        <Route path="/student/teachers" element={
+          <RequireAuth allowedRoles={['Student', 'Admin']}>
+            <Layout>
+              <DashboardLayout>
+                <StudentTeachers />
+              </DashboardLayout>
+            </Layout>
+          </RequireAuth>
+        } />
+        <Route path="/student/teachers/:id" element={
+          <RequireAuth allowedRoles={['Student', 'Admin']}>
+            <Layout>
+              <DashboardLayout>
+                <StudentTeacherProfile />
               </DashboardLayout>
             </Layout>
           </RequireAuth>
@@ -436,6 +527,7 @@ function App() {
           </RequireAuth>
         } />
       </Routes>
+      </Suspense>
     </Router>
     </>
   );

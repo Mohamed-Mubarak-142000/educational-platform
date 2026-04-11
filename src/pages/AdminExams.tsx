@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { deleteExam, getExams } from '@/api/examApi';
+import { deleteExam, getExams, type Exam } from '@/api/examApi';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
@@ -41,7 +41,7 @@ export default function AdminExams() {
   // Define table columns
   const columns: TableColumn[] = [
     { key: 'title', label: t('title') },
-    { key: 'lessonId', label: t('lessonId'), render: (v) => v || '-' },
+    { key: 'lessonId', label: t('lessonId'), render: (v) => (typeof v === 'string' && v ? v : '-') },
     { key: 'timeLimit', label: t('timeLimit'), render: (v) => `${v} ${t('minutesShort')}` },
   ];
 
@@ -73,7 +73,7 @@ export default function AdminExams() {
             columns={columns}
             data={exams}
             isLoading={isLoading}
-            actions={(exam: any) => (
+            actions={(exam: Exam) => (
               <div className="flex items-center justify-end gap-1">
                 <Button
                   variant="ghost"

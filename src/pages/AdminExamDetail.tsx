@@ -8,23 +8,40 @@ import { useTranslation } from 'react-i18next';
 import { EmptyState } from '@/components/shared';
 import { spacing, cardVariants } from '@/lib/constants';
 
+type Exam = {
+  _id: string;
+  title: string;
+  timeLimit: number;
+  lessonId?: string | { _id?: string };
+  createdAt?: string;
+};
+
+type ExamResult = {
+  _id: string;
+  score: number;
+  studentId?: {
+    name?: string;
+    email?: string;
+  };
+};
+
 export default function AdminExamDetail() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
-  const { data: exams = [], isLoading } = useQuery({
+  const { data: exams = [], isLoading } = useQuery<Exam[]>({
     queryKey: ['exams'],
     queryFn: getExams,
   });
 
-  const { data: results = [] } = useQuery({
+  const { data: results = [] } = useQuery<ExamResult[]>({
     queryKey: ['exam-results', id],
     queryFn: () => getExamResults(id || ''),
     enabled: !!id,
   });
 
-  const exam: any = exams.find((e: any) => e._id === id);
+  const exam = exams.find((item) => item._id === id);
 
   if (isLoading) {
     return <div className={`${spacing.pageContainer} py-12 text-center text-slate-500`}>{t('loading')}</div>;
@@ -103,7 +120,7 @@ export default function AdminExamDetail() {
                     </tr>
                   </thead>
                   <tbody>
-                    {results.map((result: any) => (
+                    {results.map((result) => (
                       <tr key={result._id} className="border-b border-slate-100 dark:border-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800/30">
                         <td className="py-3 px-4">{result.studentId?.name || '-'}</td>
                         <td className="py-3 px-4">{result.studentId?.email || '-'}</td>
