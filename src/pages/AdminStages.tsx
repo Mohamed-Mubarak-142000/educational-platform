@@ -299,7 +299,7 @@ export default function AdminStages() {
         description={t('deleteStageDesc')}
         confirmLabel={t('delete')}
         cancelLabel={t('cancel')}
-        onConfirm={() => { if (deleteId) deleteMutation.mutate(deleteId); }}
+        onConfirm={async () => { if (deleteId) await deleteMutation.mutateAsync(deleteId); }}
         onCancel={() => setDeleteId(null)}
       />
     </div>

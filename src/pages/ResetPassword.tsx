@@ -12,23 +12,26 @@ import { SiteNavbar } from '@/components/ui/SiteNavbar';
 import { SiteFooter } from '@/components/ui/SiteFooter';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
-const schema = z
-  .object({
-    newPassword: z.string().min(6),
-    confirmPassword: z.string().min(6),
-  })
-  .refine((values) => values.newPassword === values.confirmPassword, {
-    message: 'Passwords do not match',
-    path: ['confirmPassword'],
-  });
-
-type FormValues = z.infer<typeof schema>;
+type FormValues = {
+  newPassword: string;
+  confirmPassword: string;
+};
 
 export default function ResetPassword() {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === 'ar';
   const [params] = useSearchParams();
   const navigate = useNavigate();
+
+  const schema = useMemo(() => z
+    .object({
+      newPassword: z.string().min(6),
+      confirmPassword: z.string().min(6),
+    })
+    .refine((values) => values.newPassword === values.confirmPassword, {
+      message: t('passwordsDoNotMatchValidation'),
+      path: ['confirmPassword'],
+    }), [t]);
 
   const token = params.get('token') || '';
   const email = params.get('email') || '';

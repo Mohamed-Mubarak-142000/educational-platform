@@ -15,6 +15,13 @@ export default function AdminStudentDetail() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
+  const getPlanLabel = (plan: string) => {
+    if (plan === 'Monthly') return t('planMonthly');
+    if (plan === 'Quarterly') return t('planQuarterly');
+    if (plan === 'Yearly') return t('planYearly');
+    return plan;
+  };
+
   const { data: student, isLoading } = useQuery<Student>({
     queryKey: ['student', id],
     queryFn: () => getStudentById(id as string),
@@ -30,6 +37,8 @@ export default function AdminStudentDetail() {
     const subId = typeof sub.studentId === 'object' ? sub.studentId?._id : sub.studentId;
     return subId === id;
   });
+  
+  const locale = i18n.language === 'ar' ? 'ar-EG' : 'en-US';
 
   if (isLoading) {
     return <div className={`${spacing.pageContainer} py-12 text-center text-slate-500`}>{t('loading')}</div>;
@@ -53,7 +62,7 @@ export default function AdminStudentDetail() {
     { icon: null, label: t('status'), value: student.status === 'Active' ? t('active') : student.status === 'Inactive' ? t('inactive') : '-' },
     { icon: null, label: t('plan'), value: subscription?.plan || t('noPlan') },
     { icon: null, label: t('subscription'), value: subscription?.status === 'Active' ? t('active') : subscription?.status === 'Cancelled' ? t('cancelled') : t('inactive') },
-    { icon: null, label: t('joined'), value: student.createdAt ? new Date(student.createdAt).toLocaleDateString() : '-' },
+    { icon: null, label: t('joined'), value: student.createdAt ? new Date(student.createdAt).toLocaleDateString(locale) : '-' },
   ];
 
   const subscribedSubjects: Subject[] = student?.subscribedSubjects ?? [];
@@ -102,7 +111,7 @@ export default function AdminStudentDetail() {
                     ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
                     : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
                 }`}>
-                  {subscription.plan}
+                  {getPlanLabel(subscription.plan)}
                 </span>
               )}
             </div>

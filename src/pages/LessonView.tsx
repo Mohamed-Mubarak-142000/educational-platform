@@ -438,7 +438,8 @@ function PartCard({
 
 function CommentsSection({ lessonId }: { lessonId: string }) {
   const queryClient = useQueryClient();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language === 'ar' ? 'ar-EG' : 'en-US';
   const [text, setText] = useState('');
 
   const { data: comments = [] } = useQuery<LessonComment[]>({
@@ -496,7 +497,7 @@ function CommentsSection({ lessonId }: { lessonId: string }) {
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{comment.userId?.name}</span>
                   <span className="text-xs text-slate-400 dark:text-slate-500">
-                    {comment.createdAt ? new Date(comment.createdAt).toLocaleDateString() : '-'}
+                    {comment.createdAt ? new Date(comment.createdAt).toLocaleDateString(locale) : '-'}
                   </span>
                 </div>
                 <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{comment.text}</p>
@@ -519,6 +520,7 @@ export default function LessonView() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
+  const locale = i18n.language === 'ar' ? 'ar-EG' : 'en-US';
   const subjectId = searchParams.get('subjectId') || '';
   const fromStudent = searchParams.get('from') === 'student' || user?.role === 'Student';
   const [sidebarOpen, setSidebarOpen] = useState(false);

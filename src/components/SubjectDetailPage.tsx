@@ -977,7 +977,7 @@ export default function SubjectDetailPage({ basePath }: SubjectDetailPageProps) 
         description={t('deleteUnitConfirm')}
         confirmLabel={t('delete')}
         cancelLabel={t('cancel')}
-        onConfirm={() => { if (deleteUnitId) deleteUnitMutation.mutate(deleteUnitId); }}
+        onConfirm={async () => { if (deleteUnitId) await deleteUnitMutation.mutateAsync(deleteUnitId); }}
         onCancel={() => setDeleteUnitId(null)}
       />
 
@@ -988,7 +988,7 @@ export default function SubjectDetailPage({ basePath }: SubjectDetailPageProps) 
         description={t('deleteLessonConfirm')}
         confirmLabel={t('delete')}
         cancelLabel={t('cancel')}
-        onConfirm={() => { if (deleteLessonId) deleteLessonMutation.mutate(deleteLessonId); }}
+        onConfirm={async () => { if (deleteLessonId) await deleteLessonMutation.mutateAsync(deleteLessonId); }}
         onCancel={() => setDeleteLessonId(null)}
       />
 

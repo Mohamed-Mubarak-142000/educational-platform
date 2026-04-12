@@ -29,8 +29,8 @@ export default function TeacherExams() {
     setDeleteConfirmOpen(true);
   };
 
-  const confirmDelete = () => {
-    if (selectedExamId) deleteMutation.mutate(selectedExamId);
+  const confirmDelete = async () => {
+    if (selectedExamId) await deleteMutation.mutateAsync(selectedExamId);
     setDeleteConfirmOpen(false);
     setSelectedExamId(null);
   };

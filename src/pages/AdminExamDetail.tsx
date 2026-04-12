@@ -26,8 +26,9 @@ type ExamResult = {
 };
 
 export default function AdminExamDetail() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const locale = i18n.language === 'ar' ? 'ar-EG' : 'en-US';
   const { id } = useParams<{ id: string }>();
 
   const { data: exams = [], isLoading } = useQuery<Exam[]>({
@@ -64,7 +65,7 @@ export default function AdminExamDetail() {
     { icon: FileText, label: t('title'), value: exam.title },
     { icon: Clock, label: t('timeLimit'), value: `${exam.timeLimit} ${t('minutesShort')}` },
     { icon: null, label: t('lessonId'), value: lessonId },
-    { icon: null, label: t('createdAt'), value: exam.createdAt ? new Date(exam.createdAt).toLocaleDateString() : '-' },
+    { icon: null, label: t('createdAt'), value: exam.createdAt ? new Date(exam.createdAt).toLocaleDateString(locale) : '-' },
   ];
 
   return (

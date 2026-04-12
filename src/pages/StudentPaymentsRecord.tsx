@@ -16,12 +16,34 @@ type PaymentRecord = {
 };
 
 export default function StudentPaymentsRecord() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language === 'ar' ? 'ar-EG' : 'en-US';
 
   const { data: payments = [], isLoading, isError, refetch } = useQuery({
     queryKey: ['my-payments'],
     queryFn: getMyPayments,
   });
+
+  const getPaymentMethodLabel = (method: string) => {
+    if (method === 'Vodafone Cash') return t('vodafoneCash');
+    if (method === 'InstaPay') return t('instaPay');
+    return method;
+  };
+  
+  const getPaymentStatusLabel = (status: string) => {
+    const normalized = status.toLowerCase();
+    if (normalized === 'approved') return t('paymentStatusApproved');
+    if (normalized === 'pending') return t('paymentStatusPending');
+    if (normalized === 'rejected') return t('paymentStatusRejected');
+    return status;
+  };
+  
+  const getPlanLabel = (plan: string) => {
+    if (plan === 'Monthly') return t('planMonthly');
+    if (plan === 'Quarterly') return t('planQuarterly');
+    if (plan === 'Yearly') return t('planYearly');
+    return plan;
+  };
 
   return (
     <div className={spacing.pageContainer}>
@@ -54,12 +76,12 @@ export default function StudentPaymentsRecord() {
                 <tbody>
                   {(payments as PaymentRecord[]).map((payment) => (
                     <tr key={payment._id} className="border-t border-slate-200/60 dark:border-slate-800">
-                      <td className="py-3 px-2 font-medium">{payment.plan}</td>
+                      <td className="py-3 px-2">{getPlanLabel(payment.plan)}</td>
                       <td className="py-3 px-2">{payment.amount}</td>
-                      <td className="py-3 px-2">{payment.method}</td>
-                      <td className="py-3 px-2">{payment.status}</td>
+                      <td className="py-3 px-2">{getPaymentMethodLabel(payment.method)}</td>
+                      <td className="py-3 px-2">{getPaymentStatusLabel(payment.status)}</td>
                       <td className="py-3 px-2">
-                        {payment.createdAt ? new Date(payment.createdAt).toLocaleDateString() : '-'}
+                        {payment.createdAt ? new Date(payment.createdAt).toLocaleDateString(locale) : '-'}
                       </td>
                       <td className="py-3 px-2">
                         {payment.screenshotUrl ? (

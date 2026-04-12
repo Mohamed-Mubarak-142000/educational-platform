@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -37,6 +38,7 @@ interface PdfViewerBodyProps {
 }
 
 function PdfViewerBody({ url, className, initialPage }: PdfViewerBodyProps) {
+  const { t } = useTranslation();
   const [numPages, setNumPages] = useState<number | null>(null);
   const [pageNumber, setPageNumber] = useState(initialPage);
   const [scale, setScale] = useState(1);
@@ -59,10 +61,10 @@ function PdfViewerBody({ url, className, initialPage }: PdfViewerBodyProps) {
 
   const handleError = (err: Error) => {
     if (viewerMode === 'doc') {
-      setDocError('Unable to display this document.');
+      setDocError(t('errDisplayDoc'));
       return;
     }
-    setError(err.message || 'Unable to display this document.');
+    setError(err.message || t('errDisplayDoc'));
     setPdfFallback(true);
   };
 
@@ -83,7 +85,7 @@ function PdfViewerBody({ url, className, initialPage }: PdfViewerBodyProps) {
   if (!url) {
     return (
       <div className={cn('rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600', className)}>
-        No file URL provided.
+        {t('noPdfUrl')}
       </div>
     );
   }
@@ -92,7 +94,7 @@ function PdfViewerBody({ url, className, initialPage }: PdfViewerBodyProps) {
     return (
       <div className={cn('rounded-2xl border border-slate-200 bg-white shadow-sm', className)}>
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-4 py-3 text-sm">
-          <span className="text-slate-600">Google Docs Viewer</span>
+          <span className="text-slate-600">{t('googleDocsViewer')}</span>
         </div>
         <div className="min-h-[60vh] bg-slate-50 p-4">
           {docError ? (
@@ -101,11 +103,11 @@ function PdfViewerBody({ url, className, initialPage }: PdfViewerBodyProps) {
             </div>
           ) : (
             <iframe
-              title="Document preview"
+              title={t('documentPreview')}
               src={`https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(url)}`}
               className="h-[70vh] w-full rounded-xl border border-slate-200"
               onLoad={() => setDocError('')}
-              onError={() => setDocError('Unable to display this document. Please open the original file.')}
+              onError={() => setDocError(t('errDisplayDocOrigin'))}
             />
           )}
         </div>
@@ -124,7 +126,7 @@ function PdfViewerBody({ url, className, initialPage }: PdfViewerBodyProps) {
             onClick={() => setPageNumber((p) => Math.max(1, p - 1))}
             disabled={!numPages || pageNumber <= 1}
           >
-            Prev
+            {t('prev')}
           </Button>
           <Button
             type="button"
@@ -133,10 +135,10 @@ function PdfViewerBody({ url, className, initialPage }: PdfViewerBodyProps) {
             onClick={() => setPageNumber((p) => (numPages ? Math.min(numPages, p + 1) : p))}
             disabled={!numPages || pageNumber >= (numPages || 1)}
           >
-            Next
+            {t('next')}
           </Button>
           <span className="text-slate-600">
-            Page {pageNumber}{numPages ? ` of ${numPages}` : ''}
+            {t('page')} {pageNumber}{numPages ? ` / ${numPages}` : ''}
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -163,7 +165,7 @@ function PdfViewerBody({ url, className, initialPage }: PdfViewerBodyProps) {
       <div ref={pageContainerRef} className="min-h-[60vh] bg-slate-50 p-4">
         {pdfFallback ? (
           <iframe
-            title="PDF preview"
+            title={t('pdfPreview')}
             src={url}
             className="h-[70vh] w-full rounded-xl border border-slate-200"
           />
@@ -176,7 +178,7 @@ function PdfViewerBody({ url, className, initialPage }: PdfViewerBodyProps) {
             file={pdfFile}
             onLoadSuccess={handleLoadSuccess}
             onLoadError={handleError}
-            loading={<div className="text-sm text-slate-500">Loading PDF…</div>}
+            loading={<div className="text-sm text-slate-500">{t('loadingPdf')}</div>}
             className="flex justify-center"
           >
             <Page

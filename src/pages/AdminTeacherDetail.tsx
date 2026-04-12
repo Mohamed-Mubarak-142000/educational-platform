@@ -20,6 +20,7 @@ export default function AdminTeacherDetail() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const locale = i18n.language === 'ar' ? 'ar-EG' : 'en-US';
 
   const { data: teacher, isLoading } = useQuery<Teacher>({
     queryKey: ['teacher', id],
@@ -94,7 +95,7 @@ export default function AdminTeacherDetail() {
     { icon: BookOpen, label: t('subject'), value: teacher.subject || '-' },
     { icon: Users,    label: t('totalStudents'), value: String(teacher.totalStudentCount ?? 0) },
     { icon: null,     label: t('status'),  value: teacher.status === 'Active' ? t('active') : teacher.status === 'Inactive' ? t('inactive') : '-' },
-    { icon: null,     label: t('joined'),  value: teacher.createdAt ? new Date(teacher.createdAt).toLocaleDateString() : '-' },
+    { icon: null,     label: t('joined'),  value: teacher.createdAt ? new Date(teacher.createdAt).toLocaleDateString(locale) : '-' },
   ];
 
   return (

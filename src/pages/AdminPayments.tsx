@@ -39,18 +39,39 @@ export default function AdminPayments() {
     onError: () => pushToast({ type: 'error', title: t('toastActionFailed') }),
   });
 
+  const getPaymentMethodLabel = (method: string) => {
+    if (method === 'Vodafone Cash') return t('vodafoneCash');
+    if (method === 'InstaPay') return t('instaPay');
+    return method;
+  };
+  
+  const getPaymentStatusLabel = (status: string) => {
+    const normalized = status.toLowerCase();
+    if (normalized === 'approved') return t('paymentStatusApproved');
+    if (normalized === 'pending') return t('paymentStatusPending');
+    if (normalized === 'rejected') return t('paymentStatusRejected');
+    return status;
+  };
+  
+  const getPlanLabel = (plan: string) => {
+    if (plan === 'Monthly') return t('planMonthly');
+    if (plan === 'Quarterly') return t('planQuarterly');
+    if (plan === 'Yearly') return t('planYearly');
+    return plan;
+  };
+
   const requestAction = (id: string, action: 'approve' | 'reject') => {
     setSelectedId(id);
     setConfirmAction(action);
   };
 
-  const onConfirm = () => {
+  const onConfirm = async () => {
     if (!selectedId || !confirmAction) return;
     if (confirmAction === 'approve') {
-      approveMutation.mutate(selectedId);
+      await approveMutation.mutateAsync(selectedId);
     }
     if (confirmAction === 'reject') {
-      rejectMutation.mutate(selectedId);
+      await rejectMutation.mutateAsync(selectedId);
     }
     setConfirmAction(null);
   };
@@ -89,14 +110,14 @@ export default function AdminPayments() {
                     <td className="py-3 px-2 font-medium">
                       {typeof payment.studentId === 'object' ? payment.studentId?.name : '-'}
                     </td>
-                    <td className="py-3 px-2">{payment.plan}</td>
-                    <td className="py-3 px-2">{payment.method}</td>
+                    <td className="py-3 px-2">{getPlanLabel(payment.plan)}</td>
+                    <td className="py-3 px-2">{getPaymentMethodLabel(payment.method)}</td>
                     <td className="py-3 px-2">
                       <a href={payment.screenshotUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
                         {t('view')}
                       </a>
                     </td>
-                    <td className="py-3 px-2">{payment.status}</td>
+                    <td className="py-3 px-2">{getPaymentStatusLabel(payment.status)}</td>
                     <td className="py-3 px-2 text-end space-x-2">
                       <Button variant="ghost" onClick={() => requestAction(payment._id, 'approve')}>
                         {t('approve')}

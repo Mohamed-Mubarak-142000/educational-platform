@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { useState, useEffect } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, GraduationCap, BookOpen, FileText, CreditCard, Settings, ChevronLeft, LogOut, GraduationCap as LearnIcon, Calendar, UserSquare2, Award, ShieldAlert, X } from 'lucide-react';
+import { LayoutDashboard, Users, GraduationCap, BookOpen, FileText, CreditCard, Settings, ChevronLeft, LogOut, GraduationCap as LearnIcon, Calendar, UserSquare2, Award, ShieldAlert, X, type LucideIcon } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { roleHome, type Role } from '@/components/RequireAuth';
 import { useTranslation } from 'react-i18next';
@@ -14,6 +14,100 @@ import { useSidebar } from '@/context/SidebarContext';
 const linkBase = "flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors";
 const activeClass = "bg-blue-600 text-white shadow-sm";
 const inactiveClass = "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800";
+
+type NavItem = { to: string; label: string; icon: LucideIcon; end: boolean };
+
+type NavLinksProps = {
+  links: NavItem[];
+  collapsed: boolean;
+  onLinkClick?: () => void;
+  alwaysExpanded?: boolean;
+  navLayoutId?: string;
+};
+
+function NavLinks({ links, collapsed, onLinkClick, alwaysExpanded = false, navLayoutId = 'activeNav' }: NavLinksProps) {
+  const isCollapsed = alwaysExpanded ? false : collapsed;
+  return (
+    <nav className="px-2 space-y-0.5 overflow-y-auto flex-1">
+      {links.map((item) => (
+        <NavLink
+          key={item.to}
+          to={item.to}
+          end={item.end}
+          onClick={onLinkClick}
+          className={({ isActive }) =>
+            `${linkBase} ${isActive ? activeClass : inactiveClass} ${isCollapsed ? 'justify-center px-2' : ''} group relative overflow-hidden`
+          }
+        >
+          {({ isActive }) => (
+            <>
+              {isActive && (
+                <motion.span
+                  layoutId={navLayoutId}
+                  className="absolute inset-0 bg-blue-600 rounded-xl"
+                  transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+                />
+              )}
+              <item.icon className="w-4 h-4 relative z-10 flex-shrink-0" />
+              <AnimatePresence>
+                {!isCollapsed && (
+                  <motion.span
+                    key="label"
+                    initial={{ opacity: 0, width: 0 }}
+                    animate={{ opacity: 1, width: 'auto' }}
+                    exit={{ opacity: 0, width: 0 }}
+                    transition={{ duration: 0.18 }}
+                    className="relative z-10 whitespace-nowrap overflow-hidden"
+                  >
+                    {item.label}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </>
+          )}
+        </NavLink>
+      ))}
+    </nav>
+  );
+}
+
+type SidebarFooterProps = {
+  collapsed: boolean;
+  handleLogout: () => void;
+  forMobile?: boolean;
+};
+
+function SidebarFooter({ collapsed, handleLogout, forMobile = false }: SidebarFooterProps) {
+  const { t } = useTranslation();
+  return (
+    <div className="px-3 pb-6 pt-4 border-t border-slate-200/70 dark:border-slate-800">
+      <div className={`flex ${!forMobile && collapsed ? 'flex-col items-center' : 'flex-col'} gap-2`}>
+        <LanguageSwitcher collapsed={!forMobile && collapsed} />
+        <Button
+          variant="ghost"
+          onClick={handleLogout}
+          className={`text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl font-medium transition-colors ${!forMobile && collapsed ? 'w-9 h-9 justify-center px-0' : 'h-9 px-3'}`}
+        >
+          <LogOut className="w-4 h-4 flex-shrink-0" />
+          <AnimatePresence>
+            {(forMobile || !collapsed) && (
+              <motion.span
+                key="logout"
+                initial={{ opacity: 0, width: 0 }}
+                animate={{ opacity: 1, width: 'auto' }}
+                exit={{ opacity: 0, width: 0 }}
+                transition={{ duration: 0.18 }}
+                className="ms-2 whitespace-nowrap overflow-hidden"
+              >
+                {t('logout')}
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
@@ -78,86 +172,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     navigate('/login');
   };
 
-  /** Reusable nav links renderer used in both desktop and mobile sidebars.
-   *  Pass alwaysExpanded=true for mobile to ignore the collapsed state. */
-  function NavLinks({ onLinkClick, alwaysExpanded = false, navLayoutId = 'activeNav' }: { onLinkClick?: () => void; alwaysExpanded?: boolean; navLayoutId?: string }) {
-    const isCollapsed = alwaysExpanded ? false : collapsed;
-    return (
-      <nav className="px-2 space-y-0.5 overflow-y-auto flex-1">
-        {links.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.end}
-            onClick={onLinkClick}
-            className={({ isActive }) =>
-              `${linkBase} ${isActive ? activeClass : inactiveClass} ${isCollapsed ? 'justify-center px-2' : ''} group relative overflow-hidden`
-            }
-          >
-            {({ isActive }) => (
-              <>
-                {isActive && (
-                  <motion.span
-                    layoutId={navLayoutId}
-                    className="absolute inset-0 bg-blue-600 rounded-xl"
-                    transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-                  />
-                )}
-                <item.icon className="w-4 h-4 relative z-10 flex-shrink-0" />
-                <AnimatePresence>
-                  {!isCollapsed && (
-                    <motion.span
-                      key="label"
-                      initial={{ opacity: 0, width: 0 }}
-                      animate={{ opacity: 1, width: 'auto' }}
-                      exit={{ opacity: 0, width: 0 }}
-                      transition={{ duration: 0.18 }}
-                      className="relative z-10 whitespace-nowrap overflow-hidden"
-                    >
-                      {item.label}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </>
-            )}
-          </NavLink>
-        ))}
-      </nav>
-    );
-  }
-
-  /** Bottom footer section for sidebar (language + logout) */
-  function SidebarFooter({ forMobile = false }: { forMobile?: boolean }) {
-    return (
-      <div className="px-3 pb-6 pt-4 border-t border-slate-200/70 dark:border-slate-800">
-        <div className={`flex ${!forMobile && collapsed ? 'flex-col items-center' : 'flex-col'} gap-2`}>
-          <LanguageSwitcher collapsed={!forMobile && collapsed} />
-          <Button
-            variant="ghost"
-            onClick={handleLogout}
-            className={`text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl font-medium transition-colors ${!forMobile && collapsed ? 'w-9 h-9 justify-center px-0' : 'h-9 px-3'}`}
-          >
-            <LogOut className="w-4 h-4 flex-shrink-0" />
-            <AnimatePresence>
-              {(forMobile || !collapsed) && (
-                <motion.span
-                  key="logout"
-                  initial={{ opacity: 0, width: 0 }}
-                  animate={{ opacity: 1, width: 'auto' }}
-                  exit={{ opacity: 0, width: 0 }}
-                  transition={{ duration: 0.18 }}
-                  className="ms-2 whitespace-nowrap overflow-hidden"
-                >
-                  {t('logout')}
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className={`min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 dashboard-shell ${collapsed ? 'collapsed' : ''}`}>
       {/* ── Mobile overlay backdrop ── */}
@@ -208,11 +222,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </div>
             {/* Nav links — always expanded, same component as desktop */}
             <NavLinks
+              links={links}
+              collapsed={collapsed}
               onLinkClick={() => setMobileOpen(false)}
               alwaysExpanded
               navLayoutId="activeNavMobile"
             />
-            <SidebarFooter forMobile />
+            <SidebarFooter collapsed={collapsed} handleLogout={handleLogout} forMobile />
           </motion.aside>
         )}
       </AnimatePresence>
@@ -249,8 +265,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 </NavLink>
               </div>
             </div>
-            <NavLinks />
-            <SidebarFooter />
+            <NavLinks links={links} collapsed={collapsed} />
+            <SidebarFooter collapsed={collapsed} handleLogout={handleLogout} />
           </motion.aside>
           <motion.button
             type="button"

@@ -50,9 +50,9 @@ export default function AdminStudents() {
     setDeleteConfirmOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (selectedStudentId) {
-      deleteMutation.mutate(selectedStudentId);
+      await deleteMutation.mutateAsync(selectedStudentId);
     }
     setDeleteConfirmOpen(false);
     setSelectedStudentId(null);

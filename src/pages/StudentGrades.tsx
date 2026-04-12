@@ -39,12 +39,13 @@ function ScoreBadge({ score }: { score: number }) {
 }
 
 function GradeRow({ grade, index }: { grade: QuizGrade; index: number }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const quizLabel = `${t('quizLabel')} ${grade.quizId.slice(-5)}`;
+  const locale = i18n.language === 'ar' ? 'ar-EG' : 'en-US';
 
   const date = grade.completedAt ? new Date(grade.completedAt) : null;
-  const dateStr = date ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '-';
-  const timeStr = date ? date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '';
+  const dateStr = date ? date.toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' }) : '-';
+  const timeStr = date ? date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) : '';
 
   return (
     <motion.tr

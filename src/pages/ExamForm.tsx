@@ -162,8 +162,8 @@ export default function ExamForm() {
             ...q,
             [field]: value,
             answers: [
-              { id: '1', answerText: 'True', isCorrect: false },
-              { id: '2', answerText: 'False', isCorrect: false },
+              { id: '1', answerText: t('trueLabel'), isCorrect: false },
+              { id: '2', answerText: t('falseLabel'), isCorrect: false },
             ],
           };
         }

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Activity, ArrowRight, BookOpen, GraduationCap, Microscope, TrendingUp, Users } from 'lucide-react';
+import { Activity, ArrowRight, BookOpen, GraduationCap, TrendingUp, Users } from 'lucide-react';
 import { SiteNavbar } from '@/components/ui/SiteNavbar';
 import { SiteFooter } from '@/components/ui/SiteFooter';
 
@@ -12,7 +12,7 @@ export default function Curriculums() {
   const isRtl = i18n.language === 'ar';
 
   const stages = [
-    { id: 1, title: t('stagePrimary6'), icon: Microscope },
+    { id: 1, title: t('stagePrimary6'), icon: BookOpen },
     { id: 2, title: t('stagePrep1'), icon: BookOpen },
     { id: 3, title: t('stagePrep2'), icon: Activity },
     { id: 4, title: t('stagePrep3'), icon: Users },
@@ -22,13 +22,13 @@ export default function Curriculums() {
   ];
 
   const curriculums = [
-    { id: 1, title: t('curriculumBioBasics'), icon: Microscope },
+    { id: 1, title: t('curriculumBioBasics'), icon: BookOpen },
     { id: 2, title: t('curriculumCellBiology'), icon: Activity },
     { id: 3, title: t('curriculumGenetics'), icon: TrendingUp },
     { id: 4, title: t('curriculumAnatomy'), icon: GraduationCap },
     { id: 5, title: t('curriculumHumanBody'), icon: Users },
     { id: 6, title: t('curriculumEcology'), icon: BookOpen },
-    { id: 7, title: t('curriculumMicrobiology'), icon: Microscope },
+    { id: 7, title: t('curriculumMicrobiology'), icon: GraduationCap },
     { id: 8, title: t('curriculumLabSkills'), icon: Activity },
   ];
 

@@ -7,14 +7,6 @@ import { useToast } from '@/components/ui/ToastProvider';
 import { useTranslation } from 'react-i18next';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 
-const plans = [
-  { id: 'monthly', label: 'Monthly', amount: 120 },
-  { id: 'quarterly', label: 'Quarterly', amount: 300 },
-  { id: 'yearly', label: 'Yearly', amount: 1000 },
-];
-
-const paymentMethods = ['Vodafone Cash', 'InstaPay'] as const;
-
 type Payment = {
   _id: string;
   plan: string;
@@ -30,8 +22,40 @@ type Subscription = {
 export default function StudentSubscriptions() {
   const { t } = useTranslation();
   const { pushToast } = useToast();
+  
+  const plans = [
+    { id: 'monthly', label: t('planMonthly'), amount: 120 },
+    { id: 'quarterly', label: t('planQuarterly'), amount: 300 },
+    { id: 'yearly', label: t('planYearly'), amount: 1000 },
+  ];
+  
+  const paymentMethods = [
+    { value: 'Vodafone Cash', label: t('vodafoneCash') },
+    { value: 'InstaPay', label: t('instaPay') },
+  ];
+  
+  const getPaymentMethodLabel = (method: string) => {
+    const found = paymentMethods.find(pm => pm.value === method);
+    return found ? found.label : method;
+  };
+  
+  const getPaymentStatusLabel = (status: string) => {
+    const normalized = status.toLowerCase();
+    if (normalized === 'approved') return t('paymentStatusApproved');
+    if (normalized === 'pending') return t('paymentStatusPending');
+    if (normalized === 'rejected') return t('paymentStatusRejected');
+    return status;
+  };
+  
+  const getPlanLabel = (plan: string) => {
+    if (plan === 'Monthly') return t('planMonthly');
+    if (plan === 'Quarterly') return t('planQuarterly');
+    if (plan === 'Yearly') return t('planYearly');
+    return plan;
+  };
+  
   const [plan, setPlan] = useState(plans[0]);
-  const [method, setMethod] = useState<(typeof paymentMethods)[number]>('Vodafone Cash');
+  const [method, setMethod] = useState(paymentMethods[0].value);
   const [file, setFile] = useState<File | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
@@ -104,12 +128,12 @@ export default function StudentSubscriptions() {
               <div className="flex flex-wrap gap-2">
                 {paymentMethods.map((item) => (
                   <button
-                    key={item}
+                    key={item.value}
                     type="button"
-                    onClick={() => setMethod(item)}
-                    className={`rounded-full px-4 py-2 text-sm border ${method === item ? 'bg-blue-600 text-white border-blue-600' : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300'}`}
+                    onClick={() => setMethod(item.value)}
+                    className={`rounded-full px-4 py-2 text-sm border ${method === item.value ? 'bg-blue-600 text-white border-blue-600' : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300'}`}
                   >
-                    {item}
+                    {item.label}
                   </button>
                 ))}
               </div>
@@ -161,9 +185,9 @@ export default function StudentSubscriptions() {
               <tbody>
                 {payments.map((payment) => (
                   <tr key={payment._id} className="border-t border-slate-200/60 dark:border-slate-800">
-                    <td className="py-3">{payment.plan}</td>
-                    <td className="py-3">{payment.method}</td>
-                    <td className="py-3">{payment.status}</td>
+                    <td className="py-3">{getPlanLabel(payment.plan)}</td>
+                    <td className="py-3">{getPaymentMethodLabel(payment.method)}</td>
+                    <td className="py-3">{getPaymentStatusLabel(payment.status)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -179,8 +203,8 @@ export default function StudentSubscriptions() {
         cancelLabel={t('cancel')}
         onCancel={() => setConfirmOpen(false)}
         onConfirm={async () => {
-          setConfirmOpen(false);
           await onSubmit();
+          setConfirmOpen(false);
         }}
       />
     </div>

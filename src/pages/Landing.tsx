@@ -5,23 +5,32 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Accordion } from '@/components/ui/Accordion';
 import { Carousel } from '@/components/ui/Carousel';
-import { Link } from 'react-router-dom';
-import { BookOpen, CheckCircle, GraduationCap, Users, LayoutDashboard, ArrowRight, Activity, Microscope, Star, Quote, TrendingUp } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { BookOpen, CheckCircle, GraduationCap, Users, LayoutDashboard, ArrowRight, Activity, Star, Quote, TrendingUp, Play, FileText, Volume2, Layers } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { SiteNavbar } from '@/components/ui/SiteNavbar';
 import { SiteFooter } from '@/components/ui/SiteFooter';
 import { AnimatedCounter } from '@/components/AnimatedCounter';
-import { HeartModelViewer } from '@/components/HeartModelViewer';
 import TeacherApplicationSection from '@/components/TeacherApplicationSection';
-
-import heroImage from '@/assets/biology_hero_image.png';
+import { useQuery } from '@tanstack/react-query';
+import { getStages, type Stage } from '@/api/subjectApi';
+import { getLocalizedName } from '@/lib/localeUtils';
+import { ScrollToTop } from '@/components/ScrollToTop';
+import { EntityCard, getEntityColor } from '@/components/shared';
 
 export default function Landing() {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const isRtl = i18n.language === 'ar';
   const [isSpeaking, setIsSpeaking] = useState(false);
   const canSpeak = typeof window !== 'undefined' && 'speechSynthesis' in window;
+
+  // Fetch real stages from the public API
+  const { data: apiStages = [], isLoading: stagesLoading } = useQuery<Stage[]>({
+    queryKey: ['stages'],
+    queryFn: getStages,
+  });
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -52,15 +61,6 @@ export default function Landing() {
     { id: 6, text: t('testi6'), author: t('testiName6'), role: t('role6') },
   ];
 
-  const stages = [
-    { id: 1, title: t('stagePrimary6'), icon: Microscope },
-    { id: 2, title: t('stagePrep1'), icon: BookOpen },
-    { id: 3, title: t('stagePrep2'), icon: Activity },
-    { id: 4, title: t('stagePrep3'), icon: CheckCircle },
-    { id: 5, title: t('stageSec1'), icon: GraduationCap },
-    { id: 6, title: t('stageSec2'), icon: Users },
-    { id: 7, title: t('stageSec3'), icon: TrendingUp },
-  ];
 
   const studentAccordionItems = [
     { title: t('featStudent1'), content: t('featStudent1Desc') },
@@ -136,11 +136,18 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 font-sans selection:bg-blue-200 flex flex-col">
-      <SiteNavbar />
+      <SiteNavbar navLinks={[
+        { labelKey: 'navHome', id: 'home' },
+        { labelKey: 'navStages', id: 'educational-stages' },
+        { labelKey: 'navFeatures', id: 'features' },
+        { labelKey: 'navTeachers', id: 'join-as-teacher' },
+        { labelKey: 'navContact', id: 'contact' },
+      ]} />
+      <ScrollToTop />
       <main className="flex-1">
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden flex items-center min-h-[90vh]">
+      <section id="home" className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden flex items-center min-h-[90vh]">
         <div className="absolute top-0 right-0 -translate-y-12 translate-x-1/3 w-[800px] h-[800px] bg-blue-400/20 dark:bg-blue-900/20 rounded-full blur-[120px] pointer-events-none transition-colors duration-500" />
         <div className="absolute bottom-0 left-0 translate-y-1/3 -translate-x-1/3 w-[600px] h-[600px] bg-indigo-400/20 dark:bg-indigo-900/20 rounded-full blur-[100px] pointer-events-none transition-colors duration-500" />
         
@@ -156,8 +163,8 @@ export default function Landing() {
                 <Activity className="w-4 h-4" /> {t('nextGenLearning')}
               </motion.div>
               
-              <motion.h1 variants={itemVariants} className={`text-5xl lg:text-7xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-6 leading-[1.1] ${isRtl ? 'text-start lg:text-right' : 'text-start'}`}>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 transition-colors duration-300">
+              <motion.h1 variants={itemVariants} className={`text-5xl lg:text-6xl xl:text-7xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-6 leading-[1.15] ${isRtl ? 'text-start lg:text-right' : 'text-start'}`}>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 transition-colors duration-300 drop-shadow-sm">
                   {t('heroTitle')}
                 </span>
               </motion.h1>
@@ -167,15 +174,15 @@ export default function Landing() {
               </motion.p>
               
               <motion.div variants={itemVariants} className={`flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start ${isRtl ? 'lg:flex-row-reverse' : ''}`}>
-                <Link to="/curriculums" className="w-full sm:w-auto">
-                  <Button size="lg" className="h-14 px-8 text-lg bg-blue-600 hover:bg-blue-700 text-white shadow-xl shadow-blue-600/20 hover:shadow-blue-600/40 hover:-translate-y-1 transition-all rounded-full w-full group">
-                    {t('getStarted')}
+                <Link to="/stages" className="w-full sm:w-auto">
+                  <Button size="lg" className="h-14 px-8 text-lg bg-blue-600 hover:bg-blue-700 text-white shadow-xl shadow-blue-600/20 hover:shadow-blue-600/40 hover:-translate-y-1 transition-all rounded-full w-full group border-0">
+                    {t('exploreStages')}
                     <ArrowRight className={`ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform ${isRtl ? 'mr-2 ml-0 rotate-180 group-hover:-translate-x-1' : ''}`} />
                   </Button>
                 </Link>
                 {!user && (
                     <Link to="/login" className="w-full sm:w-auto">
-                      <Button size="lg" variant="outline" className="h-14 px-8 text-lg rounded-full w-full border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-300 bg-transparent text-slate-900 dark:text-white shadow-sm">
+                      <Button size="lg" variant="outline" className="h-14 px-8 text-lg rounded-full w-full border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-300 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm text-slate-900 dark:text-white shadow-sm">
                         {t('login')}
                       </Button>
                     </Link>
@@ -183,45 +190,95 @@ export default function Landing() {
               </motion.div>
             </motion.div>
 
-            <motion.div 
-               initial={{ opacity: 0, scale: 0.9, rotate: -2 }}
-               animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            <motion.div
+               initial={{ opacity: 0, scale: 0.95 }}
+               animate={{ opacity: 1, scale: 1 }}
                transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
-               className="relative lg:h-[600px] flex items-center justify-center pointer-events-none"
+               className="relative lg:h-[600px] flex items-center justify-center p-4 lg:p-0"
             >
-               <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 to-indigo-500/10 dark:from-blue-500/20 dark:to-indigo-500/20 rounded-3xl blur-3xl transform -rotate-6 scale-105 transition-colors duration-500" />
-               <img 
-                 src={heroImage} 
-                 alt={t('biologyIllustrationAlt')} 
-                 className="relative z-10 w-full max-w-lg lg:max-w-none h-auto object-cover rounded-3xl shadow-2xl shadow-blue-900/20 border border-white/20 dark:border-white/10"
+               <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 to-indigo-500/10 dark:from-blue-500/20 dark:to-indigo-500/20 rounded-[3rem] blur-3xl transform -rotate-6 scale-105 transition-colors duration-500 pointer-events-none" />
+
+               <motion.img 
+                  animate={{ y: [-15, 15, -15] }}
+                  transition={{ repeat: Infinity, duration: 8, ease: "easeInOut" }}
+                  src="/hero-illustration.png" 
+                  alt="Academix Platform Illustration" 
+                  className="relative z-10 w-full max-w-lg drop-shadow-2xl rounded-[2rem] object-contain" 
                />
                
-               <motion.div 
-                 animate={{ y: [0, -20, 0] }} 
-                 transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-                 className="absolute -top-8 -left-8 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 flex items-center gap-4 z-20 transition-colors duration-300 pointer-events-auto"
+               {/* Students Card */}
+               <motion.div
+                 animate={{ y: [0, -15, 0] }}
+                 transition={{ repeat: Infinity, duration: 6, ease: "easeInOut", delay: 0.5 }}
+                 className="absolute top-4 -left-2 lg:top-12 lg:-left-6 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 flex items-center gap-4 z-20 transition-colors duration-300"
                >
-                  <div className="bg-green-100 dark:bg-green-900/50 p-3 rounded-xl text-green-600 dark:text-green-400 transition-colors duration-300">
-                    <Microscope className="w-6 h-6" />
-                  </div>
-                  <div className={`text-left ${isRtl ? 'text-right' : 'text-left'}`}>
-                    <p className="text-sm font-bold text-slate-900 dark:text-white">{t('interactiveLabs')}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">{t('explore3d')}</p>
-                  </div>
+                 <div className="bg-blue-100 dark:bg-blue-900/50 p-3 rounded-xl text-blue-600 dark:text-blue-400 transition-colors duration-300">
+                   <Users className="w-6 h-6" />
+                 </div>
+                 <div className={isRtl ? 'text-right' : 'text-left'}>
+                   <p className="text-xl font-extrabold text-slate-900 dark:text-white leading-none mb-1">12K+</p>
+                   <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t('statStudents')}</p>
+                 </div>
                </motion.div>
-               
-               <motion.div 
-                 animate={{ y: [0, 20, 0] }} 
-                 transition={{ repeat: Infinity, duration: 5, ease: "easeInOut", delay: 1 }}
-                 className="absolute -bottom-10 -right-8 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 flex items-center gap-4 z-20 transition-colors duration-300 pointer-events-auto"
+
+               {/* Teachers Card */}
+               <motion.div
+                 animate={{ y: [0, 15, 0] }}
+                 transition={{ repeat: Infinity, duration: 7, ease: "easeInOut", delay: 1.5 }}
+                 className="absolute top-1/3 -right-4 lg:top-1/4 lg:-right-8 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 flex items-center gap-4 z-20 transition-colors duration-300"
                >
-                  <div className="bg-indigo-100 dark:bg-indigo-900/50 p-3 rounded-xl text-indigo-600 dark:text-indigo-400 transition-colors duration-300">
-                    <CheckCircle className="w-6 h-6" />
-                  </div>
-                  <div className={`text-left ${isRtl ? 'text-right' : 'text-left'}`}>
-                    <p className="text-sm font-bold text-slate-900 dark:text-white">{t('successRate')}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">{t('passRate')}</p>
-                  </div>
+                 <div className="bg-green-100 dark:bg-green-900/50 p-3 rounded-xl text-green-600 dark:text-green-400 transition-colors duration-300">
+                   <GraduationCap className="w-6 h-6" />
+                 </div>
+                 <div className={isRtl ? 'text-right' : 'text-left'}>
+                   <p className="text-xl font-extrabold text-slate-900 dark:text-white leading-none mb-1">150+</p>
+                   <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t('statTeachers')}</p>
+                 </div>
+               </motion.div>
+
+               {/* Success Rate Card */}
+               <motion.div
+                 animate={{ y: [0, 20, 0] }}
+                 transition={{ repeat: Infinity, duration: 5, ease: "easeInOut", delay: 1 }}
+                 className="absolute -bottom-2 -right-2 lg:-bottom-8 lg:-right-4 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 flex items-center gap-4 z-20 transition-colors duration-300"
+               >
+                 <div className="bg-indigo-100 dark:bg-indigo-900/50 p-3 rounded-xl text-indigo-600 dark:text-indigo-400 transition-colors duration-300">
+                   <CheckCircle className="w-6 h-6" />
+                 </div>
+                 <div className={isRtl ? 'text-right' : 'text-left'}>
+                   <p className="text-sm font-bold text-slate-900 dark:text-white">{t('successRate')}</p>
+                   <p className="text-xs text-slate-500 dark:text-slate-400">{t('passRate')}</p>
+                 </div>
+               </motion.div>
+
+               {/* Courses Card */}
+               <motion.div
+                 animate={{ y: [0, 20, 0] }}
+                 transition={{ repeat: Infinity, duration: 6.5, ease: "easeInOut", delay: 2 }}
+                 className="absolute bottom-10 -left-6 lg:bottom-1/4 lg:-left-10 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 flex items-center gap-4 z-20 transition-colors duration-300"
+               >
+                 <div className="bg-purple-100 dark:bg-purple-900/50 p-3 rounded-xl text-purple-600 dark:text-purple-400 transition-colors duration-300">
+                   <BookOpen className="w-6 h-6" />
+                 </div>
+                 <div className={isRtl ? 'text-right' : 'text-left'}>
+                   <p className="text-xl font-extrabold text-slate-900 dark:text-white leading-none mb-1">350+</p>
+                   <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t('statCourses')}</p>
+                 </div>
+               </motion.div>
+
+               {/* Interactive Labs Card */}
+               <motion.div
+                 animate={{ y: [0, -20, 0] }}
+                 transition={{ repeat: Infinity, duration: 7.5, ease: "easeInOut", delay: 0.8 }}
+                 className="absolute -top-4 right-4 lg:-top-6 lg:right-10 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 flex items-center gap-4 z-20 transition-colors duration-300"
+               >
+                 <div className="bg-orange-100 dark:bg-orange-900/50 p-3 rounded-xl text-orange-600 dark:text-orange-400 transition-colors duration-300">
+                   <Layers className="w-6 h-6" />
+                 </div>
+                 <div className={isRtl ? 'text-right' : 'text-left'}>
+                   <p className="text-xl font-extrabold text-slate-900 dark:text-white leading-none mb-1">500+</p>
+                   <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t('interactiveLabs')}</p>
+                 </div>
                </motion.div>
             </motion.div>
           </div>
@@ -257,7 +314,7 @@ export default function Landing() {
       </section>
 
       {/* Interactive Learning Section */}
-      <section className="py-24 relative overflow-hidden bg-slate-50/80 dark:bg-slate-900/40 border-b border-slate-200 dark:border-slate-800">
+      <section id="features" className="scroll-mt-20 py-24 relative overflow-hidden bg-slate-50/80 dark:bg-slate-900/40 border-b border-slate-200 dark:border-slate-800">
         <div className="absolute top-0 left-0 -translate-x-1/3 -translate-y-1/3 w-[520px] h-[520px] bg-blue-400/20 dark:bg-blue-900/20 rounded-full blur-[130px] pointer-events-none" />
         <div className="absolute bottom-0 right-0 translate-x-1/3 translate-y-1/3 w-[520px] h-[520px] bg-indigo-400/20 dark:bg-indigo-900/20 rounded-full blur-[130px] pointer-events-none" />
         <div className="max-w-7xl mx-auto px-6 relative z-10">
@@ -291,9 +348,26 @@ export default function Landing() {
                 className="relative"
               >
                 <Card className="border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/70 backdrop-blur-sm rounded-3xl overflow-hidden shadow-2xl">
-                  <div className="aspect-[4/3] w-full">
-                    <HeartModelViewer />
-                  </div>
+                  <CardContent className="p-8">
+                    <p className={`text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-6 ${isRtl ? 'text-right' : 'text-left'}`}>
+                      {t('lessonContentTypes')}
+                    </p>
+                    <div className="grid grid-cols-2 gap-4">
+                      {[
+                        { Icon: Play, label: t('lessonTypeVideo'), color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-900/30' },
+                        { Icon: FileText, label: t('lessonTypePdf'), color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-900/30' },
+                        { Icon: Volume2, label: t('lessonTypeAudio'), color: 'text-green-600 dark:text-green-400', bg: 'bg-green-50 dark:bg-green-900/30' },
+                        { Icon: Layers, label: t('lessonType3D'), color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-900/30' },
+                      ].map(({ Icon, label, color, bg }) => (
+                        <div key={label} className={`${bg} rounded-2xl p-5 flex flex-col items-center gap-3 text-center`}>
+                          <div className={`${color} w-10 h-10 flex items-center justify-center`}>
+                            <Icon className="w-8 h-8" />
+                          </div>
+                          <span className={`text-sm font-semibold ${color}`}>{label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
                 </Card>
               </motion.div>
             </motion.div>
@@ -420,7 +494,7 @@ export default function Landing() {
       </section>
 
       {/* Educational Stages Section */}
-      <section className="py-24 bg-slate-50 dark:bg-slate-900/50 relative z-10 border-t border-slate-200 dark:border-slate-800">
+      <section id="educational-stages" className="scroll-mt-20 py-24 bg-slate-50 dark:bg-slate-900/50 relative z-10 border-t border-slate-200 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-6">
           <div className={`text-center max-w-3xl mx-auto mb-16`}>
              <motion.div 
@@ -433,59 +507,73 @@ export default function Landing() {
              </motion.div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-             {stages.map((stage, i) => (
-                <motion.div
-                  key={stage.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: i * 0.08 }}
-                >
-                  <Card className="border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/60 group hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 h-full">
-                    <CardContent className="p-6 flex flex-col h-full">
-                      <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-600/30 mb-6 transition-transform duration-300 group-hover:scale-110">
-                        <stage.icon className="w-6 h-6" />
-                      </div>
-                      <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{stage.title}</h3>
-                      <p className="text-sm text-slate-500 dark:text-slate-400 flex-1">{t('stageCardSubtitle')}</p>
-                      <div className="mt-6 flex items-center gap-2 text-blue-600 dark:text-blue-400 font-semibold">
+          {stagesLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="h-52 rounded-2xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
+              ))}
+            </div>
+          ) : apiStages.length === 0 ? (
+            <div className="flex flex-col items-center py-16 text-center">
+              <GraduationCap className="w-16 h-16 text-slate-300 dark:text-slate-600 mb-4" />
+              <p className="text-slate-500 dark:text-slate-400 text-lg">{t('noStagesYet')}</p>
+            </div>
+          ) : (
+            <motion.div
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+              initial="hidden"
+              animate="visible"
+              variants={{ visible: { transition: { staggerChildren: 0.07 } } }}
+            >
+              {apiStages.map((stage: Stage, i) => {
+                const colors = getEntityColor(stage.color ?? 'blue');
+                return (
+                  <EntityCard
+                    key={stage._id}
+                    icon={stage.icon || '📚'}
+                    title={getLocalizedName(stage, i18n.language)}
+                    description={t('stageCardSubtitle')}
+                    color={colors}
+                    animationDelay={i * 0.07}
+                    onClick={() => navigate(`/stages/${stage._id}`)}
+                    footer={
+                      <div className={`flex items-center gap-2 text-xs font-medium ${colors.text} w-full justify-end`}>
                         {t('viewStage')}
-                        <ArrowRight className={`w-4 h-4 ${isRtl ? 'rotate-180' : ''}`} />
+                        <ArrowRight className={`w-3 h-3 transition-transform duration-200 group-hover:translate-x-1 ${isRtl ? 'rotate-180 group-hover:-translate-x-1' : ''}`} />
+                      </div>
+                    }
+                  />
+                );
+              })}
+
+              {/* "View All Stages" card — always last */}
+              <motion.div
+                variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
+                transition={{ duration: 0.22, delay: apiStages.length * 0.07 }}
+              >
+                <div className="block h-full cursor-pointer" onClick={() => navigate('/stages')}>
+                  <Card className="h-full border border-dashed border-blue-300 dark:border-blue-700/60 bg-gradient-to-br from-blue-50/80 via-white to-indigo-50/80 dark:from-slate-900 dark:via-slate-950 dark:to-blue-950/40 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group rounded-2xl overflow-hidden">
+                    <CardContent className="p-5 flex flex-col h-full">
+                      <div className="w-11 h-11 rounded-xl bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110 border border-blue-200 dark:border-blue-800 shadow-sm">
+                        <GraduationCap className="w-5 h-5" />
+                      </div>
+                      <h3 className="font-bold text-base mb-1 text-blue-700 dark:text-blue-300">{t('viewAllStages')}</h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 flex-1 line-clamp-2">{t('viewAllStagesDesc')}</p>
+                      <div className="mt-3 pt-2 border-t border-blue-200 dark:border-blue-800 flex items-center gap-2 text-xs font-medium text-blue-700 dark:text-blue-300 justify-end">
+                        {t('exploreNow')}
+                        <ArrowRight className={`w-3 h-3 transition-transform duration-200 group-hover:translate-x-1 ${isRtl ? 'rotate-180 group-hover:-translate-x-1' : ''}`} />
                       </div>
                     </CardContent>
                   </Card>
-                </motion.div>
-             ))}
-
-             <motion.div
-               initial={{ opacity: 0, y: 30 }}
-               whileInView={{ opacity: 1, y: 0 }}
-               viewport={{ once: true }}
-               transition={{ duration: 0.5, delay: stages.length * 0.08 }}
-             >
-               <Link to="/curriculums" className="block h-full">
-                 <Card className="h-full border border-dashed border-blue-300 dark:border-blue-700/60 bg-gradient-to-br from-blue-50/80 via-white to-indigo-50/80 dark:from-slate-900 dark:via-slate-950 dark:to-blue-950/40 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
-                   <CardContent className="p-6 flex flex-col h-full">
-                     <div className="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 flex items-center justify-center mb-6">
-                       <BookOpen className="w-6 h-6" />
-                     </div>
-                     <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{t('viewAllCurriculums')}</h3>
-                     <p className="text-sm text-slate-600 dark:text-slate-400 flex-1">{t('viewAllCurriculumsDesc')}</p>
-                     <div className="mt-6 inline-flex items-center gap-2 text-blue-700 dark:text-blue-300 font-semibold">
-                       {t('exploreNow')}
-                       <ArrowRight className={`w-4 h-4 ${isRtl ? 'rotate-180' : ''}`} />
-                     </div>
-                   </CardContent>
-                 </Card>
-               </Link>
-             </motion.div>
-          </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
         </div>
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-24 relative overflow-hidden bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800">
+      <section id="testimonials" className="scroll-mt-20 py-24 relative overflow-hidden bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800">
          <div className="absolute top-0 right-1/4 w-96 h-96 bg-blue-100/50 dark:bg-blue-900/10 rounded-full blur-3xl pointer-events-none" />
          <div className="relative max-w-7xl mx-auto px-6 z-10">
             <div className="text-center max-w-3xl mx-auto mb-16">
@@ -515,7 +603,7 @@ export default function Landing() {
       <TeacherApplicationSection />
 
       {/* CTA Section */}
-      <section className="py-24 relative overflow-hidden">
+      <section id="contact" className="scroll-mt-20 py-24 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-900 dark:to-indigo-900 transition-colors duration-500" />
         
         {/* Decorative background elements for CTA */}

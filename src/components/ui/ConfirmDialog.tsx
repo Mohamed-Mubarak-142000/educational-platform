@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react';
-import { AlertTriangle, CheckCircle2, Info, XCircle } from 'lucide-react';
+import { useState, type ReactNode } from 'react';
+import { AlertTriangle, CheckCircle2, Info, Loader2, XCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -18,7 +19,7 @@ export type ConfirmDialogProps = {
   cancelLabel?: string;
   tone?: 'info' | 'success' | 'warning' | 'danger';
   icon?: ReactNode;
-  onConfirm: () => void;
+  onConfirm: () => Promise<void> | void;
   onCancel: () => void;
   children?: ReactNode;
 };
@@ -27,14 +28,20 @@ export default function ConfirmDialog({
   open,
   title,
   description,
-  confirmLabel = 'Confirm',
-  cancelLabel = 'Cancel',
+  confirmLabel,
+  cancelLabel,
   tone = 'info',
   icon,
   onConfirm,
   onCancel,
   children,
 }: ConfirmDialogProps) {
+  const { t } = useTranslation();
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Use translation defaults if labels not provided
+  const finalConfirmLabel = confirmLabel || t('confirm');
+  const finalCancelLabel = cancelLabel || t('cancel');
   const iconStyles: Record<string, { bg: string; text: string; node: ReactNode }> = {
     info: {
       bg: 'bg-blue-50 dark:bg-blue-900/20',
@@ -68,8 +75,20 @@ export default function ConfirmDialog({
       ? 'bg-red-600 hover:bg-red-700 text-white'
       : 'bg-blue-600 hover:bg-blue-700 text-white';
 
+  const handleConfirm = async () => {
+    const result = onConfirm();
+    if (result instanceof Promise) {
+      setIsLoading(true);
+      try {
+        await result;
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={(nextOpen) => !nextOpen && onCancel()}>
+    <Dialog open={open} onOpenChange={(nextOpen) => !nextOpen && !isLoading && onCancel()}>
       <DialogContent className="sm:max-w-[420px]">
         <DialogHeader className="items-center text-center">
           <div className={`rounded-full p-3 ${toneConfig.bg} ${toneConfig.text}`}>
@@ -80,11 +99,11 @@ export default function ConfirmDialog({
         </DialogHeader>
         {children}
         <DialogFooter className="mt-4">
-          <Button variant="ghost" onClick={onCancel}>
-            {cancelLabel}
+          <Button variant="ghost" onClick={onCancel} disabled={isLoading}>
+            {finalCancelLabel}
           </Button>
-          <Button onClick={onConfirm} className={confirmClassName}>
-            {confirmLabel}
+          <Button onClick={handleConfirm} className={confirmClassName} disabled={isLoading}>
+            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : finalConfirmLabel}
           </Button>
         </DialogFooter>
       </DialogContent>

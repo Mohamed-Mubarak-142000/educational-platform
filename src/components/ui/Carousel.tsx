@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode, TouchEvent } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export type CarouselPerView = {
   base: number;
@@ -30,14 +31,20 @@ export function Carousel({
   showDots = true,
   isRtl = false,
   className = '',
-  ariaPrevLabel = 'Previous',
-  ariaNextLabel = 'Next',
-  ariaSlideLabel = 'Slide',
+  ariaPrevLabel,
+  ariaNextLabel,
+  ariaSlideLabel,
 }: CarouselProps) {
+  const { t } = useTranslation();
   const [itemsPerView, setItemsPerView] = useState(perView.base);
   const [activeIndex, setActiveIndex] = useState(0);
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
+
+  // Use translation defaults if labels not provided
+  const prevLabel = ariaPrevLabel || t('previous');
+  const nextLabel = ariaNextLabel || t('next');
+  const slideLabel = ariaSlideLabel || t('slide');
 
   const totalPages = Math.max(1, Math.ceil(items.length / itemsPerView));
   const safeActiveIndex = activeIndex % totalPages;
@@ -124,7 +131,7 @@ export function Carousel({
           <button
             type="button"
             onClick={handlePrevious}
-            aria-label={ariaPrevLabel}
+            aria-label={prevLabel}
             className={`absolute top-1/2 -translate-y-1/2 ${isRtl ? '-right-4' : '-left-4'} w-11 h-11 rounded-full border border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur flex items-center justify-center shadow-lg hover:scale-105 transition-transform`}
           >
             <ChevronLeft className={`w-5 h-5 ${isRtl ? 'rotate-180' : ''}`} />
@@ -132,7 +139,7 @@ export function Carousel({
           <button
             type="button"
             onClick={handleNext}
-            aria-label={ariaNextLabel}
+            aria-label={nextLabel}
             className={`absolute top-1/2 -translate-y-1/2 ${isRtl ? '-left-4' : '-right-4'} w-11 h-11 rounded-full border border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur flex items-center justify-center shadow-lg hover:scale-105 transition-transform`}
           >
             <ChevronRight className={`w-5 h-5 ${isRtl ? 'rotate-180' : ''}`} />
@@ -146,7 +153,7 @@ export function Carousel({
             <button
               key={`slide-${index}`}
               type="button"
-              aria-label={`${ariaSlideLabel} ${index + 1}`}
+              aria-label={`${slideLabel} ${index + 1}`}
               onClick={() => setActiveIndex(index)}
               className={`h-2.5 rounded-full transition-all ${safeActiveIndex === index ? 'w-7 bg-blue-600 dark:bg-blue-400' : 'w-2.5 bg-slate-300 dark:bg-slate-700'}`}
             />

@@ -58,6 +58,13 @@ const StudentGrades = lazy(() => import('./pages/StudentGrades'));
 const StudentTeachers = lazy(() => import('./pages/StudentTeachers'));
 const StudentTeacherProfile = lazy(() => import('./pages/StudentTeacherProfile'));
 
+const AdminGrades = lazy(() => import('./pages/AdminGrades'));
+const StudentLearnBrowser = lazy(() => import('./pages/StudentLearnBrowser'));
+const PublicStageSubjects = lazy(() => import('./pages/PublicStageSubjects'));
+const PublicSubjectTeachers = lazy(() => import('./pages/PublicSubjectTeachers'));
+const PublicAllStages = lazy(() => import('./pages/PublicAllStages'));
+const PublicGradeSubjects = lazy(() => import('./pages/PublicGradeSubjects'));
+
 function Layout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
@@ -526,6 +533,66 @@ function App() {
             </Layout>
           </RequireAuth>
         } />
+
+        {/* ── New generic-platform routes ─────────────────────────── */}
+
+        {/* Admin: Grade management */}
+        <Route path="/admin/stages/:stageId/grades" element={
+          <RequireAuth allowedRoles={['Admin']}>
+            <Layout>
+              <DashboardLayout>
+                <AdminGrades />
+              </DashboardLayout>
+            </Layout>
+          </RequireAuth>
+        } />
+
+        {/* Admin: Grade-scoped subject management (reuses AdminSubjects page) */}
+        <Route path="/admin/grades/:gradeId/subjects" element={
+          <RequireAuth allowedRoles={['Admin']}>
+            <Layout>
+              <DashboardLayout>
+                <AdminSubjects />
+              </DashboardLayout>
+            </Layout>
+          </RequireAuth>
+        } />
+
+        {/* Public learn browser (also accessible via /learn) */}
+        <Route path="/learn" element={
+          <RequireAuth allowedRoles={['Student', 'Teacher', 'Admin']}>
+            <Layout>
+              <DashboardLayout>
+                <StudentLearnBrowser />
+              </DashboardLayout>
+            </Layout>
+          </RequireAuth>
+        } />
+
+        {/* Alias: /courses → /learn (backward compat redirect) */}
+        <Route path="/courses" element={<Navigate to="/learn" replace />} />
+
+        {/* ──────────────────────────────────────────────────────────
+            PUBLIC: Home Page → Stages Explorer flow
+            No auth required; accessible directly from the landing page.
+            ────────────────────────────────────────────────────────── */}
+
+        {/* All stages directory (from "View More" on landing) */}
+        <Route path="/stages" element={<PublicAllStages />} />
+
+        {/* Stage detail → all grades within that stage (from stage card on landing) */}
+        <Route path="/stages/:stageId" element={<PublicStageSubjects />} />
+
+        {/* Grade detail → subjects for that grade (click grade from stage page) */}
+        <Route path="/stages/:stageId/grades/:gradeId" element={<PublicGradeSubjects />} />
+
+        {/* Subject detail → teachers filtered by stage/grade/subject (click subject from grade page) */}
+        <Route
+          path="/stages/:stageId/grades/:gradeId/subjects/:subjectId"
+          element={<PublicSubjectTeachers />}
+        />
+
+
       </Routes>
       </Suspense>
     </Router>

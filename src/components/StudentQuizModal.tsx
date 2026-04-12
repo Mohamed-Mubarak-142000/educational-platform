@@ -153,7 +153,7 @@ export default function StudentQuizModal({
                     return (
                       <div key={q._id} className="space-y-3">
                         <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 leading-relaxed">
-                          <span className="text-slate-400 dark:text-slate-500 mr-1.5 font-normal">Q{idx + 1}.</span>
+                          <span className="text-slate-400 dark:text-slate-500 mr-1.5 font-normal">{t('questionPrefix')}{idx + 1}.</span>
                           {q.text}
                         </p>
                         <div className="grid grid-cols-1 gap-2">
@@ -250,7 +250,7 @@ export default function StudentQuizModal({
                             <XCircle className="w-4 h-4 text-red-500 dark:text-red-400 flex-shrink-0 mt-0.5" />
                           )}
                           <p className="text-sm font-medium text-slate-800 dark:text-slate-200 flex-1 leading-snug">
-                            <span className="text-slate-400 dark:text-slate-500 font-normal mr-1">{idx + 1}.</span>
+                            <span className="text-slate-400 dark:text-slate-500 font-normal mr-1">{t('questionPrefix')}{idx + 1}.</span>
                             {q.text}
                           </p>
                         </div>

@@ -49,8 +49,6 @@ import StudentQuizModal from '@/components/StudentQuizModal';
 
 // ── Quiz badge ──────────────────────────────────────────────────────
 
-const unitPaymentMethods = ['Vodafone Cash', 'InstaPay'] as const;
-
 const DAY_ORDER = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] as const;
 type DayName = (typeof DAY_ORDER)[number];
 
@@ -366,9 +364,14 @@ export default function StudentSubjectDetail() {
   const queryClient = useQueryClient();
   const { pushToast } = useToast();
 
+  const unitPaymentMethods = [
+    { value: 'Vodafone Cash', label: t('vodafoneCash') },
+    { value: 'InstaPay', label: t('instaPay') },
+  ];
+
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<(typeof unitPaymentMethods)[number]>('Vodafone Cash');
+  const [paymentMethod, setPaymentMethod] = useState('Vodafone Cash');
   const [paymentFile, setPaymentFile] = useState<File | null>(null);
 
   const { data: subject, isLoading: subjectLoading } = useQuery<Subject>({
@@ -555,12 +558,12 @@ export default function StudentSubjectDetail() {
               <div className="flex flex-wrap gap-2">
                 {unitPaymentMethods.map((item) => (
                   <button
-                    key={item}
+                    key={item.value}
                     type="button"
-                    onClick={() => setPaymentMethod(item)}
-                    className={`rounded-full px-4 py-2 text-sm border ${paymentMethod === item ? 'bg-blue-600 text-white border-blue-600' : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300'}`}
+                    onClick={() => setPaymentMethod(item.value)}
+                    className={`rounded-full px-4 py-2 text-sm border ${paymentMethod === item.value ? 'bg-blue-600 text-white border-blue-600' : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300'}`}
                   >
-                    {item}
+                    {item.label}
                   </button>
                 ))}
               </div>

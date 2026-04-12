@@ -47,23 +47,24 @@ type TeacherApplicationRecord = {
   status: 'Pending' | 'Under Evaluation' | 'Accepted' | 'Rejected';
 };
 
-const buildMonthLabels = (count: number) => {
+const buildMonthLabels = (count: number, locale: string) => {
   const labels: string[] = [];
   const now = new Date();
   for (let i = count - 1; i >= 0; i -= 1) {
     const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    labels.push(date.toLocaleString('en-US', { month: 'short' }));
+    labels.push(date.toLocaleString(locale, { month: 'short' }));
   }
   return labels;
 };
 
 export default function AdminOverview() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [revenueView, setRevenueView] = useState<'line' | 'bar'>('line');
   const [growthView, setGrowthView] = useState<'line' | 'bar'>('bar');
   const [paymentsView, setPaymentsView] = useState<'pie' | 'bar'>('pie');
   const [applicationsView, setApplicationsView] = useState<'pie' | 'bar'>('pie');
+  const locale = i18n.language === 'ar' ? 'ar-EG' : 'en-US';
   const { data: teachers = [], isLoading: teachersLoading } = useQuery<Teacher[]>({ queryKey: ['teachers'], queryFn: getTeachers });
   const { data: students = [], isLoading: studentsLoading } = useQuery<Student[]>({ queryKey: ['students'], queryFn: getStudents });
   const { data: courses = [], isLoading: coursesLoading } = useQuery<Course[]>({ queryKey: ['courses'], queryFn: () => getCourses() });
@@ -89,7 +90,7 @@ export default function AdminOverview() {
   }, [teachers, students, courses, exams, payments, teacherApplications]);
 
   const revenueChart = useMemo(() => {
-    const labels = buildMonthLabels(6);
+    const labels = buildMonthLabels(6, locale);
     const monthlyTotals = labels.map(() => 0);
     payments
       .filter((payment) => payment.status === 'Approved')
@@ -119,7 +120,7 @@ export default function AdminOverview() {
   }, [payments, t]);
 
   const studentGrowthChart = useMemo(() => {
-    const labels = buildMonthLabels(6);
+    const labels = buildMonthLabels(6, locale);
     const monthly = labels.map(() => 0);
     students.forEach((student) => {
       if (!student.createdAt) return;

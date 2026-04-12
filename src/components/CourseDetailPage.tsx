@@ -51,6 +51,7 @@ export default function CourseDetailPage({ basePath }: CourseDetailPageProps) {
   const queryClient = useQueryClient();
   const { pushToast } = useToast();
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const locale = i18n.language === 'ar' ? 'ar-EG' : 'en-US';
 
   const { data: course, isLoading: courseLoading } = useQuery<Course>({
     queryKey: ['course', id],
@@ -211,7 +212,7 @@ export default function CourseDetailPage({ basePath }: CourseDetailPageProps) {
                   {t('createdAt')}
                 </dt>
                 <dd className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                  {new Date(course.createdAt).toLocaleDateString()}
+                  {new Date(course.createdAt).toLocaleDateString(locale)}
                 </dd>
               </div>
             )}
@@ -349,8 +350,8 @@ export default function CourseDetailPage({ basePath }: CourseDetailPageProps) {
         description={t('deleteLessonConfirm')}
         confirmLabel={t('confirmDelete')}
         tone="danger"
-        onConfirm={() => {
-          if (deletingId) deleteMutation.mutate(deletingId);
+        onConfirm={async () => {
+          if (deletingId) await deleteMutation.mutateAsync(deletingId);
         }}
         onCancel={() => setDeletingId(null)}
       />

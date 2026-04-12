@@ -189,7 +189,7 @@ export default function TeacherApplicationSection() {
 
   if (submitted) {
     return (
-      <section id="join-as-teacher" className="py-20 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-900 dark:to-slate-900/80">
+      <section id="join-as-teacher" className="scroll-mt-20 py-20 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-900 dark:to-slate-900/80">
         <div className="max-w-2xl mx-auto px-6 text-center">
           <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5 }}>
             <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
@@ -207,7 +207,7 @@ export default function TeacherApplicationSection() {
   }
 
   return (
-    <section id="join-as-teacher" className="py-20 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-900 dark:to-slate-900/80">
+    <section id="join-as-teacher" className="scroll-mt-20 py-20 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-900 dark:to-slate-900/80">
       <div className="max-w-5xl mx-auto px-6">
         {/* Header */}
         <div className="text-center mb-12">

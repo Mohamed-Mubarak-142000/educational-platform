@@ -45,3 +45,9 @@ export type { ErrorStateProps } from './ErrorState';
 
 export { PdfViewer } from './PdfViewer';
 export type { PdfViewerProps } from './PdfViewer';
+
+export { EntityCard } from './EntityCard';
+export type { EntityCardProps } from './EntityCard';
+
+export { ENTITY_COLORS, getEntityColor } from './entityCardColors';
+export type { ColorConfig } from './entityCardColors';

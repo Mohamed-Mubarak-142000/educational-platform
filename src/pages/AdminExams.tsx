@@ -30,9 +30,9 @@ export default function AdminExams() {
     setDeleteConfirmOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (selectedExamId) {
-      deleteMutation.mutate(selectedExamId);
+      await deleteMutation.mutateAsync(selectedExamId);
     }
     setDeleteConfirmOpen(false);
     setSelectedExamId(null);

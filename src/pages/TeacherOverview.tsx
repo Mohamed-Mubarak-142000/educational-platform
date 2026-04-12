@@ -37,12 +37,12 @@ type TeacherStudent = { _id: string; createdAt?: string };
 type MyCourse = { _id: string; createdAt?: string; subjectId?: string | { _id?: string; name?: string } };
 type MyExam = { _id: string };
 
-const buildMonthLabels = (count: number) => {
+const buildMonthLabels = (count: number, locale: string) => {
   const labels: string[] = [];
   const now = new Date();
   for (let i = count - 1; i >= 0; i -= 1) {
     const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    labels.push(date.toLocaleString('en-US', { month: 'short' }));
+    labels.push(date.toLocaleString(locale, { month: 'short' }));
   }
   return labels;
 };
@@ -97,7 +97,8 @@ function StatCard({
 }
 
 export default function TeacherOverview() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language === 'ar' ? 'ar-EG' : 'en-US';
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -174,7 +175,7 @@ export default function TeacherOverview() {
   // ── Chart data ──────────────────────────────────────────────────
 
   const courseGrowthChart = useMemo(() => {
-    const labels = buildMonthLabels(6);
+    const labels = buildMonthLabels(6, locale);
     const monthly = labels.map(() => 0);
     courses.forEach((course) => {
       if (!course.createdAt) return;
@@ -198,7 +199,7 @@ export default function TeacherOverview() {
   }, [courses, t]);
 
   const studentGrowthChart = useMemo(() => {
-    const labels = buildMonthLabels(6);
+    const labels = buildMonthLabels(6, locale);
     const monthly = labels.map(() => 0);
     students.forEach((student) => {
       if (!student.createdAt) return;

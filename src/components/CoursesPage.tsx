@@ -63,8 +63,8 @@ export default function CoursesPage({
     setDeleteConfirmOpen(true);
   };
 
-  const confirmDelete = () => {
-    if (selectedCourseId) deleteMutation.mutate(selectedCourseId);
+  const confirmDelete = async () => {
+    if (selectedCourseId) await deleteMutation.mutateAsync(selectedCourseId);
     setDeleteConfirmOpen(false);
     setSelectedCourseId(null);
   };

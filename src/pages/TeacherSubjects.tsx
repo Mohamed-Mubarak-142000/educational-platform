@@ -4,24 +4,11 @@ import { getStageById, getSubjectsByStage, type Subject } from '@/api/subjectApi
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
-import { EmptyState } from '@/components/shared';
+import { EmptyState, EntityCard, getEntityColor } from '@/components/shared';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, ArrowLeft } from 'lucide-react';
 import { cardVariants, spacing } from '@/lib/constants';
 import { getLocalizedName } from '@/lib/localeUtils';
-
-const SUBJECT_COLORS = [
-  { value: 'emerald', bg: 'bg-emerald-100 dark:bg-emerald-900/30', text: 'text-emerald-700 dark:text-emerald-300', border: 'border-emerald-200 dark:border-emerald-800' },
-  { value: 'blue', bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-300', border: 'border-blue-200 dark:border-blue-800' },
-  { value: 'violet', bg: 'bg-violet-100 dark:bg-violet-900/30', text: 'text-violet-700 dark:text-violet-300', border: 'border-violet-200 dark:border-violet-800' },
-  { value: 'amber', bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-700 dark:text-amber-300', border: 'border-amber-200 dark:border-amber-800' },
-  { value: 'rose', bg: 'bg-rose-100 dark:bg-rose-900/30', text: 'text-rose-700 dark:text-rose-300', border: 'border-rose-200 dark:border-rose-800' },
-  { value: 'cyan', bg: 'bg-cyan-100 dark:bg-cyan-900/30', text: 'text-cyan-700 dark:text-cyan-300', border: 'border-cyan-200 dark:border-cyan-800' },
-] as const;
-
-function getColorClasses(color: string) {
-  return SUBJECT_COLORS.find((c) => c.value === color) ?? SUBJECT_COLORS[1];
-}
 
 export default function TeacherSubjects() {
   const { t, i18n } = useTranslation();
@@ -96,40 +83,28 @@ export default function TeacherSubjects() {
           variants={{ visible: { transition: { staggerChildren: 0.07 } } }}
         >
           <AnimatePresence>
-            {subjects.map((subject: Subject) => {
-              const colors = getColorClasses(subject.color ?? 'blue');
+            {subjects.map((subject: Subject, index) => {
+              const colors = getEntityColor(subject.color ?? 'blue');
               return (
-                <motion.div
+                <EntityCard
                   key={subject._id}
-                  variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.22 }}
-                  layout
-                >
-                  <Card
-                    className={`${cardVariants.interactive} rounded-2xl overflow-hidden group`}
-                    onClick={() => navigate(`/teacher/subjects/${subject._id}`)}
-                  >
-                    <div className={`h-1.5 w-full ${colors.bg.replace('/30', '')}`} />
-                    <CardContent className="p-5">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className={`w-11 h-11 rounded-xl ${colors.bg} flex items-center justify-center text-xl shadow-sm border ${colors.border}`}>
-                          {subject.icon}
-                        </div>
+                  icon={subject.icon}
+                  title={getLocalizedName(subject, i18n.language)}
+                  description={subject.description}
+                  color={colors}
+                  animationDelay={index * 0.07}
+                  onClick={() => navigate(`/teacher/subjects/${subject._id}`)}
+                  footer={
+                    <>
+                      <span className="text-xs text-slate-400 dark:text-slate-500">
+                        {typeof subject.teacherId === 'object' ? subject.teacherId?.name : '—'}
+                      </span>
+                      <div className={`flex items-center gap-1 text-xs font-medium ${colors.text}`}>
+                        <Eye className="w-3 h-3" /> {t('view')}
                       </div>
-                      <h3 className={`font-bold text-base mb-1 ${colors.text}`}>{getLocalizedName(subject, i18n.language)}</h3>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-3">{subject.description}</p>
-                      <div className={`flex items-center justify-between pt-2 border-t ${colors.border}`}>
-                        <span className="text-xs text-slate-400 dark:text-slate-500">
-                          {typeof subject.teacherId === 'object' ? subject.teacherId?.name : '—'}
-                        </span>
-                        <div className={`flex items-center gap-1 text-xs font-medium ${colors.text}`}>
-                          <Eye className="w-3 h-3" /> {t('view')}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
+                    </>
+                  }
+                />
               );
             })}
           </AnimatePresence>
