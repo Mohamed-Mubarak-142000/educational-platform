@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -712,7 +712,9 @@ interface SubjectDetailPageProps {
 
 export default function SubjectDetailPage({ basePath }: SubjectDetailPageProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { id: subjectId } = useParams<{ id: string }>();
+  const gradeId = location.state?.gradeId as string | undefined;
   const queryClient = useQueryClient();
   const { t, i18n } = useTranslation();
   const monthNames = [
@@ -784,7 +786,7 @@ export default function SubjectDetailPage({ basePath }: SubjectDetailPageProps) 
 
   // Unit mutations
   const createUnitMutation = useMutation({
-    mutationFn: (data: UnitForm) => createUnit(subjectId!, data),
+    mutationFn: (data: UnitForm) => createUnit(subjectId!, data, gradeId),
     onSuccess: () => { invalidateUnits(); setUnitFormOpen(false); setUnitForm(emptyUnitForm); },
   });
 
@@ -833,8 +835,15 @@ export default function SubjectDetailPage({ basePath }: SubjectDetailPageProps) 
 
   const handleUnitSubmit = () => {
     if (!unitForm.title.trim()) return;
-    if (editUnitId) updateUnitMutation.mutate({ id: editUnitId, data: unitForm });
-    else createUnitMutation.mutate(unitForm);
+    if (editUnitId) {
+      updateUnitMutation.mutate({ id: editUnitId, data: unitForm });
+    } else {
+      if (!gradeId) {
+        alert(t('errorGradeRequired') || 'Please navigate to this subject from a specific grade to create units.');
+        return;
+      }
+      createUnitMutation.mutate(unitForm);
+    }
   };
 
   if (subjectLoading) {

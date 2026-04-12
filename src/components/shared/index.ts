@@ -40,6 +40,8 @@ export type {
 export { EmptyState } from './EmptyState';
 export type { EmptyStateProps } from './EmptyState';
 
+export { RenderIfExists } from './RenderIfExists';
+
 export { ErrorState } from './ErrorState';
 export type { ErrorStateProps } from './ErrorState';
 

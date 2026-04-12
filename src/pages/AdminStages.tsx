@@ -166,7 +166,7 @@ export default function AdminStages() {
                 >
                   <Card
                     className={`${cardVariants.interactive} rounded-2xl overflow-hidden group cursor-pointer`}
-                    onClick={() => navigate(`/admin/stages/${stage._id}/subjects`)}
+                    onClick={() => navigate(`/admin/stages/${stage._id}/grades`)}
                   >
                     {/* Gradient header */}
                     <div className={`h-3 w-full bg-gradient-to-r ${colors.bg}`} />

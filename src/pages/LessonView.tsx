@@ -24,7 +24,7 @@ import {
 } from '@/api/subjectApi';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { EmptyState } from '@/components/shared';
+import { EmptyState, PdfViewer, RenderIfExists } from '@/components/shared';
 import { Textarea } from '@/components/ui/textarea';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -46,6 +46,8 @@ import {
   Award,
   CheckCircle2,
   XCircle,
+  Eye,
+  Download,
 } from 'lucide-react';
 import StudentQuizModal from '@/components/StudentQuizModal';
 import { useAuth } from '@/context/AuthContext';
@@ -510,6 +512,8 @@ function CommentsSection({ lessonId }: { lessonId: string }) {
   );
 }
 
+
+
 // ── Main Page ──────────────────────────────────────────────────────
 // Renders INSIDE the DashboardLayout content area.
 // Layout: [Lesson Sidebar (units/lessons)] | [Lesson Content]
@@ -520,11 +524,11 @@ export default function LessonView() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
-  const locale = i18n.language === 'ar' ? 'ar-EG' : 'en-US';
   const subjectId = searchParams.get('subjectId') || '';
   const fromStudent = searchParams.get('from') === 'student' || user?.role === 'Student';
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [quizOpen, setQuizOpen] = useState(false);
+  const [pdfPreviewOpen, setPdfPreviewOpen] = useState(false);
   const activeLessonId = lessonId || '';
   const activePartId = searchParams.get('partId') || '';
 
@@ -568,6 +572,9 @@ export default function LessonView() {
   const backPath = fromStudent
     ? subjectId ? `/student/subjects/${subjectId}` : '/student/learn'
     : subjectId ? `/admin/subjects/${subjectId}` : '/admin/subjects';
+
+  const pdfUrl = lesson?.pdfUrl ?? '';
+  const modelUrl = lesson?.modelUrl ?? '';
 
   return (
     // Two independent scroll columns — sidebar and content each have their own
@@ -699,8 +706,10 @@ export default function LessonView() {
               </div>
             </div>
 
+       
+
             {/* Video Player */}
-            {lesson.videoUrl ? (
+            <RenderIfExists value={lesson.videoUrl} emptyMessage={t('lessonNoVideo')} emptyClassName="py-12">
               <div className="rounded-2xl overflow-hidden bg-black shadow-2xl aspect-video w-full">
                 {isYouTubeUrl(lesson.videoUrl) ? (
                   <iframe
@@ -714,24 +723,30 @@ export default function LessonView() {
                   <video src={lesson.videoUrl} controls className="w-full h-full" />
                 )}
               </div>
-            ) : (
-              <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 aspect-video flex items-center justify-center border border-slate-200 dark:border-slate-700 w-full">
-                <div className="text-center space-y-3 text-slate-400 dark:text-slate-500">
-                  <PlayCircle className="w-16 h-16 mx-auto opacity-40" />
-                  <p className="text-sm">{t('lessonNoVideo')}</p>
-                </div>
-              </div>
-            )}
+            </RenderIfExists>
 
             {/* Description */}
-            {lesson.description && (
-              <div className="bg-slate-50 dark:bg-slate-900/60 rounded-2xl p-6 border border-slate-200 dark:border-slate-800">
-                <h2 className="text-base font-semibold text-slate-800 dark:text-slate-200 mb-3 flex items-center gap-2">
-                  <BookOpen className="w-4 h-4 text-blue-600" />{t('lessonAbout')}
-                </h2>
-                <p className="text-slate-600 dark:text-slate-400 leading-relaxed">{lesson.description}</p>
+            <div className="bg-slate-50 dark:bg-slate-900/60 rounded-2xl p-6 border border-slate-200 dark:border-slate-800">
+              <h2 className="text-base font-semibold text-slate-800 dark:text-slate-200 mb-3 flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-blue-600" />{t('lessonAbout')}
+              </h2>
+              <div className="space-y-4">
+                <RenderIfExists value={lesson.description} emptyMessage={t('lessonNoDescription')} emptyClassName="py-6">
+                  <p className="text-slate-600 dark:text-slate-400 leading-relaxed whitespace-pre-wrap">
+                    {lesson.description}
+                  </p>
+                </RenderIfExists>
+                <RenderIfExists value={lesson.imageUrl} emptyMessage={t('noImage')} emptyClassName="py-6">
+                  <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950">
+                    <img
+                      src={lesson.imageUrl}
+                      alt={lesson.title}
+                      className="w-full max-h-80 object-cover"
+                    />
+                  </div>
+                </RenderIfExists>
               </div>
-            )}
+            </div>
 
             {/* Lesson Quiz */}
             {lessonQuiz && (
@@ -766,55 +781,78 @@ export default function LessonView() {
             )}
 
             {/* Attachments */}
-            {lesson.pdfUrl && (
-              <div className="bg-slate-50 dark:bg-slate-900/60 rounded-2xl p-6 border border-slate-200 dark:border-slate-800">
-                <h2 className="text-base font-semibold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
-                  <Paperclip className="w-4 h-4 text-blue-600" />{t('lessonAttachments')}
-                </h2>
-                <a
-                  href={lesson.pdfUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-3 px-4 py-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors text-sm font-medium"
-                >
-                  <FileText className="w-5 h-5" />{t('lessonPdfDownload')}
-                </a>
-              </div>
-            )}
+            <div className="bg-slate-50 dark:bg-slate-900/60 rounded-2xl p-6 border border-slate-200 dark:border-slate-800">
+              <h2 className="text-base font-semibold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
+                <Paperclip className="w-4 h-4 text-blue-600" />{t('lessonAttachments')}
+              </h2>
+              <RenderIfExists value={lesson.pdfUrl} emptyMessage={t('lessonNoPdf')} emptyClassName="py-8">
+                <div className="space-y-4">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPdfPreviewOpen((prev) => !prev)}
+                      className="flex items-center gap-2"
+                    >
+                      <Eye className="w-4 h-4" />
+                      {pdfPreviewOpen ? t('close') : t('viewPdf')}
+                    </Button>
+                    <a
+                      href={pdfUrl}
+                      download
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition-colors text-sm font-medium"
+                    >
+                      <Download className="w-4 h-4" />
+                      {t('downloadPdf')}
+                    </a>
+                  </div>
+                  {pdfPreviewOpen && (
+                    <div className="mt-4">
+                      <PdfViewer url={pdfUrl} className="border-slate-200 dark:border-slate-800" />
+                    </div>
+                  )}
+                </div>
+              </RenderIfExists>
+            </div>
 
             {/* Audio Recording */}
-            {lesson.audioUrl && (
-              <div className="bg-rose-50 dark:bg-rose-900/10 rounded-2xl p-6 border border-rose-200 dark:border-rose-800/30">
-                <h2 className="flex items-center gap-2 text-base font-semibold text-slate-800 dark:text-slate-200 mb-3">
-                  <Volume2 className="w-4 h-4 text-rose-600" />
-                  {t('audioExplanation')}
-                </h2>
+            <div className="bg-rose-50 dark:bg-rose-900/10 rounded-2xl p-6 border border-rose-200 dark:border-rose-800/30">
+              <h2 className="flex items-center gap-2 text-base font-semibold text-slate-800 dark:text-slate-200 mb-3">
+                <Volume2 className="w-4 h-4 text-rose-600" />
+                {t('audioExplanation')}
+              </h2>
+              <RenderIfExists value={lesson.audioUrl} emptyMessage={t('lessonNoAudio')} emptyClassName="py-6">
                 <audio controls className="w-full" preload="none">
                   <source src={lesson.audioUrl} />
                 </audio>
-              </div>
-            )}
+              </RenderIfExists>
+            </div>
 
             {/* 3D Model + Written Explanation */}
-            {(lesson.modelUrl || lesson.modelExplanation) && (
-              <div className="bg-purple-50 dark:bg-purple-900/10 rounded-2xl p-6 border border-purple-200 dark:border-purple-800/30 space-y-4">
-                <h2 className="flex items-center gap-2 text-base font-semibold text-slate-800 dark:text-slate-200">
-                  <Box className="w-4 h-4 text-purple-600" />
-                  {t('model3dLabel')}
-                </h2>
-                {lesson.modelUrl && (
-                  <div className="rounded-xl overflow-hidden border border-purple-200 dark:border-purple-800/40 aspect-video bg-slate-900">
-                    <LessonModelViewer modelUrl={lesson.modelUrl} />
-                  </div>
-                )}
-                {lesson.modelExplanation && (
-                  <div className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-purple-100 dark:border-purple-800/20">
-                    <p className="text-sm font-medium text-purple-700 dark:text-purple-300 mb-1.5">{t('explanationLabel')}</p>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">{lesson.modelExplanation}</p>
-                  </div>
-                )}
-              </div>
-            )}
+            <div className="bg-purple-50 dark:bg-purple-900/10 rounded-2xl p-6 border border-purple-200 dark:border-purple-800/30 space-y-4">
+              <h2 className="flex items-center gap-2 text-base font-semibold text-slate-800 dark:text-slate-200">
+                <Box className="w-4 h-4 text-purple-600" />
+                {t('model3dLabel')}
+              </h2>
+              <RenderIfExists value={lesson.modelUrl || lesson.modelExplanation} emptyMessage={t('lessonNo3dModel')} emptyClassName="py-8">
+                <div className="space-y-4">
+                  <RenderIfExists value={lesson.modelUrl} emptyMessage={t('lessonNo3dModel')} emptyClassName="py-6">
+                    <div className="rounded-xl overflow-hidden border border-purple-200 dark:border-purple-800/40 aspect-video bg-slate-900">
+                      <LessonModelViewer modelUrl={modelUrl} />
+                    </div>
+                  </RenderIfExists>
+                  <RenderIfExists value={lesson.modelExplanation} emptyMessage={t('noData')} emptyClassName="py-6">
+                    <div className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-purple-100 dark:border-purple-800/20">
+                      <p className="text-sm font-medium text-purple-700 dark:text-purple-300 mb-1.5">{t('explanationLabel')}</p>
+                      <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed whitespace-pre-wrap">
+                        {lesson.modelExplanation}
+                      </p>
+                    </div>
+                  </RenderIfExists>
+                </div>
+              </RenderIfExists>
+            </div>
 
             {/* Lesson Parts */}
             <LessonPartsSection lessonId={activeLessonId} studentId={user?._id} activePartId={activePartId} />

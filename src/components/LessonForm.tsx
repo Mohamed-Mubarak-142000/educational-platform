@@ -134,6 +134,12 @@ function MediaSection({ media, onChange, idPrefix, onUploadStateChange }: MediaS
   const [modelFile, setModelFile] = useState<File | null>(null);
   const [modelUploading, setModelUploading] = useState(false);
   const [modelUploadError, setModelUploadError] = useState('');
+  const [pdfUploading, setPdfUploading] = useState(false);
+  const [pdfUploadError, setPdfUploadError] = useState('');
+  const [videoUploading, setVideoUploading] = useState(false);
+  const [videoUploadError, setVideoUploadError] = useState('');
+  const [imageUploading, setImageUploading] = useState(false);
+  const [imageUploadError, setImageUploadError] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [audioPreviewUrl, setAudioPreviewUrl] = useState(media.audioUrl);
   const recorderRef = useRef<MediaRecorder | null>(null);
@@ -144,11 +150,53 @@ function MediaSection({ media, onChange, idPrefix, onUploadStateChange }: MediaS
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>, type: 'video' | 'pdf' | 'image' | 'model') => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const url = URL.createObjectURL(file);
+    
     switch (type) {
-      case 'video': setVideoFile(file); break;
-      case 'pdf':   setPdfFile(file);   onChange({ ...media, pdfUrl: url });   break;
-      case 'image': setImageFile(file); onChange({ ...media, imageUrl: url }); break;
+      case 'video':
+        setVideoFile(file);
+        setVideoUploadError('');
+        setVideoUploading(true);
+        onUploadStateChange?.(true);
+        try {
+          const upload = await uploadLessonAsset(file);
+          onChange({ ...media, videoUrl: upload.url });
+        } catch {
+          setVideoUploadError(t('toastUploadFailed'));
+        } finally {
+          setVideoUploading(false);
+          onUploadStateChange?.(false);
+        }
+        break;
+      case 'pdf':
+        setPdfFile(file);
+        setPdfUploadError('');
+        setPdfUploading(true);
+        onUploadStateChange?.(true);
+        try {
+          const upload = await uploadLessonAsset(file);
+          onChange({ ...media, pdfUrl: upload.url });
+        } catch {
+          setPdfUploadError(t('toastUploadFailed'));
+        } finally {
+          setPdfUploading(false);
+          onUploadStateChange?.(false);
+        }
+        break;
+      case 'image':
+        setImageFile(file);
+        setImageUploadError('');
+        setImageUploading(true);
+        onUploadStateChange?.(true);
+        try {
+          const upload = await uploadLessonAsset(file);
+          onChange({ ...media, imageUrl: upload.url });
+        } catch {
+          setImageUploadError(t('toastUploadFailed'));
+        } finally {
+          setImageUploading(false);
+          onUploadStateChange?.(false);
+        }
+        break;
       case 'model':
         setModelFile(file);
         setModelUploadError('');
@@ -207,28 +255,48 @@ function MediaSection({ media, onChange, idPrefix, onUploadStateChange }: MediaS
               className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-xs font-medium">
               <FileVideo className="w-3.5 h-3.5" />{t('uploadVideo')}
             </label>
-            {videoFile && <span className="text-xs text-slate-500 truncate max-w-[180px]">{videoFile.name}</span>}
+            {videoFile && (
+              <span className="text-xs text-slate-500 truncate max-w-[180px]">
+                {videoFile.name}{videoUploading ? ` — ${t('uploadingMedia')}` : ''}
+              </span>
+            )}
           </div>
-          <Input placeholder={t('orEnterVideoUrl')} value={media.videoUrl}
-            onChange={(e) => set('videoUrl', e.target.value)} />
+          {!videoFile && (
+            <Input placeholder={t('orEnterVideoUrl')} value={media.videoUrl}
+              onChange={(e) => set('videoUrl', e.target.value)} />
+          )}
+          {media.videoUrl && !videoFile && (
+            <p className="text-xs text-blue-600">{t('videoUploaded')}</p>
+          )}
+          {videoUploadError && (
+            <p className="text-xs text-red-500">{videoUploadError}</p>
+          )}
         </div>
       </FormField>
 
       {/* PDF — device upload only */}
       <FormField label={t('pdfContent')} helpText={t('uploadPdfFromDevice')}>
-        <div className="flex items-center gap-3 flex-wrap">
-          <input type="file" accept=".pdf" id={`${idPrefix}-pdf`}
-            className="hidden" onChange={(e) => handleFile(e, 'pdf')} />
-          <label htmlFor={`${idPrefix}-pdf`}
-            className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition text-xs font-medium">
-            <Upload className="w-3.5 h-3.5" />{pdfFile ? t('changePdf') : t('uploadPdf')}
-          </label>
-          {pdfFile
-            ? <span className="text-xs text-slate-500 truncate max-w-[180px]">{pdfFile.name}</span>
-            : media.pdfUrl
-              ? <a href={media.pdfUrl} target="_blank" rel="noopener noreferrer"
-                  className="text-xs text-emerald-600 underline">{t('currentPdf')}</a>
-              : null}
+        <div className="space-y-2">
+          <div className="flex items-center gap-3 flex-wrap">
+            <input type="file" accept=".pdf" id={`${idPrefix}-pdf`}
+              className="hidden" onChange={(e) => handleFile(e, 'pdf')} />
+            <label htmlFor={`${idPrefix}-pdf`}
+              className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition text-xs font-medium">
+              <Upload className="w-3.5 h-3.5" />{pdfFile ? t('changePdf') : t('uploadPdf')}
+            </label>
+            {pdfFile && (
+              <span className="text-xs text-slate-500 truncate max-w-[180px]">
+                {pdfFile.name}{pdfUploading ? ` — ${t('uploadingMedia')}` : ''}
+              </span>
+            )}
+          </div>
+          {media.pdfUrl && !pdfFile && (
+            <a href={media.pdfUrl} target="_blank" rel="noopener noreferrer"
+              className="text-xs text-emerald-600 underline block">{t('currentPdf')}</a>
+          )}
+          {pdfUploadError && (
+            <p className="text-xs text-red-500">{pdfUploadError}</p>
+          )}
         </div>
       </FormField>
 
@@ -246,10 +314,19 @@ function MediaSection({ media, onChange, idPrefix, onUploadStateChange }: MediaS
               className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-xs font-medium">
               <Image className="w-3.5 h-3.5" />{t('uploadImage')}
             </label>
-            {imageFile && <span className="text-xs text-slate-500 truncate max-w-[180px]">{imageFile.name}</span>}
+            {imageFile && (
+              <span className="text-xs text-slate-500 truncate max-w-[180px]">
+                {imageFile.name}{imageUploading ? ` — ${t('uploadingMedia')}` : ''}
+              </span>
+            )}
           </div>
-          <Input placeholder={t('orEnterImageUrl')} value={media.imageUrl}
-            onChange={(e) => set('imageUrl', e.target.value)} />
+          {!imageFile && !media.imageUrl && (
+            <Input placeholder={t('orEnterImageUrl')} value={media.imageUrl}
+              onChange={(e) => set('imageUrl', e.target.value)} />
+          )}
+          {imageUploadError && (
+            <p className="text-xs text-red-500">{imageUploadError}</p>
+          )}
         </div>
       </FormField>
 

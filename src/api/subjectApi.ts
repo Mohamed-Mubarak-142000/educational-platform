@@ -23,8 +23,11 @@ export type Subject = {
   name: string;
   nameAr?: string;
   description?: string;
+  descriptionAr?: string;
   icon?: string;
   color?: string;
+  category?: string; // 'primary' | 'preparatory' | 'secondary-science' | 'secondary-literary' | 'general'
+  suggestedStages?: string[];
   stageId?: string;
   teacherId?: string | { _id?: string; name?: string };
   studentCount?: number;
@@ -34,8 +37,10 @@ export type SubjectInput = {
   name: string;
   nameAr?: string;
   description?: string;
+  descriptionAr?: string;
   icon?: string;
   color?: string;
+  category?: string;
   stageId?: string;
   teacherId?: string;
 };
@@ -60,7 +65,9 @@ export type UnitInput = {
 export type Lesson = {
   _id: string;
   title: string;
+  titleAr?: string;
   description?: string;
+  descriptionAr?: string;
   duration?: number;
   order?: number;
   videoUrl?: string;
@@ -69,6 +76,12 @@ export type Lesson = {
   imageUrl?: string;
   modelUrl?: string;
   modelExplanation?: string;
+  unitId?: string;
+  teacherId?: string;
+  isPublished?: boolean;
+  isFree?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 export type LessonInput = {
@@ -209,7 +222,16 @@ export const updateStage = async (id: string, data: StageInput): Promise<Stage> 
 export const deleteStage = async (id: string): Promise<{ message?: string }> => (await api.delete<{ message?: string }>(`/stages/${id}`)).data;
 
 // ── Subjects ──────────────────────────────────────────────────────
-export const getSubjects = async (): Promise<Subject[]> => (await api.get<Subject[]>('/subjects')).data;
+export const getSubjects = async (options?: { stageId?: string; stageName?: string }): Promise<Subject[]> => {
+  const params = new URLSearchParams();
+  if (options?.stageId) params.append('stageId', options.stageId);
+  if (options?.stageName) params.append('stageName', options.stageName);
+  
+  const queryString = params.toString();
+  const url = queryString ? `/subjects?${queryString}` : '/subjects';
+  
+  return (await api.get<Subject[]>(url)).data;
+};
 export const getSubjectsByStage = async (stageId: string): Promise<Subject[]> => (await api.get<Subject[]>(`/stages/${stageId}/subjects`)).data;
 export const getSubjectById = async (id: string): Promise<Subject> => (await api.get<Subject>(`/subjects/${id}`)).data;
 export const createSubject = async (data: SubjectInput): Promise<Subject> => (await api.post<Subject>('/subjects', data)).data;
@@ -219,7 +241,14 @@ export const deleteSubject = async (id: string): Promise<{ message?: string }> =
 // ── Units ─────────────────────────────────────────────────────────
 export const getUnitsBySubject = async (subjectId: string): Promise<Unit[]> => (await api.get<Unit[]>(`/subjects/${subjectId}/units`)).data;
 export const getUnitById = async (id: string): Promise<Unit> => (await api.get<Unit>(`/units/${id}`)).data;
-export const createUnit = async (subjectId: string, data: UnitInput): Promise<Unit> => (await api.post<Unit>(`/subjects/${subjectId}/units`, data)).data;
+export const createUnit = async (
+  subjectId: string, 
+  data: UnitInput, 
+  gradeId?: string
+): Promise<Unit> => {
+  const payload = gradeId ? { ...data, gradeId } : data;
+  return (await api.post<Unit>(`/subjects/${subjectId}/units`, payload)).data;
+};
 export const updateUnit = async (id: string, data: UnitInput): Promise<Unit> => (await api.put<Unit>(`/units/${id}`, data)).data;
 export const deleteUnit = async (id: string): Promise<{ message?: string }> => (await api.delete<{ message?: string }>(`/units/${id}`)).data;
 

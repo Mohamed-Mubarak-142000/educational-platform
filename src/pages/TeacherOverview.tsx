@@ -123,7 +123,7 @@ export default function TeacherOverview() {
   });
   const { data: allSubjects = [], isLoading: subjectsLoading } = useQuery<Subject[]>({
     queryKey: ['subjects'],
-    queryFn: getSubjects,
+    queryFn: () => getSubjects(),
   });
 
   // Fetch units for every assigned subject in parallel (teacher-scoped)

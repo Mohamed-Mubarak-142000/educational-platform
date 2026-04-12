@@ -22,7 +22,6 @@ const AdminOverview = lazy(() => import('./pages/AdminOverview'));
 const AdminTeachers = lazy(() => import('./pages/AdminTeachers'));
 const AdminStudents = lazy(() => import('./pages/AdminStudents'));
 const AdminCourses = lazy(() => import('./pages/AdminCourses'));
-const AdminSubjects = lazy(() => import('./pages/AdminSubjects'));
 const AdminStages = lazy(() => import('./pages/AdminStages'));
 const AdminSubjectDetail = lazy(() => import('./pages/AdminSubjectDetail'));
 const AdminLessonForm = lazy(() => import('./pages/AdminLessonForm'));
@@ -59,6 +58,7 @@ const StudentTeachers = lazy(() => import('./pages/StudentTeachers'));
 const StudentTeacherProfile = lazy(() => import('./pages/StudentTeacherProfile'));
 
 const AdminGrades = lazy(() => import('./pages/AdminGrades'));
+const AdminGradeSubjects = lazy(() => import('./pages/AdminGradeSubjects'));
 const StudentLearnBrowser = lazy(() => import('./pages/StudentLearnBrowser'));
 const PublicStageSubjects = lazy(() => import('./pages/PublicStageSubjects'));
 const PublicSubjectTeachers = lazy(() => import('./pages/PublicSubjectTeachers'));
@@ -488,15 +488,6 @@ function App() {
             </Layout>
           </RequireAuth>
         } />
-        <Route path="/admin/stages/:stageId/subjects" element={
-          <RequireAuth allowedRoles={['Admin']}>
-            <Layout>
-              <DashboardLayout>
-                <AdminSubjects />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
         <Route path="/admin/subjects/:id" element={
           <RequireAuth allowedRoles={['Admin']}>
             <Layout>
@@ -547,12 +538,12 @@ function App() {
           </RequireAuth>
         } />
 
-        {/* Admin: Grade-scoped subject management (reuses AdminSubjects page) */}
-        <Route path="/admin/grades/:gradeId/subjects" element={
+        {/* Admin: Grade-scoped subject management */}
+        <Route path="/admin/stages/:stageId/grades/:gradeId/subjects" element={
           <RequireAuth allowedRoles={['Admin']}>
             <Layout>
               <DashboardLayout>
-                <AdminSubjects />
+                <AdminGradeSubjects />
               </DashboardLayout>
             </Layout>
           </RequireAuth>

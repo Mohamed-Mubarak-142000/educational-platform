@@ -18,7 +18,7 @@ import { getUnitsBySubject } from '@/api/subjectApi';
 type Step = 'stage' | 'grade' | 'subject' | 'unit';
 
 export default function StudentLearnBrowser() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>('stage');
   const [selectedStageId, setSelectedStageId] = useState<string>('');

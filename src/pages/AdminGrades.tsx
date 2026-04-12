@@ -8,7 +8,6 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-
 import {
   getGrades,
   createGrade,
@@ -18,13 +17,8 @@ import {
   type GradeInput,
 } from '@/api/gradeApi';
 import { getStageById } from '@/api/subjectApi';
-import { PageHeader } from '@/components/shared';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { EmptyState, PageHeader } from '@/components/shared';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -37,15 +31,31 @@ import {
 } from '@/components/ui/dialog';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/components/ui/ToastProvider';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Pencil, Trash2, Plus, ChevronRight, GraduationCap } from 'lucide-react';
+import { cardVariants, buttonVariants, spacing } from '@/lib/constants';
+import { getLocalizedName } from '@/lib/localeUtils';
 
-// ─────────────────────────────────────────────────────────────────
+// Grade color palette (matching stage design system)
+const GRADE_COLORS = [
+  { value: 'blue', bg: 'from-blue-500 to-indigo-600', light: 'bg-blue-50 dark:bg-blue-900/20', text: 'text-blue-700 dark:text-blue-300', border: 'border-blue-200 dark:border-blue-800' },
+  { value: 'emerald', bg: 'from-emerald-500 to-teal-600', light: 'bg-emerald-50 dark:bg-emerald-900/20', text: 'text-emerald-700 dark:text-emerald-300', border: 'border-emerald-200 dark:border-emerald-800' },
+  { value: 'violet', bg: 'from-violet-500 to-purple-600', light: 'bg-violet-50 dark:bg-violet-900/20', text: 'text-violet-700 dark:text-violet-300', border: 'border-violet-200 dark:border-violet-800' },
+  { value: 'amber', bg: 'from-amber-500 to-orange-600', light: 'bg-amber-50 dark:bg-amber-900/20', text: 'text-amber-700 dark:text-amber-300', border: 'border-amber-200 dark:border-amber-800' },
+  { value: 'rose', bg: 'from-rose-500 to-pink-600', light: 'bg-rose-50 dark:bg-rose-900/20', text: 'text-rose-700 dark:text-rose-300', border: 'border-rose-200 dark:border-rose-800' },
+  { value: 'cyan', bg: 'from-cyan-500 to-blue-600', light: 'bg-cyan-50 dark:bg-cyan-900/20', text: 'text-cyan-700 dark:text-cyan-300', border: 'border-cyan-200 dark:border-cyan-800' },
+] as const;
+
+function getGradeColor(index: number) {
+  return GRADE_COLORS[index % GRADE_COLORS.length];
+}
 
 export default function AdminGrades() {
   const { stageId } = useParams<{ stageId: string }>();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { pushToast } = useToast();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // Error message extractor with localized fallback
   type AxiosLikeError = { response?: { data?: { message?: string } }; message?: string };
@@ -112,50 +122,121 @@ export default function AdminGrades() {
     }
   }
 
+  const sortedGrades = grades.slice().sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
   return (
-    <div className="p-6 space-y-6">
+    <div className={spacing.pageContainer}>
       <PageHeader
-        title={`${t('grades')} — ${stage?.name ?? ''}`}
+        title={`${t('grades')} — ${stage ? getLocalizedName(stage, i18n.language) : ''}`}
         subtitle={t('manageGradesSubtitle')}
-        action={<Button onClick={openCreate}>{t('addGrade')}</Button>}
+        action={
+          <Button onClick={openCreate} className={buttonVariants.primary}>
+            <Plus className="w-4 h-4 mr-2" />
+            {t('addGrade')}
+          </Button>
+        }
       />
 
       {isLoading ? (
-        <p className="text-muted-foreground">{t('loadingGrades')}</p>
-      ) : grades.length === 0 ? (
-        <p className="text-muted-foreground">{t('noGradesYet')}</p>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {grades.map((grade) => (
-            <Card key={grade._id} className="group hover:shadow-md transition-shadow">
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center justify-between text-base">
-                  <span>{grade.name}</span>
-                  <span className="text-muted-foreground text-sm font-normal">#{grade.order}</span>
-                </CardTitle>
-                {grade.nameAr && <p className="text-sm text-muted-foreground" dir="rtl">{grade.nameAr}</p>}
-              </CardHeader>
-              <CardContent className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => navigate(`/admin/grades/${grade._id}/subjects`)}
-                >
-                  {t('subjects')}
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => openEdit(grade)}>{t('edit')}</Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="text-destructive hover:bg-destructive/10"
-                  onClick={() => setDeleteTarget(grade)}
-                >
-                  {t('delete')}
-                </Button>
-              </CardContent>
-            </Card>
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
           ))}
         </div>
+      ) : sortedGrades.length === 0 ? (
+        <Card className={cardVariants.default}>
+          <CardContent className="py-16 text-center">
+            <EmptyState
+              description={t('noGradesYet')}
+              action={(
+                <Button onClick={openCreate} className={buttonVariants.primary}>
+                  <Plus className="w-4 h-4 mr-2" /> {t('addGrade')}
+                </Button>
+              )}
+            />
+          </CardContent>
+        </Card>
+      ) : (
+        <motion.div
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+          initial="hidden"
+          animate="visible"
+          variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
+        >
+          <AnimatePresence>
+            {sortedGrades.map((grade, index) => {
+              const colors = getGradeColor(index);
+              return (
+                <motion.div
+                  key={grade._id}
+                  variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.25 }}
+                  layout
+                >
+                  <Card
+                    className={`${cardVariants.interactive} rounded-2xl overflow-hidden group cursor-pointer`}
+                    onClick={() => navigate(`/admin/stages/${stageId}/grades/${grade._id}/subjects`)}
+                  >
+                    {/* Gradient header */}
+                    <div className={`h-3 w-full bg-gradient-to-r ${colors.bg}`} />
+                    <CardContent className="p-5">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-12 h-12 rounded-xl ${colors.light} flex items-center justify-center text-2xl shadow-sm border ${colors.border}`}>
+                            <GraduationCap className={`w-6 h-6 ${colors.text}`} />
+                          </div>
+                          <div>
+                            <h3 className={`font-bold text-lg ${colors.text}`}>
+                              {getLocalizedName(grade, i18n.language)}
+                            </h3>
+                            <span className="text-xs text-slate-400 dark:text-slate-500">
+                              {t('gradeLabel')}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={(e) => { e.stopPropagation(); openEdit(grade); }}
+                            title={t('edit')}
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500"
+                            onClick={(e) => { e.stopPropagation(); setDeleteTarget(grade); }}
+                            title={t('delete')}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                      {grade.nameAr && (
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-3" dir="rtl">
+                          {grade.nameAr}
+                        </p>
+                      )}
+                      <div className={`flex items-center justify-between pt-3 border-t ${colors.border}`}>
+                        <span className="text-xs text-slate-400 dark:text-slate-500">
+                          {t('displayOrder')}: {grade.order}
+                        </span>
+                        <div className={`flex items-center gap-1.5 text-xs font-medium ${colors.text} group-hover:gap-2.5 transition-all`}>
+                          {t('viewSubjects')}
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </motion.div>
       )}
 
       {/* Create / Edit dialog */}
