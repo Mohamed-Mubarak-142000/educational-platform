@@ -144,6 +144,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     { to: '/admin/subjects', label: t('stagesAndSubjects'), icon: BookOpen, end: false },
     { to: '/admin/exams', label: t('adminExams'), icon: FileText, end: false },
     { to: '/admin/payments', label: t('adminPayments'), icon: CreditCard, end: false },
+    { to: '/admin/platform-config', label: t('adminPlatformConfig'), icon: Settings, end: false },
   ];
 
   const teacherLinks = [

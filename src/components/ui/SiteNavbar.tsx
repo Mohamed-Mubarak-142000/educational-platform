@@ -9,7 +9,14 @@ import { useSidebar } from '@/context/SidebarContext';
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 
-export type NavLink = { labelKey: string; id: string };
+export type NavLink = {
+  labelKey: string;
+  id: string;
+  /** Override display label (used when label comes from DB instead of i18n key) */
+  label?: string;
+  /** If set, clicking navigates to this route instead of scrolling to the id anchor */
+  href?: string;
+};
 
 export type SiteNavbarProps = {
   variant?: 'marketing' | 'app';
@@ -108,18 +115,18 @@ export function SiteNavbar({ variant = 'marketing', position = 'fixed', classNam
           {/* ── Center: Desktop nav links (marketing only) ── */}
           {variant === 'marketing' && navLinks?.length ? (
             <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center">
-              {navLinks.map(({ labelKey, id }) => (
+              {navLinks.map((link) => (
                 <button
-                  key={id}
+                  key={link.id}
                   type="button"
-                  onClick={() => scrollToSection(id)}
+                  onClick={() => link.href ? undefined : scrollToSection(link.id)}
                   className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
-                    activeSection === id
+                    activeSection === link.id
                       ? 'bg-blue-600/10 text-blue-600 dark:bg-blue-400/10 dark:text-blue-400'
                       : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
                   }`}
                 >
-                  {t(labelKey)}
+                  {link.label ?? (link.labelKey ? t(link.labelKey) : link.id)}
                 </button>
               ))}
             </nav>
@@ -208,18 +215,18 @@ export function SiteNavbar({ variant = 'marketing', position = 'fixed', classNam
               >
                 <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-1">
                   {/* Nav items */}
-                  {navLinks?.map(({ labelKey, id }) => (
+                  {navLinks?.map((link) => (
                     <button
-                      key={id}
+                      key={link.id}
                       type="button"
-                      onClick={() => scrollToSection(id)}
+                      onClick={() => link.href ? undefined : scrollToSection(link.id)}
                       className={`w-full text-start px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150 ${
-                        activeSection === id
+                        activeSection === link.id
                           ? 'bg-blue-600/10 text-blue-600 dark:bg-blue-400/10 dark:text-blue-400'
                           : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                       }`}
                     >
-                      {t(labelKey)}
+                      {link.label ?? (link.labelKey ? t(link.labelKey) : link.id)}
                     </button>
                   ))}
 

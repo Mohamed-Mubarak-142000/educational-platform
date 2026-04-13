@@ -9,6 +9,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import PageLoader from '@/components/PageLoader';
 import SplashScreen from '@/components/SplashScreen';
 import { SidebarProvider } from '@/context/SidebarContext';
+import { PlatformConfigProvider } from '@/context/PlatformConfigContext';
 
 const Landing = lazy(() => import('./pages/Landing'));
 const Login = lazy(() => import('./pages/Login'));
@@ -59,6 +60,7 @@ const StudentTeachers = lazy(() => import('./pages/StudentTeachers'));
 const StudentTeacherProfile = lazy(() => import('./pages/StudentTeacherProfile'));
 
 const AdminGrades = lazy(() => import('./pages/AdminGrades'));
+const AdminPlatformConfig = lazy(() => import('./pages/AdminPlatformConfig'));
 const AdminGradeSubjects = lazy(() => import('./pages/AdminGradeSubjects'));
 const StudentLearnBrowser = lazy(() => import('./pages/StudentLearnBrowser'));
 const PublicStageSubjects = lazy(() => import('./pages/PublicStageSubjects'));
@@ -93,6 +95,7 @@ function App() {
   if (isLoading) return <PageLoader />;
 
   return (
+    <PlatformConfigProvider>
     <>
       <SplashScreen />
       <Router>
@@ -550,6 +553,17 @@ function App() {
           </RequireAuth>
         } />
 
+        {/* Admin: Platform configuration */}
+        <Route path="/admin/platform-config" element={
+          <RequireAuth allowedRoles={['Admin']}>
+            <Layout>
+              <DashboardLayout>
+                <AdminPlatformConfig />
+              </DashboardLayout>
+            </Layout>
+          </RequireAuth>
+        } />
+
         {/* Public learn browser (also accessible via /learn) */}
         <Route path="/learn" element={
           <RequireAuth allowedRoles={['Student', 'Teacher', 'Admin']}>
@@ -589,6 +603,7 @@ function App() {
       </Suspense>
     </Router>
     </>
+  </PlatformConfigProvider>
   );
 }
 
