@@ -26,12 +26,13 @@ import {
   type LessonPartQuizItem,
 } from '@/api/subjectApi';
 import { createLessonForCourse, type LessonInput } from '@/api/courseApi';
-import LessonFormComponent, {
+import LessonFormComponent from '@/components/LessonForm';
+import {
   type LessonFormData,
   type LessonPart,
   type LessonMedia,
   emptyMedia,
-} from '@/components/LessonForm';
+} from '@/types/lesson';
 import { FormPageLayout } from '@/components/shared';
 import { BookOpen } from 'lucide-react';
 

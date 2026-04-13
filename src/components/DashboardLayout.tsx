@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Users, GraduationCap, BookOpen, FileText, CreditCard, Settings, ChevronLeft, LogOut, GraduationCap as LearnIcon, Calendar, UserSquare2, Award, ShieldAlert, X, type LucideIcon } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { roleHome, type Role } from '@/components/RequireAuth';
+import { roleHome, type Role } from '@/utils/routes';
 import { useTranslation } from 'react-i18next';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { Button } from '@/components/ui/button';
@@ -131,7 +131,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   // Close mobile sidebar when route changes
   useEffect(() => {
     setMobileOpen(false);
-  }, [location.pathname]);
+  }, [location.pathname, setMobileOpen]);
 
   const role = user?.role;
   const normalizedRole: Role | undefined = role === 'Admin' || role === 'Teacher' || role === 'Student' ? role : undefined;

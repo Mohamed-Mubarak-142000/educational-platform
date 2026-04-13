@@ -39,41 +39,15 @@ import {
 import { useTranslation } from 'react-i18next';
 import { inputVariants } from '@/lib/constants';
 import { uploadLessonAsset } from '@/api/subjectApi';
+import {
+  type LessonMedia,
+  type PartQuizQuestion,
+  type LessonPart,
+  type LessonFormData,
+  emptyMedia,
+} from '@/types/lesson';
 
-// ── Types (exported so AdminLessonForm can map API data) ──────────
-
-export type LessonMedia = {
-  videoUrl: string;
-  pdfUrl: string;
-  imageUrl: string;
-  modelUrl: string;
-  modelExplanation: string;
-  audioUrl: string;
-};
-
-export type PartQuizQuestion = {
-  id: string;
-  question: string;
-  options: [string, string, string, string];
-  /** Index of the correct option (0–3) */
-  correctIndex: number;
-};
-
-export type LessonPart = {
-  id: string;
-  title: string;
-  content: string;
-  media: LessonMedia;
-  quiz: PartQuizQuestion[];
-};
-
-export type LessonFormData = {
-  title: string;
-  description: string;
-  media: LessonMedia;
-  order: number;
-  parts: LessonPart[];
-};
+// ── Component-private types ───────────────────────────────────────
 
 type LessonFormProps = {
   initialData?: Partial<LessonFormData>;
@@ -81,17 +55,6 @@ type LessonFormProps = {
   onCancel: () => void;
   isLoading?: boolean;
 };
-
-// ── Helpers ────────────────────────────────────────────────────────
-
-export const emptyMedia = (): LessonMedia => ({
-  videoUrl: '',
-  pdfUrl: '',
-  imageUrl: '',
-  modelUrl: '',
-  modelExplanation: '',
-  audioUrl: '',
-});
 
 function genId(prefix = 'tmp') {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;

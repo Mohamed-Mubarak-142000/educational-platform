@@ -27,7 +27,7 @@ import {
   User,
   FileText,
 } from 'lucide-react';
-import type { DayOfWeek } from '@/api/mock/data';
+import type { DayOfWeek } from '@/api/adminApi';
 
 const ALL_DAYS: DayOfWeek[] = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 

@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { SiteNavbar } from '@/components/ui/SiteNavbar';
 import { SiteFooter } from '@/components/ui/SiteFooter';
 import { useNavigate } from 'react-router-dom';
-import { roleHome, type Role } from '@/components/RequireAuth';
+import { roleHome, type Role } from '@/utils/routes';
 import { useAuth } from '@/context/AuthContext';
 import type { AuthTokenResponse } from '@/api/authApi';
 

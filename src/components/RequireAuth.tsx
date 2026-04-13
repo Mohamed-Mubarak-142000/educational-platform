@@ -2,8 +2,7 @@ import type { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from 'react-i18next';
-
-export type Role = 'Admin' | 'Teacher' | 'Student';
+import { roleHome, type Role } from '@/utils/routes';
 
 type RequireAuthProps = {
   children: ReactNode;
@@ -11,12 +10,6 @@ type RequireAuthProps = {
 };
 
 const isRole = (value?: string): value is Role => value === 'Admin' || value === 'Teacher' || value === 'Student';
-
-const roleHome = (role?: Role) => {
-  if (role === 'Admin') return '/admin';
-  if (role === 'Teacher') return '/teacher';
-  return '/student';
-};
 
 export default function RequireAuth({ children, allowedRoles }: RequireAuthProps) {
   const { user, isLoading } = useAuth();
@@ -51,5 +44,3 @@ export default function RequireAuth({ children, allowedRoles }: RequireAuthProps
 
   return <>{children}</>;
 }
-
-export { roleHome };

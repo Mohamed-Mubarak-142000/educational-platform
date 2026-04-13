@@ -1,6 +1,9 @@
 import api from './axiosConfig';
 import type { Subject, TeacherSchedule } from './subjectApi';
 
+/** Days of the week used in teacher scheduling. */
+export type DayOfWeek = 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday';
+
 export type Teacher = {
   _id: string;
   name?: string;

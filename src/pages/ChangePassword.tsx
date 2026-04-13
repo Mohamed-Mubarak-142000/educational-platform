@@ -12,7 +12,7 @@ import { SiteNavbar } from '@/components/ui/SiteNavbar';
 import { SiteFooter } from '@/components/ui/SiteFooter';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { roleHome, type Role } from '@/components/RequireAuth';
+import { roleHome, type Role } from '@/utils/routes';
 
 export default function ChangePassword() {
   const { t, i18n } = useTranslation();

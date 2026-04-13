@@ -10,7 +10,7 @@ import { SiteNavbar } from '@/components/ui/SiteNavbar';
 import { SiteFooter } from '@/components/ui/SiteFooter';
 import { Link, useNavigate } from 'react-router-dom';
 import { Activity, CheckCircle, Microscope } from 'lucide-react';
-import { roleHome, type Role } from '@/components/RequireAuth';
+import { roleHome, type Role } from '@/utils/routes';
 import { useRTL, useAuthForm } from '@/hooks';
 import { cardVariants, buttonVariants, badgeVariants, gradients, iconContainers, textColors } from '@/lib/constants';
 import type { AuthTokenResponse } from '@/api/authApi';

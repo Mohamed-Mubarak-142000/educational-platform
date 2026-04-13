@@ -20,7 +20,7 @@ import { buttonVariants, formClasses, inputVariants } from '@/lib/constants';
 import { FormPageLayout, FormField, PdfViewer } from '@/components/shared';
 import AvatarUpload from '@/components/AvatarUpload';
 import { CheckCircle2, Clock, Download, Eye, Plus, Upload, X } from 'lucide-react';
-import type { DayOfWeek } from '@/api/mock/data';
+import type { DayOfWeek } from '@/api/adminApi';
 
 const ALL_DAYS: DayOfWeek[] = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -107,6 +107,8 @@ export default function TeacherForm() {
       availableDays: (teacher.availableDays || []) as DayOfWeek[],
       availableHours: (teacher.availableHours || {}) as Partial<Record<DayOfWeek, HourEntry>>,
     });
+    // Reset CV preview state — intentional single setState call inside effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCvPreviewOpen(false);
   }, [isEditMode, id, teachers, setFormState]);
 

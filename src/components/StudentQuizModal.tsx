@@ -50,7 +50,7 @@ export default function StudentQuizModal({
   onClose: () => void;
   quizId: string;
   quizTitle: string;
-  onComplete?: (score: number, correctCount: number, total: number) => void;
+  onComplete?: (_score: number, _correctCount: number, _total: number) => void;
 }) {
   const { t } = useTranslation();
   const [phase, setPhase] = useState<Phase>('taking');
@@ -58,9 +58,13 @@ export default function StudentQuizModal({
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [timeLeft, setTimeLeft] = useState(DEFAULT_TIME_SECONDS);
 
-  // Reset state every time dialog is opened
+  // Reset state every time dialog is opened.
+  // React 18 automatic batching ensures all three calls produce a single render.
+  // The phase guard in both the countdown and auto-submit effects prevents
+  // any spurious calls between this reset and the next render cycle.
   useEffect(() => {
     if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPhase('taking');
       setAnswers({});
       setTimeLeft(DEFAULT_TIME_SECONDS);
@@ -85,12 +89,23 @@ export default function StudentQuizModal({
     onComplete?.(pctScore, correct, total);
   }, [questions, answers, onComplete]);
 
-  // ── Countdown timer (only active while taking) ───────────────────
+  // ── Countdown timer (interval-based; does not depend on timeLeft) ─
   useEffect(() => {
     if (!open || phase !== 'taking' || isLoading) return;
-    if (timeLeft <= 0) { submit(); return; }
-    const id = window.setTimeout(() => setTimeLeft((t) => t - 1), 1000);
-    return () => clearTimeout(id);
+    const id = window.setInterval(() => {
+      setTimeLeft((prev) => Math.max(0, prev - 1));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [open, phase, isLoading]);
+
+  // ── Auto-submit when the timer reaches zero ───────────────────────
+  // Fires at most once per session: after submit(), phase becomes 'result',
+  // making `phase === 'taking'` permanently false — no re-trigger is possible.
+  useEffect(() => {
+    if (open && phase === 'taking' && !isLoading && timeLeft === 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      submit();
+    }
   }, [open, phase, timeLeft, isLoading, submit]);
 
   // ── Score calculation ────────────────────────────────────────────
