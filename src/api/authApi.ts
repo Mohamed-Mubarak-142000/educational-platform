@@ -6,10 +6,15 @@ export type AuthUser = {
   email?: string;
   role?: string;
   stageId?: string;
+  gradeId?: string;
   stageIds?: string[];
   subjectIds?: string[];
   phone?: string;
   avatarUrl?: string;
+  profileImage?: string;
+  bio?: string;
+  availableDays?: string[];
+  availableHours?: Record<string, { start?: string; end?: string }>;
   mustChangePassword?: boolean;
 };
 
@@ -62,7 +67,16 @@ export type ChangePasswordPayload = {
 export type UpdateProfilePayload = {
   name?: string;
   phone?: string;
+  stageId?: string;
   avatarUrl?: string;
+  profileImage?: string;
+  bio?: string;
+  availableDays?: string[];
+  availableHours?: Record<string, { start?: string; end?: string }>;
+  stageIds?: string[];
+  subjectIds?: string[];
+  /** If provided, upload this file as the profile avatar */
+  avatarFile?: File;
 };
 
 export type CreateTeacherPayload = Record<string, string | number | boolean | undefined>;
@@ -118,6 +132,26 @@ export const getProfile = async (): Promise<AuthUser> => {
 };
 
 export const updateProfile = async (data: UpdateProfilePayload): Promise<AuthUser> => {
-  const response = await api.put<AuthUser>('/users/profile', data);
+  const { avatarFile, ...rest } = data;
+
+  // If a file is supplied build multipart/form-data; otherwise keep JSON
+  if (avatarFile) {
+    const form = new FormData();
+    form.append('avatar', avatarFile);
+    if (rest.name !== undefined) form.append('name', rest.name ?? '');
+    if (rest.phone !== undefined) form.append('phone', rest.phone ?? '');
+    if (rest.stageId !== undefined) form.append('stageId', rest.stageId ?? '');
+    if (rest.bio !== undefined) form.append('bio', rest.bio ?? '');
+    if (rest.availableDays !== undefined) form.append('availableDays', JSON.stringify(rest.availableDays));
+    if (rest.availableHours !== undefined) form.append('availableHours', JSON.stringify(rest.availableHours));
+    if (rest.stageIds !== undefined) form.append('stageIds', JSON.stringify(rest.stageIds));
+    if (rest.subjectIds !== undefined) form.append('subjectIds', JSON.stringify(rest.subjectIds));
+    const response = await api.put<AuthUser>('/users/profile', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  }
+
+  const response = await api.put<AuthUser>('/users/profile', rest);
   return response.data;
 };

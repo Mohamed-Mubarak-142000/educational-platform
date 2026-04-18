@@ -93,102 +93,74 @@ export const canEditSubject = (
 
 /**
  * Can create units within a subject/grade
- * Admin: yes
- * Teacher: only in assigned subject/grade
+ * Teacher ONLY — Admin is blocked by teacherOnly backend middleware
  */
 export const canCreateUnits = (
   user: AuthUser | null,
   _subjectId?: string,
   _gradeId?: string
 ): boolean => {
-  if (isAdmin(user)) return true;
-  
-  if (isTeacher(user)) {
-    // Teachers can create units in their assigned subjects
-    // Backend will enforce the actual permission check
-    return true;
-  }
-  
-  return false;
+  // Admin explicitly cannot create units (backend: teacherOnly)
+  return isTeacher(user);
 };
 
 /**
  * Can edit unit
- * Admin: all units
- * Teacher: only units they created
+ * Teacher ONLY — and only units they created
+ * Admin is blocked by teacherOnly backend middleware
  */
 export const canEditUnit = (
   user: AuthUser | null,
   unitCreatedBy?: string
 ): boolean => {
   if (!user) return false;
-  
-  if (isAdmin(user)) return true;
-  
   if (isTeacher(user) && unitCreatedBy) {
     return user._id === unitCreatedBy;
   }
-  
   return false;
 };
 
 /**
  * Can create lessons within a unit
- * Admin: yes
- * Teacher: only in units within their assigned subjects
+ * Teacher ONLY — Admin is blocked by teacherOnly backend middleware
  */
 export const canCreateLessons = (
   user: AuthUser | null,
   _unitCreatedBy?: string
 ): boolean => {
-  if (isAdmin(user)) return true;
-  
-  if (isTeacher(user)) {
-    // Teachers can create lessons in their scope
-    // Backend enforces the real check
-    return true;
-  }
-  
-  return false;
+  // Admin explicitly cannot create lessons (backend: teacherOnly)
+  return isTeacher(user);
 };
 
 /**
  * Can edit lesson
- * Admin: all lessons
- * Teacher: only lessons they created
+ * Teacher ONLY — and only lessons they created
+ * Admin is blocked by teacherOnly backend middleware
  */
 export const canEditLesson = (
   user: AuthUser | null,
   lessonTeacherId?: string
 ): boolean => {
   if (!user) return false;
-  
-  if (isAdmin(user)) return true;
-  
   if (isTeacher(user) && lessonTeacherId) {
     return user._id === lessonTeacherId;
   }
-  
   return false;
 };
 
 /**
- * Can delete resource (subject, unit, lesson)
- * Admin: yes (all)
- * Teacher: only their own content
+ * Can delete resource
+ * Admin: yes for subjects (their domain)
+ * Teacher: only their own units/lessons
  */
 export const canDelete = (
   user: AuthUser | null,
   createdBy?: string
 ): boolean => {
   if (!user) return false;
-  
-  if (isAdmin(user)) return true;
-  
   if (isTeacher(user) && createdBy) {
     return user._id === createdBy;
   }
-  
   return false;
 };
 
@@ -216,19 +188,6 @@ export const canViewStudents = (user: AuthUser | null): boolean => {
  */
 export const canManageTeacherAssignments = (user: AuthUser | null): boolean => {
   return isAdmin(user);
-};
-
-/**
- * Can manage subscriptions
- * Admin: yes
- * Teacher: can view students' subscriptions in their subjects
- */
-export const canManageSubscriptions = (user: AuthUser | null): boolean => {
-  return isAdmin(user);
-};
-
-export const canViewSubscriptions = (user: AuthUser | null): boolean => {
-  return isAdminOrTeacher(user);
 };
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -272,27 +231,21 @@ export const getAllowedActions = (
       break;
 
     case 'unit':
-      if (isAdmin(user)) {
-        actions.create = true;
-        actions.edit = true;
-        actions.delete = true;
-      } else if (isTeacher(user)) {
+      if (isTeacher(user)) {
         actions.create = true;
         actions.edit = createdBy === user._id;
         actions.delete = createdBy === user._id;
       }
+      // Admin: no unit write access (teacherOnly backend)
       break;
 
     case 'lesson':
-      if (isAdmin(user)) {
-        actions.create = true;
-        actions.edit = true;
-        actions.delete = true;
-      } else if (isTeacher(user)) {
+      if (isTeacher(user)) {
         actions.create = true;
         actions.edit = createdBy === user._id;
         actions.delete = createdBy === user._id;
       }
+      // Admin: no lesson write access (teacherOnly backend)
       break;
   }
 

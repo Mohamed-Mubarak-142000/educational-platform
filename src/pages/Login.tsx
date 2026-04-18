@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/PasswordInput';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SiteNavbar } from '@/components/ui/SiteNavbar';
 import { SiteFooter } from '@/components/ui/SiteFooter';
@@ -115,10 +116,9 @@ export default function Login() {
                     {errors.email && <span className="text-red-500 text-xs mt-1 block">{errors.email.message as string}</span>}
                   </div>
                   <div>
-                    <Input
+                    <PasswordInput
                       {...register('password')}
                       placeholder={t('password')}
-                      type="password"
                       className={`w-full ${errors.password ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                     />
                     {errors.password && <span className="text-red-500 text-xs mt-1 block">{errors.password.message as string}</span>}

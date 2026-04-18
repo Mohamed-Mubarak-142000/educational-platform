@@ -15,7 +15,6 @@ const Landing = lazy(() => import('./pages/Landing'));
 const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
 const CourseView = lazy(() => import('./pages/CourseView'));
-const Curriculums = lazy(() => import('./pages/Curriculums'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const ChangePassword = lazy(() => import('./pages/ChangePassword'));
@@ -43,30 +42,29 @@ const TeacherOverview = lazy(() => import('./pages/TeacherOverview'));
 const CourseLessonForm = lazy(() => import('./pages/CourseLessonForm'));
 const TeacherStudents = lazy(() => import('./pages/TeacherStudents'));
 const TeacherExams = lazy(() => import('./pages/TeacherExams'));
-const TeacherSettings = lazy(() => import('./pages/TeacherSettings'));
+const TeacherProfileEdit = lazy(() => import('./pages/TeacherProfileEdit'));
 const TeacherStages = lazy(() => import('./pages/TeacherStages'));
 const TeacherSubjects = lazy(() => import('./pages/TeacherSubjects'));
 const TeacherSubjectDetail = lazy(() => import('./pages/TeacherSubjectDetail'));
 const TeacherLessonForm = lazy(() => import('./pages/TeacherLessonForm'));
 const StudentOverview = lazy(() => import('./pages/StudentOverview'));
-const StudentSubscriptions = lazy(() => import('./pages/StudentSubscriptions'));
 const StudentPaymentsRecord = lazy(() => import('./pages/StudentPaymentsRecord'));
 const StudentCourses = lazy(() => import('./pages/StudentCourses'));
 const StudentLearn = lazy(() => import('./pages/StudentLearn'));
 const StudentSubjectDetail = lazy(() => import('./pages/StudentSubjectDetail'));
 const StudentSchedule = lazy(() => import('./pages/StudentSchedule'));
-const StudentGrades = lazy(() => import('./pages/StudentGrades'));
-const StudentTeachers = lazy(() => import('./pages/StudentTeachers'));
-const StudentTeacherProfile = lazy(() => import('./pages/StudentTeacherProfile'));
 
 const AdminGrades = lazy(() => import('./pages/AdminGrades'));
 const AdminPlatformConfig = lazy(() => import('./pages/AdminPlatformConfig'));
 const AdminGradeSubjects = lazy(() => import('./pages/AdminGradeSubjects'));
 const StudentLearnBrowser = lazy(() => import('./pages/StudentLearnBrowser'));
+const StudentSubjectTeachers = lazy(() => import('./pages/StudentSubjectTeachers'));
+const StudentQuizHistory = lazy(() => import('./pages/StudentQuizHistory'));
 const PublicStageSubjects = lazy(() => import('./pages/PublicStageSubjects'));
 const PublicSubjectTeachers = lazy(() => import('./pages/PublicSubjectTeachers'));
 const PublicAllStages = lazy(() => import('./pages/PublicAllStages'));
 const PublicGradeSubjects = lazy(() => import('./pages/PublicGradeSubjects'));
+const Unauthorized = lazy(() => import('./pages/Unauthorized'));
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -102,12 +100,13 @@ function App() {
       <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route path="/" element={<Landing />} />
-        <Route path="/curriculums" element={<Curriculums />} />
+        <Route path="/curriculums" element={<Navigate to="/stages" replace />} />
         <Route path="/login" element={!user ? <Login /> : <Navigate to={roleHome(normalizedRole)} />} />
         <Route path="/register" element={!user ? <Register /> : <Navigate to={roleHome(normalizedRole)} />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/unauthorized" element={<Unauthorized />} />
         <Route path="/change-password" element={
           <RequireAuth>
             <ChangePassword />
@@ -308,7 +307,7 @@ function App() {
           </RequireAuth>
         } />
         <Route path="/teacher" element={
-          <RequireAuth allowedRoles={['Teacher', 'Admin']}>
+          <RequireAuth allowedRoles={['Teacher']}>
             <Layout>
               <DashboardLayout>
                 <TeacherOverview />
@@ -317,7 +316,7 @@ function App() {
           </RequireAuth>
         } />
         <Route path="/teacher/students" element={
-          <RequireAuth allowedRoles={['Teacher', 'Admin']}>
+          <RequireAuth allowedRoles={['Teacher']}>
             <Layout>
               <DashboardLayout>
                 <TeacherStudents />
@@ -326,7 +325,7 @@ function App() {
           </RequireAuth>
         } />
         <Route path="/teacher/exams" element={
-          <RequireAuth allowedRoles={['Teacher', 'Admin']}>
+          <RequireAuth allowedRoles={['Teacher']}>
             <Layout>
               <DashboardLayout>
                 <TeacherExams />
@@ -334,17 +333,17 @@ function App() {
             </Layout>
           </RequireAuth>
         } />
-        <Route path="/teacher/settings" element={
-          <RequireAuth allowedRoles={['Teacher', 'Admin']}>
+        <Route path="/teacher/profile/edit" element={
+          <RequireAuth allowedRoles={['Teacher']}>
             <Layout>
               <DashboardLayout>
-                <TeacherSettings />
+                <TeacherProfileEdit />
               </DashboardLayout>
             </Layout>
           </RequireAuth>
         } />
         <Route path="/teacher/subjects" element={
-          <RequireAuth allowedRoles={['Teacher', 'Admin']}>
+          <RequireAuth allowedRoles={['Teacher']}>
             <Layout>
               <DashboardLayout>
                 <TeacherStages />
@@ -353,7 +352,7 @@ function App() {
           </RequireAuth>
         } />
         <Route path="/teacher/stages/:stageId/subjects" element={
-          <RequireAuth allowedRoles={['Teacher', 'Admin']}>
+          <RequireAuth allowedRoles={['Teacher']}>
             <Layout>
               <DashboardLayout>
                 <TeacherSubjects />
@@ -362,7 +361,7 @@ function App() {
           </RequireAuth>
         } />
         <Route path="/teacher/subjects/:id" element={
-          <RequireAuth allowedRoles={['Teacher', 'Admin']}>
+          <RequireAuth allowedRoles={['Teacher']}>
             <Layout>
               <DashboardLayout>
                 <TeacherSubjectDetail />
@@ -371,7 +370,7 @@ function App() {
           </RequireAuth>
         } />
         <Route path="/teacher/subjects/:subjectId/units/:unitId/lessons/new" element={
-          <RequireAuth allowedRoles={['Teacher', 'Admin']}>
+          <RequireAuth allowedRoles={['Teacher']}>
             <Layout>
               <DashboardLayout>
                 <TeacherLessonForm />
@@ -380,7 +379,7 @@ function App() {
           </RequireAuth>
         } />
         <Route path="/teacher/subjects/:subjectId/units/:unitId/lessons/:lessonId/edit" element={
-          <RequireAuth allowedRoles={['Teacher', 'Admin']}>
+          <RequireAuth allowedRoles={['Teacher']}>
             <Layout>
               <DashboardLayout>
                 <TeacherLessonForm />
@@ -389,7 +388,7 @@ function App() {
           </RequireAuth>
         } />
         <Route path="/student" element={
-          <RequireAuth allowedRoles={['Student', 'Admin']}>
+          <RequireAuth allowedRoles={['Student']}>
             <Layout>
               <DashboardLayout>
                 <StudentOverview />
@@ -397,17 +396,8 @@ function App() {
             </Layout>
           </RequireAuth>
         } />
-        <Route path="/student/subscriptions" element={
-          <RequireAuth allowedRoles={['Student', 'Admin']}>
-            <Layout>
-              <DashboardLayout>
-                <StudentSubscriptions />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
         <Route path="/student/payments-record" element={
-          <RequireAuth allowedRoles={['Student', 'Admin']}>
+          <RequireAuth allowedRoles={['Student']}>
             <Layout>
               <DashboardLayout>
                 <StudentPaymentsRecord />
@@ -416,7 +406,7 @@ function App() {
           </RequireAuth>
         } />
         <Route path="/student/courses" element={
-          <RequireAuth allowedRoles={['Student', 'Admin']}>
+          <RequireAuth allowedRoles={['Student']}>
             <Layout>
               <DashboardLayout>
                 <StudentCourses />
@@ -425,7 +415,7 @@ function App() {
           </RequireAuth>
         } />
         <Route path="/student/learn" element={
-          <RequireAuth allowedRoles={['Student', 'Admin']}>
+          <RequireAuth allowedRoles={['Student']}>
             <Layout>
               <DashboardLayout>
                 <StudentLearn />
@@ -433,26 +423,28 @@ function App() {
             </Layout>
           </RequireAuth>
         } />
-        <Route path="/student/teachers" element={
-          <RequireAuth allowedRoles={['Student', 'Admin']}>
+        <Route path="/student/subjects/:subjectId" element={
+          <RequireAuth allowedRoles={['Student']}>
             <Layout>
               <DashboardLayout>
-                <StudentTeachers />
+                <StudentSubjectTeachers />
               </DashboardLayout>
             </Layout>
           </RequireAuth>
         } />
-        <Route path="/student/teachers/:id" element={
-          <RequireAuth allowedRoles={['Student', 'Admin']}>
+        {/* Teacher selection for a subject */}
+        <Route path="/student/subjects/:subjectId/teachers" element={
+          <RequireAuth allowedRoles={['Student']}>
             <Layout>
               <DashboardLayout>
-                <StudentTeacherProfile />
+                <StudentSubjectTeachers />
               </DashboardLayout>
             </Layout>
           </RequireAuth>
         } />
-        <Route path="/student/subjects/:id" element={
-          <RequireAuth allowedRoles={['Student', 'Admin']}>
+        {/* Teacher-scoped subject course view */}
+        <Route path="/student/subjects/:subjectId/teachers/:teacherId" element={
+          <RequireAuth allowedRoles={['Student']}>
             <Layout>
               <DashboardLayout>
                 <StudentSubjectDetail />
@@ -460,20 +452,20 @@ function App() {
             </Layout>
           </RequireAuth>
         } />
-        <Route path="/student/schedule" element={
-          <RequireAuth allowedRoles={['Student', 'Admin']}>
+        <Route path="/student/quiz-history" element={
+          <RequireAuth allowedRoles={['Student']}>
             <Layout>
               <DashboardLayout>
-                <StudentSchedule />
+                <StudentQuizHistory />
               </DashboardLayout>
             </Layout>
           </RequireAuth>
         } />
-        <Route path="/student/grades" element={
-          <RequireAuth allowedRoles={['Student', 'Admin']}>
+        <Route path="/student/schedule" element={
+          <RequireAuth allowedRoles={['Student']}>
             <Layout>
               <DashboardLayout>
-                <StudentGrades />
+                <StudentSchedule />
               </DashboardLayout>
             </Layout>
           </RequireAuth>
@@ -502,7 +494,7 @@ function App() {
           </RequireAuth>
         } />
         <Route path="/admin/subjects/:subjectId/units/:unitId/lessons/new" element={
-          <RequireAuth allowedRoles={['Admin']}>
+          <RequireAuth allowedRoles={['Teacher']}>
             <Layout>
               <DashboardLayout>
                 <AdminLessonForm />
@@ -511,7 +503,7 @@ function App() {
           </RequireAuth>
         } />
         <Route path="/admin/subjects/:subjectId/units/:unitId/lessons/:lessonId/edit" element={
-          <RequireAuth allowedRoles={['Admin']}>
+          <RequireAuth allowedRoles={['Teacher']}>
             <Layout>
               <DashboardLayout>
                 <AdminLessonForm />

@@ -20,11 +20,11 @@ type DayName = (typeof DAY_ORDER)[number];
 
 type StudentScheduleItem = TeacherSchedule & { day: DayName };
 
-function timeLabel(t: string) {
+function timeLabel(t: string, locale: string) {
   const [h, m] = t.split(':').map(Number);
-  const ampm = h >= 12 ? 'PM' : 'AM';
-  const hour = h % 12 || 12;
-  return `${hour}:${m.toString().padStart(2, '0')} ${ampm}`;
+  const date = new Date();
+  date.setHours(h, m, 0, 0);
+  return new Intl.DateTimeFormat(locale, { hour: 'numeric', minute: '2-digit' }).format(date);
 }
 
 function dayColor(day: DayName) {
@@ -45,16 +45,19 @@ function isDayName(day: string): day is DayName {
 }
 
 export default function StudentSchedule() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
+  const locale = i18n.language === 'ar' ? 'ar-EG' : 'en-US';
 
-  const { data: schedule = [], isLoading } = useQuery<TeacherSchedule[]>({
+  const { data: schedule, isLoading } = useQuery<TeacherSchedule[]>({
     queryKey: ['student-schedule', user?._id],
     queryFn: () => getStudentSchedules(user!._id),
     enabled: !!user?._id,
   });
+  const resolvedSchedule = schedule ?? [];
+  const showSkeleton = isLoading || schedule === undefined;
 
-  const normalized: StudentScheduleItem[] = schedule.filter(
+  const normalized: StudentScheduleItem[] = resolvedSchedule.filter(
     (item): item is StudentScheduleItem => isDayName(item.day)
   );
 
@@ -77,13 +80,32 @@ export default function StudentSchedule() {
         </h1>
         <p className="text-sm text-slate-500 dark:text-slate-400">
           {t('weeklyTimetableDesc')}{' '}
-          {totalSessions > 0 ? t('sessionsEnrolledCount', { count: totalSessions }) : t('noLiveSessionsTitle') + '.'}
+          {totalSessions > 0 ? t('sessionsEnrolledCount', { count: totalSessions }) : t('noLiveSessionsTitle')}
         </p>
       </div>
 
-      {isLoading ? (
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => <div key={i} className="h-28 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+      {showSkeleton ? (
+        <div className="space-y-6">
+          {[1, 2].map((dayIdx) => (
+            <div key={dayIdx}>
+              <div className="h-3 w-24 rounded bg-slate-200 dark:bg-slate-800 mb-3 animate-pulse" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="rounded-2xl border p-5 shadow-sm border-slate-200 dark:border-slate-800 animate-pulse">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="h-3 w-28 rounded bg-slate-200 dark:bg-slate-800" />
+                      <div className="h-4 w-10 rounded-full bg-slate-200 dark:bg-slate-800" />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="h-3 w-32 rounded bg-slate-200 dark:bg-slate-800" />
+                      <div className="h-3 w-24 rounded bg-slate-200 dark:bg-slate-800" />
+                      <div className="h-3 w-28 rounded bg-slate-200 dark:bg-slate-800" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       ) : totalSessions === 0 ? (
         <Card className="border border-slate-200 dark:border-slate-800">
@@ -114,7 +136,7 @@ export default function StudentSchedule() {
                     <div className="flex items-center justify-between mb-3">
                       <span className="flex items-center gap-1.5 text-sm font-semibold">
                         <Clock className="w-4 h-4" />
-                        {timeLabel(session.startTime)} – {timeLabel(session.endTime)}
+                        {timeLabel(session.startTime, locale)} – {timeLabel(session.endTime, locale)}
                       </span>
                       <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-white/60 dark:bg-black/20">
                         {t('live')}
@@ -162,7 +184,7 @@ export default function StudentSchedule() {
                         ? 'bg-blue-600 text-white border-blue-600'
                         : 'bg-slate-100 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700'
                     }`}>
-                      {hasSessions ? dayCount : '·'}
+                      {hasSessions ? dayCount : t('notAvailableShort')}
                     </div>
                   </div>
                 );

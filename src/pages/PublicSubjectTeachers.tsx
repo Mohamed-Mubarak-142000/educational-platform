@@ -96,11 +96,15 @@ export default function PublicSubjectTeachers() {
   }, []);
 
   // When user clicks a teacher card, require login if not authenticated
-  const handleViewProfile = (teacherId: string) => {
+  const handleViewProfile = (assignment: TeacherAssignment) => {
+    const teacherId = typeof assignment.teacherId === 'object' ? assignment.teacherId._id : assignment.teacherId;
+    if (!teacherId || !subjectId) return;
+
+    const target = `/student/subjects/${subjectId}/teachers/${teacherId}`;
     if (user) {
-      navigate(`/student/teachers/${teacherId}`);
+      navigate(target, { state: { assignmentId: assignment._id, stageId } });
     } else {
-      navigate(`/login?redirect=/student/teachers/${teacherId}`);
+      navigate(`/login?redirect=${encodeURIComponent(target)}`);
     }
   };
 
@@ -288,7 +292,7 @@ export default function PublicSubjectTeachers() {
                         {/* Action */}
                         <Button
                           className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm"
-                          onClick={() => handleViewProfile(teacher._id)}
+                          onClick={() => handleViewProfile(assignment)}
                         >
                           <User className="w-3.5 h-3.5 me-2" />
                           {user ? t('viewTeacherProfile') : t('loginToViewProfile')}

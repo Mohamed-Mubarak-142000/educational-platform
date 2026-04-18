@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/context/AuthContext';
-import { getStages, getSubjectsByStage, getUnitsBySubject, getEnrolledUnitIds, type Stage, type Subject, type Unit } from '@/api/subjectApi';
+import { getUnitsBySubject, getEnrolledUnitIds, getStages, getSubjectsByStage, type Unit, type Subject, type Stage } from '@/api/subjectApi';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,17 +48,34 @@ const PALETTE: Record<string, { bg: string; text: string; border: string; hex: s
 };
 function palette(c: string) { return PALETTE[c] ?? PALETTE.blue; }
 
+function SubjectCardSkeleton() {
+  return (
+    <div className="w-full flex items-center gap-4 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 animate-pulse">
+      <div className="w-14 h-14 rounded-full bg-slate-200 dark:bg-slate-800 flex-shrink-0" />
+      <div className="flex-1 min-w-0 space-y-2">
+        <div className="h-4 w-40 rounded bg-slate-200 dark:bg-slate-800" />
+        <div className="h-3 w-56 rounded bg-slate-200 dark:bg-slate-800" />
+        <div className="h-2 w-full rounded bg-slate-200 dark:bg-slate-800" />
+      </div>
+      <div className="w-4 h-4 rounded bg-slate-200 dark:bg-slate-800" />
+    </div>
+  );
+}
+
 // ── Subject progress card with mini doughnut ─────────────────────
 
 function SubjectCard({ subject, enrolledUnitIds, navigate }: { subject: Subject; enrolledUnitIds: string[]; navigate: ReturnType<typeof useNavigate> }) {
-  const { i18n } = useTranslation();
-  const { data: units = [] } = useQuery<Unit[]>({
+  const { i18n, t } = useTranslation();
+  const { data: units, isLoading } = useQuery<Unit[]>({
     queryKey: ['units', subject._id],
     queryFn: () => getUnitsBySubject(subject._id),
   });
 
-  const total = units.length;
-  const enrolled = units.filter((unit: Unit) => enrolledUnitIds.includes(unit._id)).length;
+  const resolvedUnits = units ?? [];
+  const showSkeleton = isLoading || units === undefined;
+
+  const total = resolvedUnits.length;
+  const enrolled = resolvedUnits.filter((unit: Unit) => enrolledUnitIds.includes(unit._id)).length;
   const pct = total > 0 ? Math.round((enrolled / total) * 100) : 0;
   const pal = palette(subject.color ?? 'blue');
 
@@ -81,8 +98,14 @@ function SubjectCard({ subject, enrolledUnitIds, navigate }: { subject: Subject;
     >
       {/* Mini doughnut */}
       <div className="relative w-14 h-14 flex-shrink-0">
-        <Doughnut data={donutData} options={{ plugins: { tooltip: { enabled: false }, legend: { display: false } }, animation: false, responsive: true, maintainAspectRatio: true }} />
-        <span className={`absolute inset-0 flex items-center justify-center text-xs font-bold ${pal.text}`}>{pct}%</span>
+        {showSkeleton ? (
+          <div className="w-14 h-14 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
+        ) : (
+          <>
+            <Doughnut data={donutData} options={{ plugins: { tooltip: { enabled: false }, legend: { display: false } }, animation: false, responsive: true, maintainAspectRatio: true }} />
+            <span className={`absolute inset-0 flex items-center justify-center text-xs font-bold ${pal.text}`}>{pct}%</span>
+          </>
+        )}
       </div>
 
       <div className="flex-1 min-w-0">
@@ -95,7 +118,11 @@ function SubjectCard({ subject, enrolledUnitIds, navigate }: { subject: Subject;
           <div className="flex-1 h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
             <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: pal.hex }} />
           </div>
-          <span className="text-xs text-slate-400 whitespace-nowrap flex-shrink-0">{enrolled}/{total} units</span>
+          {showSkeleton ? (
+            <span className="h-3 w-16 rounded bg-slate-200 dark:bg-slate-700 animate-pulse" />
+          ) : (
+            <span className="text-xs text-slate-400 whitespace-nowrap flex-shrink-0">{enrolled}/{total} {t('unitPlural')}</span>
+          )}
         </div>
       </div>
 
@@ -109,38 +136,46 @@ export default function StudentOverview() {
   const { user, updateProfileMutation, refreshProfile } = useAuth();
   const { t, i18n } = useTranslation();
 
-  // ── Profile form (name + phone only; stage is read-only) ────────
+  // ── Profile form (name, phone, stage) ──────────────────────────
   const [name, setName] = useState(user?.name || '');
   const [phone, setPhone] = useState(user?.phone || '');
+  const [stageId, setStageId] = useState(user?.stageId || '');
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     if (user) {
       setName(user.name || '');
       setPhone(user.phone || '');
+      setStageId(user.stageId || '');
     }
   }, [user]);
 
-  const { data: stages = [] } = useQuery<Stage[]>({ queryKey: ['stages'], queryFn: getStages });
+  const { data: stages, isLoading: stagesLoading } = useQuery<Stage[]>({
+    queryKey: ['stages'],
+    queryFn: getStages,
+  });
 
-  const stageId = user?.stageId || '';
-  const currentStage = stages.find((stage) => stage._id === stageId);
-
-  const { data: subjects = [] } = useQuery<Subject[]>({
-    queryKey: ['subjects-by-stage', stageId],
+  const { data: subjects, isLoading: subjectsLoading } = useQuery<Subject[]>({
+    queryKey: ['stage-subjects', stageId],
     queryFn: () => getSubjectsByStage(stageId),
     enabled: !!stageId,
   });
 
-  const { data: enrolledUnitIds = [] } = useQuery<string[]>({
+  const { data: enrolledUnitIds, isLoading: enrolledUnitsLoading } = useQuery<string[]>({
     queryKey: ['enrolled-units', user?._id],
     queryFn: () => getEnrolledUnitIds(user!._id),
     enabled: !!user?._id,
   });
 
+  const resolvedStages = stages ?? [];
+  const resolvedSubjects = subjects ?? [];
+  const resolvedEnrolledUnitIds = enrolledUnitIds ?? [];
+  const showSubjectsSkeleton = !!stageId && (subjectsLoading || subjects === undefined);
+  const showHeaderSkeleton = stagesLoading || subjectsLoading || enrolledUnitsLoading;
+
   const handleSave = () => {
     updateProfileMutation.mutate(
-      { name: name.trim(), phone: phone.trim() },
+      { name: name.trim(), phone: phone.trim(), stageId: stageId || undefined },
       {
         onSuccess: () => {
           refreshProfile();
@@ -151,16 +186,21 @@ export default function StudentOverview() {
     );
   };
 
-  const isDirty = name !== (user?.name || '') || phone !== (user?.phone || '');
+  const isDirty =
+    name !== (user?.name || '') ||
+    phone !== (user?.phone || '') ||
+    stageId !== (user?.stageId || '');
+
+  const selectedStage = resolvedStages.find((stage) => stage._id === stageId);
 
   // ── Stats for bar chart ─────────────────────────────────────────
   const barData = {
-    labels: subjects.map((subject: Subject) => getLocalizedName(subject, i18n.language)),
+    labels: resolvedSubjects.map((subject: Subject) => getLocalizedName(subject, i18n.language)),
     datasets: [
       {
-        label: 'Enrolled Units',
-        data: subjects.map(() => 0), // placeholder; SubjectCards compute this individually
-        backgroundColor: subjects.map((subject: Subject) => palette(subject.color ?? 'blue').hex),
+        label: t('enrolledUnitsLabel'),
+        data: resolvedSubjects.map(() => 0), // placeholder; SubjectCards compute this individually
+        backgroundColor: resolvedSubjects.map((subject: Subject) => palette(subject.color ?? 'blue').hex),
         borderRadius: 6,
         borderSkipped: false,
       },
@@ -183,21 +223,21 @@ export default function StudentOverview() {
         {/* ── Header banner ── */}
         <div className="rounded-2xl bg-gradient-to-r from-blue-600 to-blue-800 dark:from-blue-700 dark:to-blue-900 p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 shadow-lg">
           <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
-            <span className="text-3xl">{currentStage?.icon || '🎓'}</span>
+            <span className="text-3xl">🎓</span>
           </div>
           <div className="flex-1 min-w-0">
             <h1 className="text-xl font-bold text-white truncate">{t('welcomeBack')}, {user?.name?.split(' ')[0] || t('studentLabel')}</h1>
             <p className="text-blue-100 text-sm mt-0.5">
-              {currentStage ? `${getLocalizedName(currentStage, i18n.language)} · ${subjects.length} ${t('subjectsCount')}` : t('noStageAssigned')}
+              {selectedStage ? `${getLocalizedName(selectedStage, i18n.language)} · ${resolvedSubjects.length} ${t('subjectsCount')}` : t('noStageAssigned')}
             </p>
           </div>
           <div className="flex gap-3 flex-shrink-0">
             <div className="text-center bg-white/15 rounded-xl px-4 py-2">
-              <p className="text-2xl font-bold text-white">{enrolledUnitIds.length}</p>
+              <p className="text-2xl font-bold text-white">{resolvedEnrolledUnitIds.length}</p>
               <p className="text-blue-100 text-xs mt-0.5">{t('enrolledUnitsCount')}</p>
             </div>
             <div className="text-center bg-white/15 rounded-xl px-4 py-2">
-              <p className="text-2xl font-bold text-white">{subjects.length}</p>
+              <p className="text-2xl font-bold text-white">{resolvedSubjects.length}</p>
               <p className="text-blue-100 text-xs mt-0.5">{t('subjectsCount')}</p>
             </div>
           </div>
@@ -235,19 +275,23 @@ export default function StudentOverview() {
                     <Input value={user?.email || ''} disabled className="h-9 text-sm opacity-60 cursor-not-allowed" />
                   </div>
 
-                  {/* Stage — read-only */}
+                  {/* Educational stage — editable */}
                   <div>
                     <Label className="text-xs text-slate-500 mb-1 block">
                       <span className="flex items-center gap-1"><Award className="w-3 h-3" />{t('educationalStageLabel')}</span>
                     </Label>
-                    <div className="flex items-center gap-2 h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-3 text-sm text-slate-700 dark:text-slate-300 cursor-not-allowed select-none">
-                      {currentStage ? (
-                        <><span>{currentStage.icon}</span><span>{getLocalizedName(currentStage, i18n.language)}</span></>
-                      ) : (
-                        <span className="text-slate-400 italic">{t('notAssigned')}</span>
-                      )}
-                      <span className="ml-auto text-xs text-slate-400">{t('readOnly')}</span>
-                    </div>
+                    <select
+                      value={stageId}
+                      onChange={(e) => setStageId(e.target.value)}
+                      className="h-9 w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 text-sm"
+                    >
+                      <option value="">{t('selectStagePlaceholder')}</option>
+                      {stages.map((stage) => (
+                        <option key={stage._id} value={stage._id}>
+                          {getLocalizedName(stage, i18n.language)}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
@@ -276,18 +320,37 @@ export default function StudentOverview() {
                   <h2 className="font-bold text-slate-900 dark:text-slate-100 text-sm">{t('progressOverview')}</h2>
                 </div>
                 <div className="space-y-2.5">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5"><Layers className="w-3.5 h-3.5" />{t('enrolledUnitsLabel')}</span>
-                    <span className="font-semibold text-slate-900 dark:text-slate-100">{enrolledUnitIds.length}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5"><BookOpen className="w-3.5 h-3.5" />{t('subjectsInStage')}</span>
-                    <span className="font-semibold text-slate-900 dark:text-slate-100">{subjects.length}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5"><GraduationCap className="w-3.5 h-3.5" />{t('stageLabel')}</span>
-                    <span className="font-semibold text-slate-900 dark:text-slate-100">{currentStage ? getLocalizedName(currentStage, i18n.language) : '—'}</span>
-                  </div>
+                  {showHeaderSkeleton ? (
+                    <>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5"><Layers className="w-3.5 h-3.5" />{t('enrolledUnitsLabel')}</span>
+                        <span className="h-4 w-10 rounded bg-slate-200 dark:bg-slate-800 animate-pulse" />
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5"><BookOpen className="w-3.5 h-3.5" />{t('subjectsInStage')}</span>
+                        <span className="h-4 w-10 rounded bg-slate-200 dark:bg-slate-800 animate-pulse" />
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5"><GraduationCap className="w-3.5 h-3.5" />{t('stageLabel')}</span>
+                        <span className="h-4 w-24 rounded bg-slate-200 dark:bg-slate-800 animate-pulse" />
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5"><Layers className="w-3.5 h-3.5" />{t('enrolledUnitsLabel')}</span>
+                        <span className="font-semibold text-slate-900 dark:text-slate-100">{resolvedEnrolledUnitIds.length}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5"><BookOpen className="w-3.5 h-3.5" />{t('subjectsInStage')}</span>
+                        <span className="font-semibold text-slate-900 dark:text-slate-100">{resolvedSubjects.length}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5"><GraduationCap className="w-3.5 h-3.5" />{t('stageLabel')}</span>
+                        <span className="font-semibold text-slate-900 dark:text-slate-100">{selectedStage ? getLocalizedName(selectedStage, i18n.language) : t('notAvailableShort')}</span>
+                      </div>
+                    </>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -301,10 +364,10 @@ export default function StudentOverview() {
                 <GraduationCap className="w-5 h-5 text-blue-600" />
                 <h2 className="font-bold text-slate-900 dark:text-slate-100">
                   {t('mySubjects')}
-                  {currentStage && <span className="ms-2 text-sm font-normal text-slate-400">— {getLocalizedName(currentStage, i18n.language)}</span>}
+                  {selectedStage && <span className="ms-2 text-sm font-normal text-slate-400">— {getLocalizedName(selectedStage, i18n.language)}</span>}
                 </h2>
               </div>
-              {subjects.length > 0 && (
+              {resolvedSubjects.length > 0 && (
                 <Button variant="ghost" size="sm" onClick={() => navigate('/student/learn')} className="text-blue-600 hover:text-blue-700 text-xs h-8">
                   {t('browseAll')} <ArrowRight className="w-3.5 h-3.5 ms-1" />
                 </Button>
@@ -321,7 +384,13 @@ export default function StudentOverview() {
                   />
                 </CardContent>
               </Card>
-            ) : subjects.length === 0 ? (
+            ) : showSubjectsSkeleton ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {[1, 2, 3, 4].map((i) => (
+                  <SubjectCardSkeleton key={i} />
+                ))}
+              </div>
+            ) : resolvedSubjects.length === 0 ? (
               <Card className="border border-slate-200 dark:border-slate-800 border-dashed">
                 <CardContent className="py-8">
                   <EmptyState
@@ -344,11 +413,11 @@ export default function StudentOverview() {
 
                 {/* Subject cards grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {subjects.map((subject: Subject) => (
+                  {resolvedSubjects.map((subject: Subject) => (
                     <SubjectCard
                       key={subject._id}
                       subject={subject}
-                      enrolledUnitIds={enrolledUnitIds}
+                      enrolledUnitIds={resolvedEnrolledUnitIds}
                       navigate={navigate}
                     />
                   ))}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRBAC } from '@/hooks/useRBAC';
 import {
   getSubjectById,
   getUnitsBySubject,
@@ -31,7 +32,7 @@ import {
   type UnitAvailabilityInput,
 } from '@/api/subjectApi';
 import { Card, CardContent } from '@/components/ui/card';
-import { EmptyState } from '@/components/shared';
+import { EmptyState, AccessRestricted } from '@/components/shared';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -67,9 +68,9 @@ import { cardVariants, buttonVariants, spacing } from '@/lib/constants';
 
 // ── Types & helpers ────────────────────────────────────────────────
 
-type UnitForm = { title: string; description: string };
+type UnitForm = { title: string; description: string; price: number };
 
-const emptyUnitForm: UnitForm = { title: '', description: '' };
+const emptyUnitForm: UnitForm = { title: '', description: '', price: 0 };
 
 function AvailabilityBadge({ status }: { status?: string }) {
   const { t } = useTranslation();
@@ -94,6 +95,7 @@ function LessonRow({
   lesson,
   subjectId,
   index,
+  canEdit,
   onEditLesson,
   onDeleteLesson,
   onAddLessonQuiz,
@@ -102,6 +104,7 @@ function LessonRow({
   lesson: Lesson;
   subjectId: string;
   index: number;
+  canEdit: boolean;
   onEditLesson: (lesson: Lesson) => void;
   onDeleteLesson: (lessonId: string) => void;
   onAddLessonQuiz: (lessonId: string, lessonTitle: string) => void;
@@ -149,33 +152,37 @@ function LessonRow({
           </span>
         )}
         <div className="flex items-center gap-1 flex-shrink-0">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 w-7 p-0"
-            onClick={() => onEditLesson(lesson)}
-            title={t('editLesson')}
-          >
-            <Pencil className="w-3 h-3" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 w-7 p-0 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500"
-            onClick={() => onDeleteLesson(lesson._id)}
-            title={t('deleteLesson')}
-          >
-            <Trash2 className="w-3 h-3" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 w-7 p-0 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400"
-            onClick={() => onAddLessonQuiz(lesson._id, lesson.title)}
-            title={t('manageLessonQuiz')}
-          >
-            <ClipboardList className="w-3 h-3" />
-          </Button>
+          {canEdit && (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0"
+                onClick={() => onEditLesson(lesson)}
+                title={t('editLesson')}
+              >
+                <Pencil className="w-3 h-3" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500"
+                onClick={() => onDeleteLesson(lesson._id)}
+                title={t('deleteLesson')}
+              >
+                <Trash2 className="w-3 h-3" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                onClick={() => onAddLessonQuiz(lesson._id, lesson.title)}
+                title={t('manageLessonQuiz')}
+              >
+                <ClipboardList className="w-3 h-3" />
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -203,6 +210,7 @@ function LessonRow({
 function LessonsAccordionItem({
   unit,
   subjectId,
+  canEdit,
   onEditLesson,
   onDeleteLesson,
   onAddLesson,
@@ -215,6 +223,7 @@ function LessonsAccordionItem({
 }: {
   unit: Unit;
   subjectId: string;
+  canEdit: boolean;
   onEditLesson: (lesson: Lesson, unitId: string) => void;
   onDeleteLesson: (lessonId: string) => void;
   onAddLesson: (unitId: string) => void;
@@ -265,42 +274,46 @@ function LessonsAccordionItem({
           <AvailabilityBadge status={availability?.status} />
           {/* Unit actions — always visible, stopPropagation so accordion doesn't toggle */}
           <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 w-7 p-0"
-              onClick={() => onEditUnit(unit)}
-              title={t('editUnit')}
-            >
-              <Pencil className="w-3.5 h-3.5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 w-7 p-0 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500"
-              onClick={() => onDeleteUnit(unit._id)}
-              title={t('deleteUnit')}
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 w-7 p-0 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400"
-              onClick={() => onAddUnitQuiz(unit._id, unit.title)}
-              title={t('manageUnitQuiz')}
-            >
-              <ClipboardList className="w-3.5 h-3.5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 w-7 p-0 hover:bg-purple-50 dark:hover:bg-purple-900/20 text-purple-600 dark:text-purple-400"
-              onClick={() => onManageAvailability(unit)}
-              title={t('manageAvailability')}
-            >
-              <Settings2 className="w-3.5 h-3.5" />
-            </Button>
+            {canEdit && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 w-7 p-0"
+                  onClick={() => onEditUnit(unit)}
+                  title={t('editUnit')}
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 w-7 p-0 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500"
+                  onClick={() => onDeleteUnit(unit._id)}
+                  title={t('deleteUnit')}
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 w-7 p-0 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                  onClick={() => onAddUnitQuiz(unit._id, unit.title)}
+                  title={t('manageUnitQuiz')}
+                >
+                  <ClipboardList className="w-3.5 h-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 w-7 p-0 hover:bg-purple-50 dark:hover:bg-purple-900/20 text-purple-600 dark:text-purple-400"
+                  onClick={() => onManageAvailability(unit)}
+                  title={t('manageAvailability')}
+                >
+                  <Settings2 className="w-3.5 h-3.5" />
+                </Button>
+              </>
+            )}
           </div>
           <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
             <ChevronDown className="w-4 h-4 text-slate-500" />
@@ -338,6 +351,7 @@ function LessonsAccordionItem({
                   lesson={lesson}
                   subjectId={subjectId}
                   index={idx}
+                  canEdit={canEdit}
                   onEditLesson={(l) => onEditLesson(l, unit._id)}
                   onDeleteLesson={onDeleteLesson}
                   onAddLessonQuiz={onAddLessonQuiz}
@@ -347,14 +361,16 @@ function LessonsAccordionItem({
             </div>
           )}
           <div className="px-6 py-3 border-t border-slate-100 dark:border-slate-800/50">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 h-8 text-xs font-medium"
-              onClick={(e) => { e.stopPropagation(); onAddLesson(unit._id); }}
-            >
-              <Plus className="w-3.5 h-3.5 mr-1" /> {t('addLesson')}
-            </Button>
+            {canEdit && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 h-8 text-xs font-medium"
+                onClick={(e) => { e.stopPropagation(); onAddLesson(unit._id); }}
+              >
+                <Plus className="w-3.5 h-3.5 mr-1" /> {t('addLesson')}
+              </Button>
+            )}
           </div>
         </div>
           </motion.div>
@@ -715,8 +731,17 @@ export default function SubjectDetailPage({ basePath }: SubjectDetailPageProps) 
   const location = useLocation();
   const { id: subjectId } = useParams<{ id: string }>();
   const gradeId = location.state?.gradeId as string | undefined;
+  const assignmentId = location.state?.assignmentId as string | undefined;
   const queryClient = useQueryClient();
   const { t, i18n } = useTranslation();
+  const { canCreateUnits } = useRBAC();
+  // Only Teachers can create/edit/delete units and lessons
+  const canEdit = canCreateUnits();
+
+  // Admin and others without write access see a full-screen restriction notice
+  if (!canEdit) {
+    return <AccessRestricted />;
+  }
   const monthNames = [
     t('monthShortJan'),
     t('monthShortFeb'),
@@ -786,7 +811,7 @@ export default function SubjectDetailPage({ basePath }: SubjectDetailPageProps) 
 
   // Unit mutations
   const createUnitMutation = useMutation({
-    mutationFn: (data: UnitForm) => createUnit(subjectId!, data, gradeId),
+    mutationFn: (data: UnitForm) => createUnit(subjectId!, { ...data, assignmentId }, gradeId),
     onSuccess: () => { invalidateUnits(); setUnitFormOpen(false); setUnitForm(emptyUnitForm); },
   });
 
@@ -811,7 +836,11 @@ export default function SubjectDetailPage({ basePath }: SubjectDetailPageProps) 
 
   // Handlers
   const openAddUnit = () => { setEditUnitId(null); setUnitForm(emptyUnitForm); setUnitFormOpen(true); };
-  const openEditUnit = (unit: Unit) => { setEditUnitId(unit._id); setUnitForm({ title: unit.title, description: unit.description || '' }); setUnitFormOpen(true); };
+  const openEditUnit = (unit: Unit) => {
+    setEditUnitId(unit._id);
+    setUnitForm({ title: unit.title, description: unit.description || '', price: unit.price ?? 0 });
+    setUnitFormOpen(true);
+  };
 
   const openAddLesson = (unitId: string) => navigate(`${basePath}/${subjectId}/units/${unitId}/lessons/new`);
   const openEditLesson = (lesson: Lesson, unitId: string) => navigate(`${basePath}/${subjectId}/units/${unitId}/lessons/${lesson._id}/edit`);
@@ -870,7 +899,7 @@ export default function SubjectDetailPage({ basePath }: SubjectDetailPageProps) 
   return (
     <div className={spacing.pageContainer}>
       {/* Back + header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="sm" onClick={() => navigate(basePath)} className="flex items-center gap-1.5">
             <ArrowLeft className="w-4 h-4" /> Subjects
@@ -884,10 +913,12 @@ export default function SubjectDetailPage({ basePath }: SubjectDetailPageProps) 
             </div>
           </div>
         </div>
-        <Button onClick={openAddUnit} className={buttonVariants.primary}>
-          <Plus className="w-4 h-4 mr-2" />
-          {t('addUnit')}
-        </Button>
+        {canEdit && (
+          <Button onClick={openAddUnit} className={buttonVariants.primary}>
+            <Plus className="w-4 h-4 mr-2" />
+            {t('addUnit')}
+          </Button>
+        )}
       </div>
 
       {/* Stats bar */}
@@ -914,11 +945,11 @@ export default function SubjectDetailPage({ basePath }: SubjectDetailPageProps) 
           <CardContent className="py-16 text-center">
             <EmptyState
               description={t('noUnitsYet')}
-              action={(
+              action={canEdit ? (
                 <Button onClick={openAddUnit} className={buttonVariants.primary}>
                   <Plus className="w-4 h-4 mr-2" /> {t('addUnit')}
                 </Button>
-              )}
+              ) : undefined}
             />
           </CardContent>
         </Card>
@@ -929,6 +960,7 @@ export default function SubjectDetailPage({ basePath }: SubjectDetailPageProps) 
               key={unit._id}
               unit={unit}
               subjectId={subjectId!}
+              canEdit={canEdit}
               onEditLesson={openEditLesson}
               onDeleteLesson={setDeleteLessonId}
               onAddLesson={openAddLesson}
@@ -956,6 +988,15 @@ export default function SubjectDetailPage({ basePath }: SubjectDetailPageProps) 
                 value={unitForm.title}
                 onChange={(e) => setUnitForm((f) => ({ ...f, title: e.target.value }))}
                 placeholder={t('unitTitlePlaceholder')}
+              />
+            </div>
+            <div>
+              <Label className="text-xs text-slate-500 mb-1 block">{t('unitPriceLabel')}</Label>
+              <Input
+                type="number"
+                min={0}
+                value={unitForm.price}
+                onChange={(e) => setUnitForm((f) => ({ ...f, price: Number(e.target.value) || 0 }))}
               />
             </div>
             <div>

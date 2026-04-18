@@ -6,16 +6,14 @@
 import {
   MOCK_USERS,
   MOCK_PAYMENTS,
-  MOCK_SUBSCRIPTIONS,
   MOCK_TEACHER_APPLICATIONS,
   generateId,
   type MockUser,
   type MockPayment,
-  type MockSubscription,
-  type PaymentStatus,
   type MockTeacherApplication,
   type ApplicationStatus,
   type DayOfWeek,
+  type PaymentStatus,
 } from './data';
 
 const delay = (ms = 250) => new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -23,7 +21,6 @@ const delay = (ms = 250) => new Promise<void>((resolve) => setTimeout(resolve, m
 // Mutable in-memory stores
 const users: MockUser[] = [...MOCK_USERS];
 const payments: MockPayment[] = [...MOCK_PAYMENTS];
-const subscriptions: MockSubscription[] = [...MOCK_SUBSCRIPTIONS];
 const teacherApplications: MockTeacherApplication[] = [...MOCK_TEACHER_APPLICATIONS];
 
 type ApiError = Error & { response: { status: number; data: { message: string } } };
@@ -34,7 +31,7 @@ function makeApiError(status: number, message: string): ApiError {
   return err;
 }
 
-function getStudentIdStr(s: MockSubscription | MockPayment): string {
+function getStudentIdStr(s: MockPayment): string {
   return typeof s.studentId === 'string' ? s.studentId : s.studentId._id;
 }
 
@@ -144,19 +141,6 @@ export const approvePayment = async (id: string) => {
       reviewedBy: getCurrentUserId(),
       reviewedAt: new Date().toISOString(),
     };
-    // Activate the related subscription
-    const studentId = getStudentIdStr(payments[index]);
-    const subIndex = subscriptions.findIndex(
-      (s) => getStudentIdStr(s) === studentId
-    );
-    if (subIndex !== -1) {
-      subscriptions[subIndex] = {
-        ...subscriptions[subIndex],
-        status: 'Active',
-        plan: payments[index].plan,
-        startDate: new Date().toISOString(),
-      };
-    }
   }
   return { message: 'Payment approved successfully' };
 };
@@ -204,55 +188,6 @@ export const submitPayment = async (data: Record<string, unknown>) => {
 export const uploadPaymentProof = async (_file: File) => {
   await delay(400);
   return { url: `https://placehold.co/400x300?text=Payment+Proof+${Date.now()}` };
-};
-
-// ── Subscriptions ──────────────────────────────────────────────────
-
-export const getMySubscription = async () => {
-  await delay();
-  const studentId = getCurrentUserId();
-  return subscriptions.find((s) => getStudentIdStr(s) === studentId) ?? null;
-};
-
-export const getSubscriptions = async () => {
-  await delay();
-  return [...subscriptions];
-};
-
-export const activateSubscription = async (data: Record<string, unknown>) => {
-  await delay();
-  const studentId = (data.studentId as string) || getCurrentUserId();
-  const index = subscriptions.findIndex((s) => getStudentIdStr(s) === studentId);
-  if (index !== -1) {
-    subscriptions[index] = {
-      ...subscriptions[index],
-      status: 'Active',
-      plan: (data.plan as string) || subscriptions[index].plan,
-      startDate: new Date().toISOString(),
-    };
-    return subscriptions[index];
-  }
-  const student = users.find((u) => u._id === studentId);
-  const newSub: MockSubscription = {
-    _id: generateId('sub'),
-    studentId: student ? { _id: student._id, name: student.name } : studentId,
-    plan: (data.plan as string) || 'Monthly',
-    status: 'Active',
-    startDate: new Date().toISOString(),
-    createdAt: new Date().toISOString(),
-  };
-  subscriptions.push(newSub);
-  return newSub;
-};
-
-export const cancelSubscription = async (data: Record<string, unknown>) => {
-  await delay();
-  const studentId = (data.studentId as string) || getCurrentUserId();
-  const index = subscriptions.findIndex((s) => getStudentIdStr(s) === studentId);
-  if (index !== -1) {
-    subscriptions[index] = { ...subscriptions[index], status: 'Cancelled' };
-  }
-  return { message: 'Subscription cancelled' };
 };
 
 // ── Teacher Applications ───────────────────────────────────────────

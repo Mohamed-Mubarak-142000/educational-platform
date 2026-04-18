@@ -156,7 +156,7 @@ export function SiteNavbar({ variant = 'marketing', position = 'fixed', classNam
                         {t('login')}
                       </Button>
                     </Link>
-                    <Link to="/curriculums">
+                    <Link to="/stages">
                       <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20 hover:shadow-blue-600/40 transition-all rounded-full px-6">
                         {t('getStarted')}
                       </Button>
@@ -241,7 +241,7 @@ export function SiteNavbar({ variant = 'marketing', position = 'fixed', classNam
                           {t('login')}
                         </Button>
                       </Link>
-                      <Link to="/curriculums" onClick={() => setMenuOpen(false)}>
+                      <Link to="/stages" onClick={() => setMenuOpen(false)}>
                         <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium">
                           {t('getStarted')}
                         </Button>

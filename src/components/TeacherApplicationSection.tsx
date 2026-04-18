@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { submitTeacherApplication, uploadTeacherApplicationFile } from '@/api/adminApi';
 import { getStages, getSubjectsByStage, type Stage, type Subject } from '@/api/subjectApi';
+import { getGrades, type Grade } from '@/api/gradeApi';
 import { useTranslation } from 'react-i18next';
 import { getLocalizedName } from '@/lib/localeUtils';
 import {
@@ -38,6 +39,7 @@ interface AppForm {
   email: string;
   phone: string;
   stageId: string;
+  gradeIds: string[];
   subjectIds: string[];
   profileImageFile: File | null;
   cvFile: File | null;
@@ -50,6 +52,7 @@ const emptyForm: AppForm = {
   email: '',
   phone: '',
   stageId: '',
+  gradeIds: [],
   subjectIds: [],
   profileImageFile: null,
   cvFile: null,
@@ -73,6 +76,12 @@ export default function TeacherApplicationSection() {
   const { data: subjectsByStage = [] } = useQuery<Subject[]>({
     queryKey: ['subjects-by-stage', form.stageId],
     queryFn: () => getSubjectsByStage(form.stageId),
+    enabled: Boolean(form.stageId),
+  });
+
+  const { data: gradesByStage = [] } = useQuery<Grade[]>({
+    queryKey: ['grades', form.stageId],
+    queryFn: () => getGrades(form.stageId),
     enabled: Boolean(form.stageId),
   });
 
@@ -104,8 +113,20 @@ export default function TeacherApplicationSection() {
     });
   };
 
+  const toggleGrade = (gradeId: string) => {
+    setForm((prev) => {
+      const has = prev.gradeIds.includes(gradeId);
+      return {
+        ...prev,
+        gradeIds: has
+          ? prev.gradeIds.filter((id) => id !== gradeId)
+          : [...prev.gradeIds, gradeId],
+      };
+    });
+  };
+
   const handleStageChange = (stageId: string) => {
-    setForm((prev) => ({ ...prev, stageId, subjectIds: [] }));
+    setForm((prev) => ({ ...prev, stageId, gradeIds: [], subjectIds: [] }));
   };
 
   const toggleDay = (day: DayOfWeek) => {    setForm((prev) => {
@@ -173,6 +194,7 @@ export default function TeacherApplicationSection() {
         phone: form.phone,
         stageId: form.stageId,
         stageIds: form.stageId ? [form.stageId] : [],
+        gradeIds: form.gradeIds,
         subjectIds: form.subjectIds,
         profileImageUrl,
         cvUrl,
@@ -301,7 +323,7 @@ export default function TeacherApplicationSection() {
               </div>
             </div>
 
-            {/* Stage → Subject */}
+            {/* Stage → Grade → Subject */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
@@ -322,6 +344,37 @@ export default function TeacherApplicationSection() {
                 </select>
               </div>
               <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                  {t('gradeLabel')} <span className="text-red-500">*</span>
+                </label>
+                {!form.stageId ? (
+                  <p className="text-sm text-slate-400 dark:text-slate-500 italic py-2">{t('selectStageFirst')}</p>
+                ) : gradesByStage.length === 0 ? (
+                  <p className="text-sm text-slate-400 dark:text-slate-500 italic py-2">{t('noGradesAvailable') ?? 'No grades available'}</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {gradesByStage.map((grade: Grade) => {
+                      const checked = form.gradeIds.includes(grade._id);
+                      return (
+                        <button
+                          key={grade._id}
+                          type="button"
+                          onClick={() => toggleGrade(grade._id)}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${
+                            checked
+                              ? 'bg-blue-600 text-white border-blue-600'
+                              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:border-blue-400'
+                          }`}
+                        >
+                          {checked && <CheckCircle2 className="w-3.5 h-3.5" />}
+                          {getLocalizedName(grade, i18n.language)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+              <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                   {t('subject')} <span className="text-red-500">*</span>
                 </label>

@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getStageById, getSubjectsByStage, type Subject } from '@/api/subjectApi';
+import { getMyAssignments } from '@/api/teacherAssignmentApi';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
@@ -22,15 +23,38 @@ export default function TeacherSubjects() {
     enabled: !!stageId,
   });
 
-  const { data: allSubjects = [], isLoading } = useQuery({
+  const { data: allSubjects = [], isLoading: subjectsLoading } = useQuery({
     queryKey: ['subjects-by-stage', stageId],
     queryFn: () => getSubjectsByStage(stageId!),
     enabled: !!stageId,
   });
 
-  // Filter to only subjects assigned to the teacher
-  const assignedSubjectIds = new Set<string>(user?.subjectIds ?? []);
-  const subjects = allSubjects.filter((s: Subject) => assignedSubjectIds.has(s._id));
+  const { data: assignments = [], isLoading: assignmentsLoading } = useQuery({
+    queryKey: ['my-assignments'],
+    queryFn: getMyAssignments,
+  });
+
+  // Build a map: subjectId → first matching assignment (for this stage)
+  const subjectToAssignment = new Map<string, (typeof assignments)[0]>();
+  assignments
+    .filter((a) => {
+      const grade = a.gradeId;
+      // Use String() to ensure ObjectId and string values compare correctly
+      return typeof grade === 'object' && String(grade.stageId) === stageId;
+    })
+    .forEach((a) => {
+      const subId = typeof a.subjectId === 'object' ? a.subjectId._id : a.subjectId;
+      if (!subjectToAssignment.has(subId)) subjectToAssignment.set(subId, a);
+    });
+
+  // Show subjects from TeacherAssignment records OR from the teacher's profile subjectIds.
+  // This covers both admin-assigned teachers and self-registered teachers using profile-level selections.
+  const profileSubjectIds = user?.subjectIds ?? [];
+
+  const isLoading = subjectsLoading || assignmentsLoading;
+  const subjects = allSubjects.filter((s: Subject) =>
+    subjectToAssignment.has(s._id) || profileSubjectIds.includes(s._id)
+  );
 
   return (
     <div className={spacing.pageContainer}>
@@ -85,6 +109,8 @@ export default function TeacherSubjects() {
           <AnimatePresence>
             {subjects.map((subject: Subject, index) => {
               const colors = getEntityColor(subject.color ?? 'blue');
+              const assignment = subjectToAssignment.get(subject._id);
+              const gradeId = assignment ? (typeof assignment.gradeId === 'object' ? assignment.gradeId._id : assignment.gradeId) : undefined;
               return (
                 <EntityCard
                   key={subject._id}
@@ -93,7 +119,9 @@ export default function TeacherSubjects() {
                   description={subject.description}
                   color={colors}
                   animationDelay={index * 0.07}
-                  onClick={() => navigate(`/teacher/subjects/${subject._id}`)}
+                  onClick={() => navigate(`/teacher/subjects/${subject._id}`, {
+                    state: { gradeId, assignmentId: assignment?._id },
+                  })}
                   footer={
                     <>
                       <span className="text-xs text-slate-400 dark:text-slate-500">

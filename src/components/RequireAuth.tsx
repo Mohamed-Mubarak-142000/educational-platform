@@ -2,7 +2,8 @@ import type { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from 'react-i18next';
-import { roleHome, type Role } from '@/utils/routes';
+import { type Role } from '@/utils/routes';
+import Unauthorized from '@/pages/Unauthorized';
 
 type RequireAuthProps = {
   children: ReactNode;
@@ -35,7 +36,8 @@ export default function RequireAuth({ children, allowedRoles }: RequireAuthProps
   }
 
   if (allowedRoles && role && !allowedRoles.includes(role)) {
-    return <Navigate to={roleHome(role)} replace />;
+    // Show Unauthorized page in-place — user is authenticated but lacks permission
+    return <Unauthorized allowedRoles={allowedRoles} />;
   }
 
   if (allowedRoles && !role) {

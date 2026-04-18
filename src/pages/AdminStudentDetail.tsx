@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { getStudentById, getSubscriptions, type Student, type Subscription } from '@/api/adminApi';
+import { getStudentById, type Student } from '@/api/adminApi';
 import type { Subject } from '@/api/subjectApi';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,12 +15,6 @@ export default function AdminStudentDetail() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
-  const getPlanLabel = (plan: string) => {
-    if (plan === 'Monthly') return t('planMonthly');
-    if (plan === 'Quarterly') return t('planQuarterly');
-    if (plan === 'Yearly') return t('planYearly');
-    return plan;
-  };
 
   const { data: student, isLoading } = useQuery<Student>({
     queryKey: ['student', id],
@@ -28,16 +22,6 @@ export default function AdminStudentDetail() {
     enabled: Boolean(id),
   });
 
-  const { data: subscriptions = [] } = useQuery<Subscription[]>({
-    queryKey: ['subscriptions'],
-    queryFn: getSubscriptions,
-  });
-
-  const subscription = subscriptions.find((sub) => {
-    const subId = typeof sub.studentId === 'object' ? sub.studentId?._id : sub.studentId;
-    return subId === id;
-  });
-  
   const locale = i18n.language === 'ar' ? 'ar-EG' : 'en-US';
 
   if (isLoading) {
@@ -60,8 +44,6 @@ export default function AdminStudentDetail() {
     { icon: Mail, label: t('email'), value: student.email },
     { icon: Phone, label: t('phone'), value: student.phone || '-' },
     { icon: null, label: t('status'), value: student.status === 'Active' ? t('active') : student.status === 'Inactive' ? t('inactive') : '-' },
-    { icon: null, label: t('plan'), value: subscription?.plan ? getPlanLabel(subscription.plan) : t('noPlan') },
-    { icon: null, label: t('subscription'), value: subscription?.status === 'Active' ? t('active') : subscription?.status === 'Cancelled' ? t('cancelled') : t('inactive') },
     { icon: null, label: t('joined'), value: student.createdAt ? new Date(student.createdAt).toLocaleDateString(locale) : '-' },
   ];
 
@@ -105,15 +87,6 @@ export default function AdminStudentDetail() {
               }`}>
                 {student.status === 'Active' ? t('active') : student.status === 'Inactive' ? t('inactive') : '-'}
               </span>
-              {subscription && (
-                <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                  subscription.status === 'Active'
-                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                    : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
-                }`}>
-                  {subscription?.plan ? getPlanLabel(subscription.plan) : t('noPlan')}
-                </span>
-              )}
             </div>
           </div>
         </CardHeader>

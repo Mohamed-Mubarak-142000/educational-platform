@@ -82,8 +82,9 @@ export default function AdminTeacherDetail() {
 
   const teacherName = teacher.name ?? t('unknownTeacher');
 
-  const populatedStages = (teacher.stageIds ?? []).filter(isPopulated);
-  const populatedSubjects = (teacher.subjectIds ?? []).filter(isPopulated);
+  const populatedStages = ((teacher as any).assignmentStages ?? (teacher.stageIds ?? []).filter(isPopulated));
+  const populatedGrades = ((teacher as any).assignmentGrades ?? []);
+  const populatedSubjects = ((teacher as any).assignmentSubjects ?? (teacher.subjectIds ?? []).filter(isPopulated));
   const availableDays = Array.isArray(teacher.availableDays) ? teacher.availableDays : [];
   const availableHours = teacher.availableHours || {};
   const cvUrl = teacher?.cvUrl || null;
@@ -181,7 +182,7 @@ export default function AdminTeacherDetail() {
               <EmptyState description={t('noStages')} className="py-6" />
             ) : (
               <div className="flex flex-wrap gap-2">
-                {populatedStages.map((stage) => (
+                {populatedStages.map((stage: PopulatedItem) => (
                   <span
                     key={stage._id}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50"
@@ -208,7 +209,7 @@ export default function AdminTeacherDetail() {
               <EmptyState description={t('noSubjects')} className="py-6" />
             ) : (
               <div className="flex flex-wrap gap-2">
-                {populatedSubjects.map((subject) => (
+                {populatedSubjects.map((subject: PopulatedItem) => (
                   <span
                     key={subject._id}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50"
@@ -222,6 +223,33 @@ export default function AdminTeacherDetail() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Assigned Grades */}
+      {populatedGrades.length > 0 && (
+        <Card className={`${cardVariants.default} mt-6`}>
+          <CardHeader className="border-b border-slate-200 dark:border-slate-800">
+            <div className="flex items-center gap-2">
+              <GraduationCap className="w-4 h-4 text-violet-600" />
+              <CardTitle className="text-lg">{t('assignedGrades')}</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="flex flex-wrap gap-2">
+              {populatedGrades.map((grade: any) => (
+                <span
+                  key={grade._id}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-800/50"
+                >
+                  {getLocalizedName(grade, i18n.language)}
+                  {grade.stageId?.name && (
+                    <span className="text-xs opacity-60 ml-1">({getLocalizedName(grade.stageId, i18n.language)})</span>
+                  )}
+                </span>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Subjects Taught (from assignments) */}
       {teacher.subjects && teacher.subjects.length > 0 && (

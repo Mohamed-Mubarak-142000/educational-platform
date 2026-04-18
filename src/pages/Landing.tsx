@@ -16,12 +16,13 @@ import { SiteFooter } from '@/components/ui/SiteFooter';
 import { AnimatedCounter } from '@/components/AnimatedCounter';
 import TeacherApplicationSection from '@/components/TeacherApplicationSection';
 import { useQuery } from '@tanstack/react-query';
-import { getStages, type Stage } from '@/api/subjectApi';
+import { getStages, getStageSubjectCounts, type Stage } from '@/api/subjectApi';
 import { getLocalizedName } from '@/lib/localeUtils';
 import { ScrollToTop } from '@/components/ScrollToTop';
 import { EntityCard, getEntityColor } from '@/components/shared';
 import { usePlatformConfig } from '@/context/PlatformConfigContext';
-import type { LandingSection, StatItem } from '@/api/platformConfigApi';
+import type { LandingSection, StatItem, SectionBlock } from '@/api/platformConfigApi';
+import { fetchPlatformStats, type PlatformStats } from '@/api/platformConfigApi';
 import type { NavLink } from '@/components/ui/SiteNavbar';
 
 // ─── Icon registry ────────────────────────────────────────────────────────────
@@ -44,8 +45,22 @@ const STAT_PALETTES = [
 
 // ─── Section renderers ────────────────────────────────────────────────────────
 
-function StatsSection({ section, isRtl }: { section: LandingSection; isRtl: boolean }) {
+// Keys that map a stat's `key` field to a live DB metric in PlatformStats.
+const LIVE_STAT_MAP: Partial<Record<string, keyof PlatformStats>> = {
+  students: 'students',
+  teachers: 'teachers',
+  lessons: 'lessons',
+  units: 'units',
+  subjects: 'subjects',
+};
+
+function StatSkeleton() {
+  return <div className="h-8 w-20 rounded-lg bg-slate-200 dark:bg-slate-700 animate-pulse mx-auto" />;
+}
+
+function StatsSection({ section, isRtl, liveStats }: { section: LandingSection; isRtl: boolean; liveStats?: PlatformStats }) {
   const stats: StatItem[] = section.stats ?? [];
+  const isResolved = liveStats !== undefined;
   return (
     <section className="py-16 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm border-t border-b border-slate-200 dark:border-slate-800 relative z-10">
       <div className="max-w-7xl mx-auto px-6">
@@ -62,7 +77,12 @@ function StatsSection({ section, isRtl }: { section: LandingSection; isRtl: bool
                 <div className={`p-4 rounded-2xl ${palette.bg} ${palette.text} shadow-inner`}><Icon className="w-6 h-6" /></div>
                 <div>
                   <h3 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight" dir="ltr">
-                    <AnimatedCounter value={stat.value} suffix={isRtl && stat.suffix === '%' ? '٪' : stat.suffix} decimals={stat.decimals} />
+                    {isResolved ? (() => {
+                      const liveKey = LIVE_STAT_MAP[stat.key];
+                      const liveValue = liveKey && liveStats ? liveStats[liveKey] : undefined;
+                      const value = liveValue !== undefined && liveValue !== null ? liveValue : stat.value;
+                      return <AnimatedCounter value={value} suffix={isRtl && stat.suffix === '%' ? '٪' : stat.suffix} decimals={stat.decimals} />;
+                    })() : <StatSkeleton />}
                   </h3>
                   <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">{isRtl ? stat.labelAr : stat.labelEn}</p>
                 </div>
@@ -91,68 +111,103 @@ function FeaturesSection({ section, isRtl }: { section: LandingSection; isRtl: b
     { title: t('featTeacher3'), content: t('featTeacher3Desc') },
     { title: t('featTeacher4'), content: t('featTeacher4Desc') },
   ];
+  const adminItems = [
+    { title: t('featAdmin1'), content: t('featAdmin1Desc') },
+    { title: t('featAdmin2'), content: t('featAdmin2Desc') },
+    { title: t('featAdmin3'), content: t('featAdmin3Desc') },
+    { title: t('featAdmin4'), content: t('featAdmin4Desc') },
+  ];
+  const contentTypes = [
+    { Icon: Play, label: t('lessonTypeVideo'), color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-900/30' },
+    { Icon: FileText, label: t('lessonTypePdf'), color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-900/30' },
+    { Icon: Volume2, label: t('lessonTypeAudio'), color: 'text-green-600 dark:text-green-400', bg: 'bg-green-50 dark:bg-green-900/30' },
+    { Icon: Layers, label: t('lessonType3D'), color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-900/30' },
+  ];
   return (
     <section id="features" className="scroll-mt-20 py-24 relative overflow-hidden bg-slate-50/80 dark:bg-slate-900/40 border-b border-slate-200 dark:border-slate-800">
       <div className="absolute top-0 left-0 -translate-x-1/3 -translate-y-1/3 w-[520px] h-[520px] bg-blue-400/20 dark:bg-blue-900/20 rounded-full blur-[130px] pointer-events-none" />
       <div className="absolute bottom-0 right-0 translate-x-1/3 translate-y-1/3 w-[520px] h-[520px] bg-indigo-400/20 dark:bg-indigo-900/20 rounded-full blur-[130px] pointer-events-none" />
-      <div className="max-w-7xl mx-auto px-6 relative z-10 space-y-20">
+      <div className="max-w-7xl mx-auto px-6 relative z-10 space-y-16">
         {(title || description) && (
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="text-center max-w-4xl mx-auto">
             {title && <h2 className="text-3xl md:text-5xl font-bold dark:text-white mb-6">{title}</h2>}
             {description && <p className="text-lg text-slate-600 dark:text-slate-400">{description}</p>}
           </motion.div>
         )}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="relative">
-            <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 to-indigo-500/10 dark:from-blue-500/20 dark:to-indigo-500/20 rounded-3xl blur-2xl" />
-            <motion.div animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut' }} className="relative">
-              <Card className="border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/70 backdrop-blur-sm rounded-3xl overflow-hidden shadow-2xl">
-                <CardContent className="p-8">
-                  <p className={`text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-6 ${isRtl ? 'text-right' : 'text-left'}`}>{t('lessonContentTypes')}</p>
-                  <div className="grid grid-cols-2 gap-4">
-                    {[
-                      { Icon: Play, label: t('lessonTypeVideo'), color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-900/30' },
-                      { Icon: FileText, label: t('lessonTypePdf'), color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-900/30' },
-                      { Icon: Volume2, label: t('lessonTypeAudio'), color: 'text-green-600 dark:text-green-400', bg: 'bg-green-50 dark:bg-green-900/30' },
-                      { Icon: Layers, label: t('lessonType3D'), color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-900/30' },
-                    ].map(({ Icon, label, color, bg }) => (
-                      <div key={label} className={`${bg} rounded-2xl p-5 flex flex-col items-center gap-3 text-center`}>
-                        <div className={`${color} w-10 h-10 flex items-center justify-center`}><Icon className="w-8 h-8" /></div>
-                        <span className={`text-sm font-semibold ${color}`}>{label}</span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </motion.div>
-          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.1 }} className={`space-y-6 ${isRtl ? 'text-right' : 'text-left'}`}>
-            <div className="relative group">
-              <Card className="relative h-full border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm overflow-hidden rounded-3xl">
-                <CardContent className="p-10 space-y-8">
-                  <div className="w-16 h-16 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/30"><GraduationCap className="w-8 h-8" /></div>
-                  <div>
-                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('studentFeatures')}</h3>
-                    <p className="text-slate-600 dark:text-slate-400">{t('unlockPotential')}</p>
-                  </div>
+
+        {/* Three-column feature cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Student Features */}
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0 }}>
+            <Card className="h-full border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 bg-white/70 dark:bg-slate-900/60 backdrop-blur-sm rounded-3xl overflow-hidden">
+              <CardContent className={`p-7 space-y-6 flex flex-col h-full ${isRtl ? 'text-right' : 'text-left'}`}>
+                <div className="w-13 h-13 w-14 h-14 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/30 shrink-0">
+                  <GraduationCap className="w-7 h-7" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1">{t('studentFeatures')}</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">{t('unlockPotential')}</p>
+                </div>
+                <div className="flex-1">
                   <Accordion items={studentItems} isRtl={isRtl} />
-                </CardContent>
-              </Card>
-            </div>
-            <div className="relative group">
-              <Card className="relative h-full border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm overflow-hidden rounded-3xl">
-                <CardContent className="p-10 space-y-8">
-                  <div className="w-16 h-16 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-600/30"><LayoutDashboard className="w-8 h-8" /></div>
-                  <div>
-                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('teacherFeatures')}</h3>
-                    <p className="text-slate-600 dark:text-slate-400">{t('createExperiences')}</p>
-                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Teacher Features */}
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.1 }}>
+            <Card className="h-full border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 bg-white/70 dark:bg-slate-900/60 backdrop-blur-sm rounded-3xl overflow-hidden">
+              <CardContent className={`p-7 space-y-6 flex flex-col h-full ${isRtl ? 'text-right' : 'text-left'}`}>
+                <div className="w-14 h-14 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-600/30 shrink-0">
+                  <LayoutDashboard className="w-7 h-7" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1">{t('teacherFeatures')}</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">{t('createExperiences')}</p>
+                </div>
+                <div className="flex-1">
                   <Accordion items={teacherItems} isRtl={isRtl} />
-                </CardContent>
-              </Card>
-            </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Admin Features */}
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.2 }}>
+            <Card className="h-full border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 bg-white/70 dark:bg-slate-900/60 backdrop-blur-sm rounded-3xl overflow-hidden">
+              <CardContent className={`p-7 space-y-6 flex flex-col h-full ${isRtl ? 'text-right' : 'text-left'}`}>
+                <div className="w-14 h-14 bg-emerald-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-600/30 shrink-0">
+                  <Shield className="w-7 h-7" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1">{t('adminFeatures')}</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">{t('manageAllPlatform')}</p>
+                </div>
+                <div className="flex-1">
+                  <Accordion items={adminItems} isRtl={isRtl} />
+                </div>
+              </CardContent>
+            </Card>
           </motion.div>
         </div>
+
+        {/* Lesson Content Types — full-width showcase */}
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.15 }}>
+          <Card className="border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/70 backdrop-blur-sm rounded-3xl shadow-lg overflow-hidden">
+            <CardContent className="p-8">
+              <p className={`text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-6 ${isRtl ? 'text-right' : 'text-left'}`}>{t('lessonContentTypes')}</p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {contentTypes.map(({ Icon, label, color, bg }) => (
+                  <div key={label} className={`${bg} rounded-2xl p-5 flex flex-col items-center gap-3 text-center`}>
+                    <div className={`${color} w-10 h-10 flex items-center justify-center`}><Icon className="w-8 h-8" /></div>
+                    <span className={`text-sm font-semibold ${color}`}>{label}</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
     </section>
   );
@@ -163,10 +218,21 @@ function StagesSection({ section, isRtl }: { section: LandingSection; isRtl: boo
   const navigate = useNavigate();
   const title = isRtl ? section.titleAr : section.titleEn;
   const description = isRtl ? section.descriptionAr : section.descriptionEn;
-  const { data: apiStages = [], isLoading: stagesLoading } = useQuery<Stage[]>({
+
+  const { data: apiStages = [], isLoading: stagesLoading, isError: stagesError } = useQuery<Stage[]>({
     queryKey: ['stages'],
     queryFn: getStages,
+    staleTime: 2 * 60 * 1000,
+    retry: 2,
   });
+
+  const { data: subjectCounts, isLoading: countsLoading } = useQuery<Record<string, number>>({
+    queryKey: ['stage-subject-counts'],
+    queryFn: getStageSubjectCounts,
+    staleTime: 5 * 60 * 1000,
+    retry: 1,
+  });
+
   return (
     <section id="educational-stages" className="scroll-mt-20 py-24 bg-slate-50 dark:bg-slate-900/50 relative z-10 border-t border-slate-200 dark:border-slate-800">
       <div className="max-w-7xl mx-auto px-6">
@@ -180,6 +246,11 @@ function StagesSection({ section, isRtl }: { section: LandingSection; isRtl: boo
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {[1,2,3,4].map(i => <div key={i} className="h-52 rounded-2xl bg-slate-200 dark:bg-slate-800 animate-pulse" />)}
           </div>
+        ) : stagesError ? (
+          <div className="flex flex-col items-center py-16 text-center">
+            <GraduationCap className="w-16 h-16 text-slate-300 dark:text-slate-600 mb-4" />
+            <p className="text-slate-500 dark:text-slate-400 text-lg">{t('errorLoadingStages')}</p>
+          </div>
         ) : apiStages.length === 0 ? (
           <div className="flex flex-col items-center py-16 text-center">
             <GraduationCap className="w-16 h-16 text-slate-300 dark:text-slate-600 mb-4" />
@@ -189,8 +260,14 @@ function StagesSection({ section, isRtl }: { section: LandingSection; isRtl: boo
           <motion.div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.07 } } }}>
             {apiStages.map((stage: Stage, i: number) => {
               const colors = getEntityColor(stage.color ?? 'blue');
+              const count = subjectCounts?.[stage._id];
+              const subjectLabel = countsLoading || count === undefined
+                ? t('stageCardSubtitle')
+                : count === 1
+                  ? t('subjectCountSingular', { count })
+                  : t('subjectCountPlural', { count });
               return (
-                <EntityCard key={stage._id} icon={stage.icon || '📚'} title={getLocalizedName(stage, i18n.language)} description={t('stageCardSubtitle')} color={colors} animationDelay={i * 0.07} onClick={() => navigate(`/stages/${stage._id}`)} footer={
+                <EntityCard key={stage._id} icon={stage.icon || '📚'} title={getLocalizedName(stage, i18n.language)} description={subjectLabel} color={colors} animationDelay={i * 0.07} onClick={() => navigate(`/stages/${stage._id}`)} footer={
                   <div className={`flex items-center gap-2 text-xs font-medium ${colors.text} w-full justify-end`}>
                     {t('viewStage')}
                     <ArrowRight className={`w-3 h-3 transition-transform duration-200 group-hover:translate-x-1 ${isRtl ? 'rotate-180 group-hover:-translate-x-1' : ''}`} />
@@ -250,7 +327,7 @@ function TestimonialsSection({ section, isRtl }: { section: LandingSection; isRt
             {title || t('testiTitle')}
           </motion.h2>
         </div>
-        <Carousel items={cards} isRtl={isRtl} autoplayMs={5000} perView={{ base: 2, md: 2, lg: 2 }} ariaPrevLabel={t('previous')} ariaNextLabel={t('next')} ariaSlideLabel={t('slide')} />
+        <Carousel items={cards} isRtl={isRtl} autoplayMs={5000} perView={{ base: 1, md: 1, lg: 1 }} ariaPrevLabel={t('previous')} ariaNextLabel={t('next')} ariaSlideLabel={t('slide')} />
       </div>
     </section>
   );
@@ -261,26 +338,68 @@ function FaqSection({ section, isRtl }: { section: LandingSection; isRtl: boolea
   const title = isRtl ? section.titleAr : section.titleEn;
   const description = isRtl ? section.descriptionAr : section.descriptionEn;
   const faqItems = section.faqItems ?? [];
-  const accordionItems = faqItems.map(f => ({ title: isRtl ? f.questionAr : f.questionEn, content: isRtl ? f.answerAr : f.answerEn }));
+
+  // Static defaults — 16 comprehensive FAQ entries (always rendered in full).
+  // Platform-config items only take over when the admin has configured at least
+  // as many items as the defaults, preventing a partial DB set from hiding questions.
+  const defaultItems = [
+    { title: t('faqQ1'), content: t('faqA1') },
+    { title: t('faqQ2'), content: t('faqA2') },
+    { title: t('faqQ3'), content: t('faqA3') },
+    { title: t('faqQ4'), content: t('faqA4') },
+    { title: t('faqQ5'), content: t('faqA5') },
+    { title: t('faqQ6'), content: t('faqA6') },
+    { title: t('faqQ7'), content: t('faqA7') },
+    { title: t('faqQ8'), content: t('faqA8') },
+    { title: t('faqQ9'), content: t('faqA9') },
+    { title: t('faqQ10'), content: t('faqA10') },
+    { title: t('faqQ11'), content: t('faqA11') },
+    { title: t('faqQ12'), content: t('faqA12') },
+    { title: t('faqQ13'), content: t('faqA13') },
+    { title: t('faqQ14'), content: t('faqA14') },
+    { title: t('faqQ15'), content: t('faqA15') },
+    { title: t('faqQ16'), content: t('faqA16') },
+  ];
+  // Only use platform-config FAQ items when the admin has intentionally configured
+  // a full set (≥ default count). Partial DB entries must not silently truncate the list.
+  const configItems = faqItems.map(f => ({ title: isRtl ? f.questionAr : f.questionEn, content: isRtl ? f.answerAr : f.answerEn }));
+  const accordionItems = configItems.length >= defaultItems.length ? configItems : defaultItems;
+
+  // Split into two columns for desktop
+  const mid = Math.ceil(accordionItems.length / 2);
+  const col1 = accordionItems.slice(0, mid);
+  const col2 = accordionItems.slice(mid);
+
   return (
     <section id="contact" className="scroll-mt-20 py-24 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-900 dark:to-indigo-900 transition-colors duration-500" />
       <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-80 h-80 bg-blue-400/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="max-w-4xl mx-auto px-6 relative z-10">
-        <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="text-center mb-12">
+      <div className="max-w-7xl mx-auto px-8 relative z-10">
+        <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="text-center mb-14">
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">{title || t('ctaTitle')}</h2>
           {description && <p className="text-xl text-blue-100 dark:text-indigo-200 max-w-2xl mx-auto">{description}</p>}
         </motion.div>
+
         {accordionItems.length > 0 && (
-          <div className="mb-12 bg-white/10 dark:bg-white/5 backdrop-blur-sm rounded-3xl p-6 border border-white/20">
-            <div className="[&_button]:text-white [&_*]:border-white/20 [&_p]:text-blue-100">
-              <Accordion items={accordionItems} isRtl={isRtl} />
+          <div className="mb-14 grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Column 1 */}
+            <div className="bg-white/10 dark:bg-white/5 backdrop-blur-sm rounded-3xl p-8 border border-white/20 space-y-1">
+              <div className="[&_button]:text-white [&_*]:border-white/20 [&_p]:text-blue-100">
+                <Accordion items={col1} isRtl={isRtl} />
+              </div>
+            </div>
+            {/* Column 2 */}
+            <div className="bg-white/10 dark:bg-white/5 backdrop-blur-sm rounded-3xl p-8 border border-white/20 space-y-1">
+              <div className="[&_button]:text-white [&_*]:border-white/20 [&_p]:text-blue-100">
+                <Accordion items={col2} isRtl={isRtl} />
+              </div>
             </div>
           </div>
         )}
+
         <div className="flex justify-center">
-          <Link to="/curriculums" className="w-full sm:w-auto">
+          <Link to="/stages" className="w-full sm:w-auto">
             <Button size="lg" className="h-14 px-10 text-lg bg-white text-blue-600 hover:bg-slate-50 shadow-xl rounded-full w-full shadow-white/10 group">
               {t('getStarted')}
               <ArrowRight className={`ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform ${isRtl ? 'mr-2 ml-0 rotate-180 group-hover:-translate-x-1' : ''}`} />
@@ -292,15 +411,116 @@ function FaqSection({ section, isRtl }: { section: LandingSection; isRtl: boolea
   );
 }
 
+// ─── Block-based custom section renderer ────────────────────────────────────
+
+const BLOCK_PADDING_MAP: Record<string, string> = {
+  none: 'py-0',
+  sm: 'py-4',
+  md: 'py-8',
+  lg: 'py-16',
+};
+
+const BLOCK_TEXT_SIZE_MAP: Record<string, string> = {
+  sm: 'text-sm',
+  md: 'text-base',
+  lg: 'text-xl',
+  xl: 'text-3xl md:text-4xl',
+};
+
+const BLOCK_ALIGN_MAP: Record<string, string> = {
+  left: 'text-left',
+  center: 'text-center',
+  right: 'text-right',
+};
+
+function BlockRenderer({ block, isRtl }: { block: SectionBlock; isRtl: boolean }) {
+  const text = isRtl ? block.textAr : block.textEn;
+  const alt = isRtl ? block.altAr : block.altEn;
+  const padding = BLOCK_PADDING_MAP[block.style?.padding ?? 'md'];
+  const alignment = BLOCK_ALIGN_MAP[block.style?.alignment ?? 'left'];
+  const textSize = BLOCK_TEXT_SIZE_MAP[block.style?.size ?? 'md'];
+
+  if (block.type === 'title') {
+    return (
+      <div className={`${padding} ${alignment}`}>
+        <h2 className={`font-bold text-slate-900 dark:text-white ${textSize}`}>{text}</h2>
+      </div>
+    );
+  }
+
+  if (block.type === 'text') {
+    return (
+      <div className={`${padding} ${alignment}`}>
+        <p className={`text-slate-600 dark:text-slate-400 leading-relaxed ${textSize}`}>{text}</p>
+      </div>
+    );
+  }
+
+  if (block.type === 'image' && block.url) {
+    return (
+      <div className={`${padding} flex ${block.style?.alignment === 'center' ? 'justify-center' : block.style?.alignment === 'right' ? 'justify-end' : 'justify-start'}`}>
+        <img
+          src={block.url}
+          alt={alt ?? ''}
+          className="max-w-full rounded-2xl shadow-md object-cover"
+          loading="lazy"
+        />
+      </div>
+    );
+  }
+
+  if (block.type === 'video' && block.url) {
+    // Support both embed URLs (iframe) and direct video files
+    const isEmbed = block.url.includes('youtube.com/embed') || block.url.includes('player.vimeo.com');
+    return (
+      <div className={`${padding}`}>
+        {isEmbed ? (
+          <div className="relative pb-[56.25%] h-0 overflow-hidden rounded-2xl shadow-md">
+            <iframe
+              src={block.url}
+              className="absolute top-0 left-0 w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              title={alt ?? 'Video'}
+            />
+          </div>
+        ) : (
+          <video
+            src={block.url}
+            controls
+            className="w-full max-w-3xl mx-auto rounded-2xl shadow-md"
+          />
+        )}
+      </div>
+    );
+  }
+
+  return null;
+}
+
 function CustomSection({ section, isRtl }: { section: LandingSection; isRtl: boolean }) {
   const title = isRtl ? section.titleAr : section.titleEn;
   const description = isRtl ? section.descriptionAr : section.descriptionEn;
-  if (!title && !description) return null;
+  const blocks = section.blocks ?? [];
+
+  if (!title && !description && blocks.length === 0) return null;
+
   return (
-    <section className="py-20 border-t border-slate-200 dark:border-slate-800">
-      <div className="max-w-4xl mx-auto px-6 text-center">
-        {title && <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">{title}</h2>}
-        {description && <p className="text-lg text-slate-600 dark:text-slate-400">{description}</p>}
+    <section id={section.key} className="scroll-mt-20 py-16 border-t border-slate-200 dark:border-slate-800">
+      <div className="max-w-4xl mx-auto px-6">
+        {(title || description) && (
+          <div className="text-center mb-10">
+            {title && <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-3">{title}</h2>}
+            {description && <p className="text-lg text-slate-600 dark:text-slate-400">{description}</p>}
+          </div>
+        )}
+        {blocks.length > 0 && (
+          <div className="space-y-2">
+            {blocks.map((block) => (
+              <BlockRenderer key={block.key} block={block} isRtl={isRtl} />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
@@ -310,10 +530,10 @@ function TeacherAppSection({ section: _section, isRtl: _isRtl }: { section: Land
   return <div id="join-as-teacher" className="scroll-mt-20"><TeacherApplicationSection /></div>;
 }
 
-function SectionRenderer({ section, isRtl }: { section: LandingSection; isRtl: boolean }) {
+function SectionRenderer({ section, isRtl, liveStats }: { section: LandingSection; isRtl: boolean; liveStats?: PlatformStats }) {
   if (!section.isVisible) return null;
   switch (section.type) {
-    case 'stats': return <StatsSection section={section} isRtl={isRtl} />;
+    case 'stats': return <StatsSection section={section} isRtl={isRtl} liveStats={liveStats} />;
     case 'stages': return <StagesSection section={section} isRtl={isRtl} />;
     case 'features': return <FeaturesSection section={section} isRtl={isRtl} />;
     case 'testimonials': return <TestimonialsSection section={section} isRtl={isRtl} />;
@@ -329,6 +549,12 @@ export default function Landing() {
   const { user } = useAuth();
   const isRtl = i18n.language === 'ar';
   const { config } = usePlatformConfig();
+
+  const { data: platformStats, isLoading: statsLoading } = useQuery({
+    queryKey: ['platform-stats'],
+    queryFn: fetchPlatformStats,
+    staleTime: 5 * 60 * 1000,
+  });
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -449,7 +675,9 @@ export default function Landing() {
                    <Users className="w-6 h-6" />
                  </div>
                  <div className={isRtl ? 'text-right' : 'text-left'}>
-                   <p className="text-xl font-extrabold text-slate-900 dark:text-white leading-none mb-1">12K+</p>
+                   <p className="text-xl font-extrabold text-slate-900 dark:text-white leading-none mb-1" dir="ltr">
+                     {statsLoading ? <span className="inline-block h-5 w-12 rounded bg-slate-200 dark:bg-slate-700 animate-pulse" /> : platformStats ? <AnimatedCounter value={platformStats.students} suffix="+" /> : null}
+                   </p>
                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t('statStudents')}</p>
                  </div>
                </motion.div>
@@ -464,27 +692,14 @@ export default function Landing() {
                    <GraduationCap className="w-6 h-6" />
                  </div>
                  <div className={isRtl ? 'text-right' : 'text-left'}>
-                   <p className="text-xl font-extrabold text-slate-900 dark:text-white leading-none mb-1">150+</p>
+                   <p className="text-xl font-extrabold text-slate-900 dark:text-white leading-none mb-1" dir="ltr">
+                     {statsLoading ? <span className="inline-block h-5 w-12 rounded bg-slate-200 dark:bg-slate-700 animate-pulse" /> : platformStats ? <AnimatedCounter value={platformStats.teachers} suffix="+" /> : null}
+                   </p>
                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t('statTeachers')}</p>
                  </div>
                </motion.div>
 
-               {/* Success Rate Card */}
-               <motion.div
-                 animate={{ y: [0, 20, 0] }}
-                 transition={{ repeat: Infinity, duration: 5, ease: "easeInOut", delay: 1 }}
-                 className="absolute -bottom-2 -right-2 lg:-bottom-8 lg:-right-4 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 flex items-center gap-4 z-20 transition-colors duration-300"
-               >
-                 <div className="bg-indigo-100 dark:bg-indigo-900/50 p-3 rounded-xl text-indigo-600 dark:text-indigo-400 transition-colors duration-300">
-                   <CheckCircle className="w-6 h-6" />
-                 </div>
-                 <div className={isRtl ? 'text-right' : 'text-left'}>
-                   <p className="text-sm font-bold text-slate-900 dark:text-white">{t('successRate')}</p>
-                   <p className="text-xs text-slate-500 dark:text-slate-400">{t('passRate')}</p>
-                 </div>
-               </motion.div>
-
-               {/* Courses Card */}
+               {/* Subjects Card */}
                <motion.div
                  animate={{ y: [0, 20, 0] }}
                  transition={{ repeat: Infinity, duration: 6.5, ease: "easeInOut", delay: 2 }}
@@ -494,23 +709,10 @@ export default function Landing() {
                    <BookOpen className="w-6 h-6" />
                  </div>
                  <div className={isRtl ? 'text-right' : 'text-left'}>
-                   <p className="text-xl font-extrabold text-slate-900 dark:text-white leading-none mb-1">350+</p>
-                   <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t('statCourses')}</p>
-                 </div>
-               </motion.div>
-
-               {/* Interactive Labs Card */}
-               <motion.div
-                 animate={{ y: [0, -20, 0] }}
-                 transition={{ repeat: Infinity, duration: 7.5, ease: "easeInOut", delay: 0.8 }}
-                 className="absolute -top-4 right-4 lg:-top-6 lg:right-10 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 flex items-center gap-4 z-20 transition-colors duration-300"
-               >
-                 <div className="bg-orange-100 dark:bg-orange-900/50 p-3 rounded-xl text-orange-600 dark:text-orange-400 transition-colors duration-300">
-                   <Layers className="w-6 h-6" />
-                 </div>
-                 <div className={isRtl ? 'text-right' : 'text-left'}>
-                   <p className="text-xl font-extrabold text-slate-900 dark:text-white leading-none mb-1">500+</p>
-                   <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t('interactiveLabs')}</p>
+                   <p className="text-xl font-extrabold text-slate-900 dark:text-white leading-none mb-1" dir="ltr">
+                     {statsLoading ? <span className="inline-block h-5 w-12 rounded bg-slate-200 dark:bg-slate-700 animate-pulse" /> : platformStats ? <AnimatedCounter value={platformStats.subjects} suffix="+" /> : null}
+                   </p>
+                   <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t('statSubjects')}</p>
                  </div>
                </motion.div>
             </motion.div>
@@ -527,7 +729,7 @@ export default function Landing() {
 
 
       {sections.map((section) => (
-        <SectionRenderer key={section.key} section={section} isRtl={isRtl} />
+        <SectionRenderer key={section.key} section={section} isRtl={isRtl} liveStats={platformStats} />
       ))}
 
       </main>

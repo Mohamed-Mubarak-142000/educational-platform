@@ -48,6 +48,9 @@ export type { ErrorStateProps } from './ErrorState';
 export { PdfViewer } from './PdfViewer';
 export type { PdfViewerProps } from './PdfViewer';
 
+export { AccessRestricted } from './AccessRestricted';
+export type { AccessRestrictedProps } from './AccessRestricted';
+
 export { EntityCard } from './EntityCard';
 export type { EntityCardProps } from './EntityCard';
 

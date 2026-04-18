@@ -8,6 +8,8 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getTeacherApplications, reviewTeacherApplication, type TeacherApplicationRecord } from '@/api/adminApi';
+import { getSubjectById } from '@/api/subjectApi';
+import { getGradeById } from '@/api/gradeApi';
 import { Accordion } from '@/components/ui/Accordion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,10 +28,59 @@ import {
   Calendar,
   Clock,
   FileText,
+  BookOpen,
+  GraduationCap,
 } from 'lucide-react';
 import { spacing } from '@/lib/constants';
 import { PageHeader, SkeletonBlock, SkeletonCardGrid, EmptyState, ErrorState, PdfViewer } from '@/components/shared';
 import { useTranslation } from 'react-i18next';
+import { getLocalizedName } from '@/lib/localeUtils';
+
+// ── Badge helpers that resolve IDs to names ────────────────────────
+
+function SubjectBadges({ subjectIds, language }: { subjectIds: string[]; language: string }) {
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {subjectIds.map((id) => (
+        <SubjectBadge key={id} subjectId={id} language={language} />
+      ))}
+    </div>
+  );
+}
+
+function SubjectBadge({ subjectId, language }: { subjectId: string; language: string }) {
+  const { data: subject } = useQuery({
+    queryKey: ['subject', subjectId],
+    queryFn: () => getSubjectById(subjectId),
+  });
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-800/50">
+      {subject?.icon} {subject ? getLocalizedName(subject, language) : subjectId.slice(-6)}
+    </span>
+  );
+}
+
+function GradeBadges({ gradeIds, language }: { gradeIds: string[]; language: string }) {
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {gradeIds.map((id) => (
+        <GradeBadge key={id} gradeId={id} language={language} />
+      ))}
+    </div>
+  );
+}
+
+function GradeBadge({ gradeId, language }: { gradeId: string; language: string }) {
+  const { data: grade } = useQuery({
+    queryKey: ['grade', gradeId],
+    queryFn: () => getGradeById(gradeId),
+  });
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50">
+      {grade ? getLocalizedName(grade, language) : gradeId.slice(-6)}
+    </span>
+  );
+}
 
 // ── Helpers ────────────────────────────────────────────────────────
 
@@ -64,8 +115,12 @@ function ApplicationDetails({
   onViewCv: (id: string) => void;
   isCvOpen: boolean;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const days = app.availableDays;
+
+  // Resolve subject names
+  const subjectIds = app.subjectIds ?? [];
+  const gradeIds = app.gradeIds ?? [];
 
   return (
     <div className="space-y-5">
@@ -82,6 +137,27 @@ function ApplicationDetails({
             <Phone className="w-3.5 h-3.5" />{app.phone}
           </p>
         </div>
+
+        {/* Subjects */}
+        {subjectIds.length > 0 && (
+          <div className="space-y-1">
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide flex items-center gap-1">
+              <BookOpen className="w-3.5 h-3.5" />{t('subjectPlural') ?? 'Subjects'}
+            </p>
+            <SubjectBadges subjectIds={subjectIds} language={i18n.language} />
+          </div>
+        )}
+
+        {/* Grades */}
+        {gradeIds.length > 0 && (
+          <div className="space-y-1">
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide flex items-center gap-1">
+              <GraduationCap className="w-3.5 h-3.5" />{t('gradeLabel') ?? 'Grades'}
+            </p>
+            <GradeBadges gradeIds={gradeIds} language={i18n.language} />
+          </div>
+        )}
+
         <div className="space-y-1">
           <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">{t('availableDaysHours')}</p>
           <div className="flex flex-wrap gap-2">

@@ -9,15 +9,18 @@ import type {
   StatItem,
   TestimonialItem,
   FaqItem,
+  SectionBlock,
+  BlockType,
+  BlockStyle,
 } from '@/api/platformConfigApi';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { PageHeader, LoadingState } from '@/components/shared';
 import {
   Settings,
-  LayoutDashboard,
   Navigation,
   Image,
   Layers,
@@ -31,6 +34,10 @@ import {
   Eye,
   EyeOff,
   AlertTriangle,
+  Type,
+  AlignLeft,
+  Film,
+  GripVertical,
 } from 'lucide-react';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -158,6 +165,10 @@ function PlatformTab({ draft, setDraft }: { draft: PlatformConfig; setDraft: Rea
 function NavbarTab({ draft, setDraft }: { draft: PlatformConfig; setDraft: React.Dispatch<React.SetStateAction<PlatformConfig>> }) {
   const { t } = useTranslation();
   const items = [...draft.navbar.items].sort((a, b) => a.order - b.order);
+  // Available custom section keys for quick-link
+  const customSections = draft.landing.sections
+    .filter((s) => s.type === 'custom')
+    .map((s) => ({ key: s.key, label: s.titleEn || s.titleAr || s.key }));
 
   const update = (items: NavItem[]) =>
     setDraft((d) => ({ ...d, navbar: { items } }));
@@ -248,6 +259,40 @@ function NavbarTab({ draft, setDraft }: { draft: PlatformConfig; setDraft: React
                 </span>
               </div>
             </div>
+
+            {/* Quick-link to a custom section */}
+            {customSections.length > 0 && (
+              <div className="space-y-1">
+                <Label className="text-xs text-slate-500 dark:text-slate-400">{t('pcNavLinkSection')}</Label>
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => patchItem(item.key, { sectionKey: undefined })}
+                    className={`px-3 py-1 rounded-full text-xs border transition-colors ${
+                      !item.sectionKey
+                        ? 'bg-slate-700 text-white border-slate-700'
+                        : 'border-slate-300 dark:border-slate-700 text-slate-500 hover:border-blue-400'
+                    }`}
+                  >
+                    {t('pcNavNoSection')}
+                  </button>
+                  {customSections.map((cs) => (
+                    <button
+                      key={cs.key}
+                      type="button"
+                      onClick={() => patchItem(item.key, { sectionKey: cs.key, href: cs.key, isAnchor: true })}
+                      className={`px-3 py-1 rounded-full text-xs border transition-colors ${
+                        item.sectionKey === cs.key
+                          ? 'bg-blue-600 text-white border-blue-600'
+                          : 'border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-blue-400'
+                      }`}
+                    >
+                      {cs.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       ))}
@@ -451,6 +496,245 @@ function FaqEditor({ section, onUpdate }: { section: LandingSection; onUpdate: (
   );
 }
 
+// ─── Block Builder ────────────────────────────────────────────────────────────
+
+const BLOCK_TYPE_ICONS: Record<BlockType, React.ComponentType<{ className?: string }>> = {
+  title: Type,
+  text: AlignLeft,
+  image: Image,
+  video: Film,
+};
+
+function BlockEditor({ block, onUpdate, onRemove, onMoveUp, onMoveDown, isFirst, isLast }: {
+  block: SectionBlock;
+  onUpdate: (b: SectionBlock) => void;
+  onRemove: () => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  isFirst: boolean;
+  isLast: boolean;
+}) {
+  const { t } = useTranslation();
+  const Icon = BLOCK_TYPE_ICONS[block.type];
+  const patch = (p: Partial<SectionBlock>) => onUpdate({ ...block, ...p });
+  const patchStyle = (s: Partial<SectionBlock['style']>) =>
+    onUpdate({ ...block, style: { ...block.style, ...s } });
+
+  return (
+    <div className="border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 shadow-sm">
+      {/* Block header */}
+      <div className="flex items-center gap-2 px-3 py-2 border-b border-slate-100 dark:border-slate-800">
+        <GripVertical className="w-4 h-4 text-slate-300 dark:text-slate-600 shrink-0" />
+        <div className="flex gap-0.5">
+          <button type="button" onClick={onMoveUp} disabled={isFirst} className="p-0.5 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 transition-colors">
+            <ChevronUp className="w-3.5 h-3.5" />
+          </button>
+          <button type="button" onClick={onMoveDown} disabled={isLast} className="p-0.5 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 transition-colors">
+            <ChevronDown className="w-3.5 h-3.5" />
+          </button>
+        </div>
+        <div className="flex items-center gap-1.5 flex-1">
+          <Icon className="w-3.5 h-3.5 text-blue-500" />
+          <span className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+            {t(`pcBlock_${block.type}`)}
+          </span>
+        </div>
+        <button type="button" onClick={onRemove} className="p-1 rounded text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
+      </div>
+
+      <div className="p-3 space-y-3">
+        {/* Type selector */}
+        <div className="flex gap-1 flex-wrap">
+          {(['title', 'text', 'image', 'video'] as BlockType[]).map((bt) => {
+            const BIcon = BLOCK_TYPE_ICONS[bt];
+            return (
+              <button
+                key={bt}
+                type="button"
+                onClick={() => patch({ type: bt })}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+                  block.type === bt
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-300 dark:border-slate-700 hover:border-blue-400'
+                }`}
+              >
+                <BIcon className="w-3 h-3" />
+                {t(`pcBlock_${bt}`)}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Content fields */}
+        {(block.type === 'title' || block.type === 'text') && (
+          <BilingualInput
+            labelEn={block.type === 'title' ? t('pcBlockTitle') : t('pcBlockText')}
+            valueAr={block.textAr ?? ''}
+            valueEn={block.textEn ?? ''}
+            onChangeAr={(v) => patch({ textAr: v })}
+            onChangeEn={(v) => patch({ textEn: v })}
+            multiline={block.type === 'text'}
+          />
+        )}
+
+        {(block.type === 'image' || block.type === 'video') && (
+          <div className="space-y-2">
+            <div className="space-y-1">
+              <Label className="text-xs text-slate-500">{t('pcBlockUrl')}</Label>
+              <Input
+                value={block.url ?? ''}
+                onChange={(e) => patch({ url: e.target.value })}
+                placeholder={block.type === 'image' ? 'https://... or /images/photo.jpg' : 'https://youtube.com/embed/... or /videos/intro.mp4'}
+              />
+            </div>
+            {block.type === 'image' && (
+              <BilingualInput
+                labelEn={t('pcBlockAlt')}
+                valueAr={block.altAr ?? ''}
+                valueEn={block.altEn ?? ''}
+                onChangeAr={(v) => patch({ altAr: v })}
+                onChangeEn={(v) => patch({ altEn: v })}
+              />
+            )}
+            {block.url && block.type === 'image' && (
+              <img src={block.url} alt={block.altEn ?? ''} className="max-h-32 rounded-lg border border-slate-200 dark:border-slate-700 object-contain bg-slate-50 dark:bg-slate-800" />
+            )}
+          </div>
+        )}
+
+        {/* Style controls */}
+        <div className="grid grid-cols-3 gap-2 pt-1">
+          <div className="space-y-1">
+            <Label className="text-xs text-slate-400">{t('pcBlockAlignment')}</Label>
+            <div className="flex gap-1">
+              {(['left', 'center', 'right'] as const).map((a) => (
+                <button
+                  key={a}
+                  type="button"
+                  onClick={() => patchStyle({ alignment: a })}
+                  title={a}
+                  className={`flex-1 py-1 text-xs rounded border transition-colors ${
+                    (block.style?.alignment ?? 'left') === a
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'border-slate-200 dark:border-slate-700 hover:border-blue-400'
+                  }`}
+                >
+                  {a === 'left' ? '←' : a === 'center' ? '↔' : '→'}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-slate-400">{t('pcBlockPadding')}</Label>
+            <select
+              value={block.style?.padding ?? 'md'}
+              onChange={(e) => patchStyle({ padding: e.target.value as BlockStyle['padding'] })}
+              className="w-full rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs px-2 py-1.5 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {(['none', 'sm', 'md', 'lg'] as const).map((p) => (
+                <option key={p} value={p}>{p}</option>
+              ))}
+            </select>
+          </div>
+          {(block.type === 'title' || block.type === 'text') && (
+            <div className="space-y-1">
+              <Label className="text-xs text-slate-400">{t('pcBlockSize')}</Label>
+              <select
+                value={block.style?.size ?? 'md'}
+                onChange={(e) => patchStyle({ size: e.target.value as BlockStyle['size'] })}
+                className="w-full rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs px-2 py-1.5 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {(['sm', 'md', 'lg', 'xl'] as const).map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BlocksEditor({ section, onUpdate }: { section: LandingSection; onUpdate: (s: LandingSection) => void }) {
+  const { t } = useTranslation();
+  const blocks: SectionBlock[] = section.blocks ?? [];
+
+  const updateBlocks = (next: SectionBlock[]) => onUpdate({ ...section, blocks: next });
+
+  const addBlock = (type: BlockType) => {
+    const newBlock: SectionBlock = {
+      key: `block-${crypto.randomUUID()}`,
+      type,
+      textAr: '',
+      textEn: '',
+      url: '',
+      altAr: '',
+      altEn: '',
+      style: { alignment: 'left', padding: 'md', size: 'md' },
+    };
+    updateBlocks([...blocks, newBlock]);
+  };
+
+  const updateBlock = (idx: number, b: SectionBlock) =>
+    updateBlocks(blocks.map((bl, i) => (i === idx ? b : bl)));
+
+  const removeBlock = (idx: number) =>
+    updateBlocks(blocks.filter((_, i) => i !== idx));
+
+  const moveBlock = (idx: number, dir: -1 | 1) => {
+    const swapIdx = idx + dir;
+    if (swapIdx < 0 || swapIdx >= blocks.length) return;
+    const next = [...blocks];
+    [next[idx], next[swapIdx]] = [next[swapIdx], next[idx]];
+    updateBlocks(next);
+  };
+
+  return (
+    <div className="space-y-3 mt-4">
+      <h5 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t('pcBlocksBuilder')}</h5>
+
+      {blocks.length === 0 && (
+        <p className="text-xs text-slate-400 dark:text-slate-500 italic py-2">{t('pcBlocksEmpty')}</p>
+      )}
+
+      {blocks.map((block, idx) => (
+        <BlockEditor
+          key={block.key}
+          block={block}
+          onUpdate={(b) => updateBlock(idx, b)}
+          onRemove={() => removeBlock(idx)}
+          onMoveUp={() => moveBlock(idx, -1)}
+          onMoveDown={() => moveBlock(idx, 1)}
+          isFirst={idx === 0}
+          isLast={idx === blocks.length - 1}
+        />
+      ))}
+
+      <div className="flex gap-2 flex-wrap">
+        {(['title', 'text', 'image', 'video'] as BlockType[]).map((bt) => {
+          const BIcon = BLOCK_TYPE_ICONS[bt];
+          return (
+            <Button
+              key={bt}
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => addBlock(bt)}
+              className="gap-1.5 border-dashed text-xs"
+            >
+              <BIcon className="w-3.5 h-3.5" />
+              {t(`pcAddBlock_${bt}`)}
+            </Button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function SectionsTab({ draft, setDraft }: { draft: PlatformConfig; setDraft: React.Dispatch<React.SetStateAction<PlatformConfig>> }) {
   const { t } = useTranslation();
   const sections = [...draft.landing.sections].sort((a, b) => a.order - b.order);
@@ -586,6 +870,9 @@ function SectionsTab({ draft, setDraft }: { draft: PlatformConfig; setDraft: Rea
               {sec.type === 'faq' && (
                 <FaqEditor section={sec} onUpdate={(s) => patchSection(sec.key, s)} />
               )}
+              {sec.type === 'custom' && (
+                <BlocksEditor section={sec} onUpdate={(s) => patchSection(sec.key, s)} />
+              )}
             </CardContent>
           )}
         </Card>
@@ -680,11 +967,7 @@ export default function AdminPlatformConfig() {
   }, [config, draft]);
 
   if (isLoading || !draft) {
-    return (
-      <div className="flex items-center justify-center py-32">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
-      </div>
-    );
+    return <LoadingState variant="fullpage" />;
   }
 
   const handleSave = async () => {
@@ -719,40 +1002,35 @@ export default function AdminPlatformConfig() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <LayoutDashboard className="w-6 h-6 text-blue-600" />
-            {t('pcPageTitle')}
-          </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            {t('pcPageSubtitle')}
-          </p>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleReset}
-            disabled={isResetting || isSaving}
-            className="gap-2 text-slate-600 dark:text-slate-300"
-          >
-            <RotateCcw className={`w-4 h-4 ${isResetting ? 'animate-spin' : ''}`} />
-            {t('pcReset')}
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            onClick={handleSave}
-            disabled={isSaving || !isDirty}
-            className={`gap-2 ${saveStatus === 'saved' ? 'bg-green-600 hover:bg-green-700' : saveStatus === 'error' ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'} text-white`}
-          >
-            <Save className={`w-4 h-4 ${isSaving ? 'animate-pulse' : ''}`} />
-            {isSaving ? t('pcSaving') : saveStatus === 'saved' ? t('pcSaved') : saveStatus === 'error' ? t('pcSaveError') : t('pcSaveChanges')}
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        title={t('pcPageTitle')}
+        subtitle={t('pcPageSubtitle')}
+        action={
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleReset}
+              disabled={isResetting || isSaving}
+              className="gap-2 text-slate-600 dark:text-slate-300"
+            >
+              <RotateCcw className={`w-4 h-4 ${isResetting ? 'animate-spin' : ''}`} />
+              {t('pcReset')}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleSave}
+              disabled={isSaving || !isDirty}
+              className={`gap-2 ${saveStatus === 'saved' ? 'bg-green-600 hover:bg-green-700' : saveStatus === 'error' ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'} text-white`}
+            >
+              <Save className={`w-4 h-4 ${isSaving ? 'animate-pulse' : ''}`} />
+              {isSaving ? t('pcSaving') : saveStatus === 'saved' ? t('pcSaved') : saveStatus === 'error' ? t('pcSaveError') : t('pcSaveChanges')}
+            </Button>
+          </div>
+        }
+      />
 
       {isDirty && (
         <div className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg px-3 py-2">

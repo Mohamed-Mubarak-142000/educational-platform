@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getStages, getSubjectsByStage, type Stage, type Subject } from '@/api/subjectApi';
-import { useAuth } from '@/context/AuthContext';
+import { getMyAssignments } from '@/api/teacherAssignmentApi';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { EmptyState, PageHeader } from '@/components/shared';
@@ -39,15 +39,28 @@ function StageSubjectCount({ stageId }: { stageId: string }) {
 export default function TeacherStages() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const { user } = useAuth();
 
-  const { data: allStages = [], isLoading } = useQuery<Stage[]>({
+  const { data: allStages = [], isLoading: stagesLoading } = useQuery<Stage[]>({
     queryKey: ['stages'],
     queryFn: getStages,
   });
 
-  // Filter to only stages assigned to the teacher
-  const assignedStageIds = new Set<string>(user?.stageIds ?? []);
+  const { data: assignments = [], isLoading: assignmentsLoading } = useQuery({
+    queryKey: ['my-assignments'],
+    queryFn: getMyAssignments,
+  });
+
+  // Derive assigned stage IDs from the teacher's assignments via gradeId.stageId
+  const assignedStageIds = new Set<string>(
+    assignments
+      .map((a) => {
+        const grade = a.gradeId;
+        return typeof grade === 'object' ? grade.stageId ?? null : null;
+      })
+      .filter((id): id is string => !!id)
+  );
+
+  const isLoading = stagesLoading || assignmentsLoading;
   const stages = allStages.filter((s) => assignedStageIds.has(s._id));
 
   return (

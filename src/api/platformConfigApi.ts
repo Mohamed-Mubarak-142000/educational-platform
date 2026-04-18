@@ -14,6 +14,8 @@ export interface NavItem {
   isAnchor: boolean;
   order: number;
   isVisible: boolean;
+  /** If set, this nav item scrolls to / links to a section key instead of an arbitrary href */
+  sectionKey?: string;
 }
 
 export interface StatItem {
@@ -50,6 +52,31 @@ export type SectionType =
   | 'faq'
   | 'custom';
 
+// ─── Page-builder block types ─────────────────────────────────────────────────
+
+export type BlockType = 'title' | 'text' | 'image' | 'video';
+
+export interface BlockStyle {
+  alignment?: 'left' | 'center' | 'right';
+  padding?: 'none' | 'sm' | 'md' | 'lg';
+  /** For title/text */
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+}
+
+export interface SectionBlock {
+  key: string;
+  type: BlockType;
+  /** Localized text for title/text blocks */
+  textAr?: string;
+  textEn?: string;
+  /** URL for image/video blocks */
+  url?: string;
+  /** Alt description for image (bilingual) */
+  altAr?: string;
+  altEn?: string;
+  style?: BlockStyle;
+}
+
 export interface LandingSection {
   key: string;
   type: SectionType;
@@ -62,6 +89,8 @@ export interface LandingSection {
   stats?: StatItem[];
   testimonials?: TestimonialItem[];
   faqItems?: FaqItem[];
+  /** Page-builder blocks — only relevant for type === 'custom' */
+  blocks?: SectionBlock[];
 }
 
 export interface HeroConfig {
@@ -116,5 +145,21 @@ export async function savePlatformConfig(config: Partial<PlatformConfig>): Promi
 /** Reset config to factory defaults. Admin only. */
 export async function resetPlatformConfig(): Promise<PlatformConfig> {
   const { data } = await api.post<PlatformConfig>('/platform-config/reset');
+  return data;
+}
+
+// ─── Live platform stats ──────────────────────────────────────────────────────
+
+export interface PlatformStats {
+  students: number;
+  teachers: number;
+  lessons: number;
+  units: number;
+  subjects: number;
+}
+
+/** Fetch live counts from DB. Public — no auth required. */
+export async function fetchPlatformStats(): Promise<PlatformStats> {
+  const { data } = await api.get<PlatformStats>('/platform-config/stats');
   return data;
 }

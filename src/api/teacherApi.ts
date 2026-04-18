@@ -12,11 +12,49 @@ export type TeacherStudent = {
   createdAt?: string;
 };
 
+export type StudentSubscriptionEntry = {
+  student: {
+    _id: string;
+    name?: string;
+    email?: string;
+    phone?: string;
+    profileImage?: string;
+    status?: string;
+    joinedAt?: string;
+  };
+  subscription: {
+    plan: string;
+    status: string;
+    startDate?: string;
+    endDate?: string;
+  } | null;
+  payment: {
+    amount: number;
+    method: string;
+    status: string;
+    submittedAt?: string;
+  } | null;
+  enrolledUnits: { unitId: string; title: string }[];
+};
+
+export type MyUnitStudentsResponse = {
+  totalStudents: number;
+  students: StudentSubscriptionEntry[];
+};
+
 /**
  * Get students enrolled in any of the currently logged-in teacher's courses.
  */
 export const getMyStudents = async (): Promise<TeacherStudent[]> => {
   const response = await api.get<TeacherStudent[]>('/users/my-students');
+  return response.data;
+};
+
+/**
+ * Get students enrolled in teacher's units — includes subscription and payment info.
+ */
+export const getMyUnitStudents = async (): Promise<MyUnitStudentsResponse> => {
+  const response = await api.get<MyUnitStudentsResponse>('/users/my-unit-students');
   return response.data;
 };
 

@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import { fetchPlatformConfig, savePlatformConfig, resetPlatformConfig, type PlatformConfig } from '@/api/platformConfigApi';
+import i18n from '@/i18n';
 
 // ─── Context shape ────────────────────────────────────────────────────────────
 
@@ -51,6 +52,19 @@ function clearCache() {
   }
 }
 
+/** Apply platform-wide side-effects whenever config changes */
+function applyConfigEffects(config: PlatformConfig) {
+  // Sync default language with i18n if the user hasn't overridden it manually
+  const storedLang = localStorage.getItem('i18nextLng');
+  if (!storedLang) {
+    i18n.changeLanguage(config.defaultLanguage);
+  }
+  // Update browser tab title with platform name
+  const lang = i18n.language === 'ar' ? 'ar' : 'en';
+  const name = lang === 'ar' ? config.platformName.ar : config.platformName.en;
+  if (name) document.title = name;
+}
+
 export function PlatformConfigProvider({ children }: { children: ReactNode }) {
   const [config, setConfig] = useState<PlatformConfig | null>(readCache);
   const [isLoading, setIsLoading] = useState<boolean>(!config);
@@ -61,6 +75,7 @@ export function PlatformConfigProvider({ children }: { children: ReactNode }) {
       const cached = readCache();
       if (cached) {
         setConfig(cached);
+        applyConfigEffects(cached);
         setIsLoading(false);
         return;
       }
@@ -70,6 +85,7 @@ export function PlatformConfigProvider({ children }: { children: ReactNode }) {
     try {
       const data = await fetchPlatformConfig();
       writeCache(data);
+      applyConfigEffects(data);
       setConfig(data);
     } catch {
       setError('Could not load platform configuration');
@@ -86,6 +102,7 @@ export function PlatformConfigProvider({ children }: { children: ReactNode }) {
     const saved = await savePlatformConfig(next);
     clearCache();
     writeCache(saved);
+    applyConfigEffects(saved);
     setConfig(saved);
   }, []);
 
@@ -93,6 +110,7 @@ export function PlatformConfigProvider({ children }: { children: ReactNode }) {
     const fresh = await resetPlatformConfig();
     clearCache();
     writeCache(fresh);
+    applyConfigEffects(fresh);
     setConfig(fresh);
   }, []);
 

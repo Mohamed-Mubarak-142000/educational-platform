@@ -12,6 +12,46 @@ export type TeacherAssignment = {
   isPrimary: boolean;
 };
 
+export type AssignmentContentLesson = {
+  _id: string;
+  unitId?: string;
+  title: string;
+  titleAr?: string;
+  description?: string;
+  descriptionAr?: string;
+  order?: number;
+  duration?: number;
+  videoUrl?: string;
+  pdfUrl?: string;
+  audioUrl?: string;
+  imageUrl?: string;
+  modelUrl?: string;
+  modelExplanation?: string;
+  isPublished?: boolean;
+  isFree?: boolean;
+  locked?: boolean;
+  isUnlocked?: boolean;
+};
+
+export type AssignmentContentUnit = {
+  _id: string;
+  title: string;
+  titleAr?: string;
+  description?: string;
+  descriptionAr?: string;
+  order?: number;
+  price?: number;
+  isPublished?: boolean;
+  isUnlocked?: boolean;
+  lessons: AssignmentContentLesson[];
+};
+
+export type AssignmentContent = {
+  assignment: TeacherAssignment;
+  units: AssignmentContentUnit[];
+  access?: { subject: boolean; unitIds: string[] };
+};
+
 export type TeacherAssignmentInput = {
   teacherId: string;
   subjectId: string;
@@ -48,6 +88,32 @@ export const deleteAssignment = async (id: string): Promise<{ message: string }>
   (await api.delete<{ message: string }>(`/teacher-assignments/${id}`)).data;
 
 // ─────────────────────────────────────────────────────────────────
+// Assignment-based unit management (teacher workspace)
+// ─────────────────────────────────────────────────────────────────
+
+export type UnitInput = {
+  title: string;
+  titleAr?: string;
+  description?: string;
+  descriptionAr?: string;
+  isPublished?: boolean;
+};
+
+export const createUnitForAssignment = async (
+  assignmentId: string,
+  data: UnitInput
+): Promise<{ _id: string; title: string; order: number }> =>
+  (await api.post(`/teacher-assignments/${assignmentId}/units`, data)).data;
+
+export const getUnitsForAssignment = async (
+  assignmentId: string
+): Promise<{ _id: string; title: string; order: number; isPublished: boolean }[]> =>
+  (await api.get(`/teacher-assignments/${assignmentId}/units`)).data;
+
+export const getAssignmentContent = async (assignmentId: string): Promise<AssignmentContent> =>
+  (await api.get<AssignmentContent>(`/teacher-assignments/${assignmentId}/content`)).data;
+
+// ─────────────────────────────────────────────────────────────────
 // Student-facing: get teachers for a given subject+grade
 // ─────────────────────────────────────────────────────────────────
 export const getPublicAssignments = async (filters: {
@@ -55,6 +121,32 @@ export const getPublicAssignments = async (filters: {
   gradeId?: string;
 }): Promise<TeacherAssignment[]> =>
   (await api.get<TeacherAssignment[]>('/teacher-assignments/public', { params: filters })).data;
+
+// Student-facing: get teachers for a given subject+stage
+export const getTeachersBySubjectStage = async (filters: {
+  subjectId: string;
+  stageId: string;
+}): Promise<TeacherAssignment[]> =>
+  (await api.get<TeacherAssignment[]>('/teacher-assignments/by-subject-stage', { params: filters })).data;
+
+// ─────────────────────────────────────────────────────────────────
+// Teacher dashboard stats
+// ─────────────────────────────────────────────────────────────────
+export type MonthStat = { year: number; month: number; count: number };
+
+export type TeacherDashboardData = {
+  studentsCount: number;
+  subjectsCount: number;
+  stagesCount: number;
+  unitsCount: number;
+  lessonsCount: number;
+  quizzesCount: number;
+  studentGrowth: MonthStat[];
+  contentStats: MonthStat[];
+};
+
+export const getTeacherDashboard = async (): Promise<TeacherDashboardData> =>
+  (await api.get<TeacherDashboardData>('/teacher-assignments/dashboard')).data;
 
 // ─────────────────────────────────────────────────────────────────
 // Helper: get all teachers for a given subject+grade combo

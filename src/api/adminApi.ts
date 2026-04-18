@@ -47,6 +47,11 @@ export type TeacherApplicationRecord = {
   cvUrl?: string;
   zoomLink?: string;
   rejectionReason?: string;
+  stageId?: string;
+  stageIds?: string[];
+  subjectIds?: string[];
+  gradeIds?: string[];
+  teacherId?: string;
 };
 
 export type Student = {
@@ -115,18 +120,6 @@ export type TeacherApplicationUploadResponse = {
   url: string;
 };
 
-export type Subscription = {
-  _id: string;
-  studentId: string | { _id?: string };
-  plan?: string;
-  status?: string;
-};
-
-export type SubscriptionAction = {
-  studentId: string;
-  planId?: string;
-};
-
 export type TeacherApplicationInput = {
   name: string;
   email: string;
@@ -137,6 +130,7 @@ export type TeacherApplicationInput = {
   stageId?: string;
   stageIds?: string[];
   subjectIds?: string[];
+  gradeIds?: string[];
   availableDays?: string[];
   availableHours?: Record<string, { start?: string; end?: string }>;
 };
@@ -234,25 +228,6 @@ export const uploadTeacherApplicationFile = async (file: File): Promise<TeacherA
   return response.data;
 };
 
-export const getMySubscription = async (): Promise<Subscription> => {
-  const response = await api.get<Subscription>('/subscriptions/me');
-  return response.data;
-};
-
-export const getSubscriptions = async (): Promise<Subscription[]> => {
-  const response = await api.get<Subscription[]>('/subscriptions');
-  return response.data;
-};
-
-export const activateSubscription = async (data: SubscriptionAction): Promise<Subscription> => {
-  const response = await api.post<Subscription>('/subscriptions/activate', data);
-  return response.data;
-};
-
-export const cancelSubscription = async (data: SubscriptionAction): Promise<Subscription> => {
-  const response = await api.post<Subscription>('/subscriptions/cancel', data);
-  return response.data;
-};
 
 export const getTeacherApplications = async (): Promise<TeacherApplicationRecord[]> => {
   const response = await api.get<TeacherApplicationRecord[]>('/teacher-applications');

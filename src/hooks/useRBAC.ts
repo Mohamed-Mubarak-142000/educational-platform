@@ -18,8 +18,6 @@ import {
   canManageUsers,
   canViewStudents,
   canManageTeacherAssignments,
-  canManageSubscriptions,
-  canViewSubscriptions,
   getAllowedActions,
   getRoleDisplayName,
   canAccessAdminPanel,
@@ -60,8 +58,6 @@ export const useRBAC = () => {
       canManageUsers: canManageUsers(user),
       canViewStudents: canViewStudents(user),
       canManageTeacherAssignments: canManageTeacherAssignments(user),
-      canManageSubscriptions: canManageSubscriptions(user),
-      canViewSubscriptions: canViewSubscriptions(user),
       canAccessAdminPanel: canAccessAdminPanel(user),
 
       // Dynamic permission checks (pass parameters)

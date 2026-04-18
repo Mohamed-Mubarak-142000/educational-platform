@@ -55,6 +55,15 @@ function makeApiError(status: number, message: string): ApiError {
   return err;
 }
 
+function getCurrentUserId(): string {
+  try {
+    const user = JSON.parse(localStorage.getItem('mockAuthUser') || '{}') as { _id?: string };
+    return user._id || '';
+  } catch {
+    return '';
+  }
+}
+
 // ── Stages ─────────────────────────────────────────────────────────
 
 export const getStages = async () => {
@@ -109,6 +118,26 @@ export const getSubjects = async () => {
 export const getSubjectsByStage = async (stageId: string) => {
   await delay();
   return subjects.filter((s) => s.stageId === stageId);
+};
+
+export const getSubscribedSubjects = async () => {
+  await delay();
+  const studentId = getCurrentUserId();
+  const enrolledUnitIds = enrollments
+    .filter((e) => e.studentId === studentId)
+    .map((e) => e.unitId);
+
+  const enrolledUnits = units.filter((u) => enrolledUnitIds.includes(u._id));
+  const subjectIds = Array.from(new Set(enrolledUnits.map((u) => u.subjectId)));
+
+  return subjects
+    .filter((s) => subjectIds.includes(s._id))
+    .map((subject) => {
+      const totalUnits = units.filter((u) => u.subjectId === subject._id).length;
+      const enrolledCount = enrolledUnits.filter((u) => u.subjectId === subject._id).length;
+      const progressPercentage = totalUnits > 0 ? Math.round((enrolledCount / totalUnits) * 100) : 0;
+      return { ...subject, progressPercentage };
+    });
 };
 
 export const getSubjectById = async (id: string) => {

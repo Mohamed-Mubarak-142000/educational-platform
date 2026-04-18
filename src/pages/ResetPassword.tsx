@@ -7,7 +7,7 @@ import { resetPassword } from '@/api/authApi';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/PasswordInput';
 import { SiteNavbar } from '@/components/ui/SiteNavbar';
 import { SiteFooter } from '@/components/ui/SiteFooter';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
@@ -77,13 +77,13 @@ export default function ResetPassword() {
                 )}
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                   <div>
-                    <Input {...form.register('newPassword')} placeholder={t('newPassword')} type="password" className="w-full" />
+                    <PasswordInput {...form.register('newPassword')} placeholder={t('newPassword')} className="w-full" />
                     {form.formState.errors.newPassword && (
                       <span className="text-red-500 text-sm">{form.formState.errors.newPassword.message}</span>
                     )}
                   </div>
                   <div>
-                    <Input {...form.register('confirmPassword')} placeholder={t('confirmPassword')} type="password" className="w-full" />
+                    <PasswordInput {...form.register('confirmPassword')} placeholder={t('confirmPassword')} className="w-full" />
                     {form.formState.errors.confirmPassword && (
                       <span className="text-red-500 text-sm">{form.formState.errors.confirmPassword.message}</span>
                     )}

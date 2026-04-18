@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { deleteStudent, getStudents, getSubscriptions, type Student, type Subscription } from '@/api/adminApi';
+import { deleteStudent, getStudents, type Student } from '@/api/adminApi';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
@@ -23,10 +23,6 @@ export default function AdminStudents() {
     queryFn: getStudents,
   });
   
-  const { data: subscriptions = [] } = useQuery<Subscription[]>({
-    queryKey: ['subscriptions'],
-    queryFn: getSubscriptions,
-  });
 
   // CRUD operations hook
   const { deleteMutation } = useCRUDOperations({
@@ -36,14 +32,6 @@ export default function AdminStudents() {
     deleteSuccessMessage: t('toastStudentDeleted'),
   });
 
-  const subscriptionMap = useMemo(() => {
-    const map = new Map<string, Subscription>();
-    subscriptions.forEach((sub) => {
-      const studentId = typeof sub.studentId === 'object' ? sub.studentId?._id : sub.studentId;
-      if (studentId) map.set(studentId, sub);
-    });
-    return map;
-  }, [subscriptions]);
 
   const handleDelete = (studentId: string) => {
     setSelectedStudentId(studentId);
@@ -74,19 +62,6 @@ export default function AdminStudents() {
     { key: 'name', label: t('name') },
     { key: 'email', label: t('email') },
     { key: 'phone', label: t('phone'), render: (v) => (typeof v === 'string' && v ? v : '-') },
-    { 
-      key: '_id', 
-      label: t('plan'), 
-      render: (v) => (typeof v === 'string' ? subscriptionMap.get(v)?.plan || t('noPlan') : t('noPlan'))
-    },
-    { 
-      key: '_id', 
-      label: t('subscription'), 
-      render: (v) => {
-        const status = typeof v === 'string' ? subscriptionMap.get(v)?.status : undefined;
-        return status === 'Active' ? t('active') : status === 'Cancelled' ? t('cancelled') : t('inactive');
-      }
-    },
   ];
 
   return (

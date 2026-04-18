@@ -8,6 +8,7 @@ import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/PasswordInput';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SiteNavbar } from '@/components/ui/SiteNavbar';
 import { SiteFooter } from '@/components/ui/SiteFooter';
@@ -138,7 +139,7 @@ export default function Register() {
                     )}
                   </div>
                   <div>
-                    <Input {...registerForm.register('password')} placeholder={t('password')} type="password" className="w-full" />
+                    <PasswordInput {...registerForm.register('password')} placeholder={t('password')} className="w-full" />
                     {registerForm.formState.errors.password && (
                       <span className="text-red-500 text-sm">{registerForm.formState.errors.password.message}</span>
                     )}

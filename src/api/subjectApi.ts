@@ -33,6 +33,29 @@ export type Subject = {
   studentCount?: number;
 };
 
+export type SubscribedSubject = Subject & {
+  progressPercentage?: number | null;
+};
+
+export type SubjectTeacherAssignment = {
+  _id: string;
+  teacherId: string | { _id: string; name?: string; email?: string; bio?: string; profileImage?: string };
+  subjectId: string | { _id: string; name: string; nameAr?: string; icon?: string; color?: string };
+  gradeId: string | { _id: string; name: string; nameAr?: string; stageId?: string };
+  isPrimary?: boolean;
+  subjectPrice?: number;
+};
+
+export type SubjectTeacherContent = {
+  assignmentId: string;
+  assignment: SubjectTeacherAssignment;
+  units: (Unit & { isUnlocked?: boolean; lessons: Lesson[] })[];
+  pricing?: { subject?: number };
+  access?: { subject: boolean; unitIds: string[] };
+  subscriptionStatus?: 'Approved' | 'Pending' | 'None';
+  pendingUnitIds?: string[];
+};
+
 export type SubjectInput = {
   name: string;
   nameAr?: string;
@@ -51,6 +74,8 @@ export type Unit = {
   description?: string;
   order?: number;
   subjectId?: string;
+  gradeId?: string;
+  assignmentId?: string;
   price?: number;
   amount?: number;
 };
@@ -80,6 +105,8 @@ export type Lesson = {
   teacherId?: string;
   isPublished?: boolean;
   isFree?: boolean;
+  locked?: boolean;
+  isUnlocked?: boolean;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -141,16 +168,19 @@ export type Quiz = {
   title?: string;
   attachedToId?: string;
   attachedTo?: 'unit' | 'lesson';
+  timeLimit?: number; // minutes, 0 = no limit
 };
 
 export type QuizInput = {
   attachedTo: 'unit' | 'lesson';
   attachedToId: string;
   title: string;
+  timeLimit?: number;
 };
 
 export type QuizUpdate = {
-  title: string;
+  title?: string;
+  timeLimit?: number;
 };
 
 export type QuizQuestion = {
@@ -182,12 +212,14 @@ export type UnitAvailabilityInput = {
 };
 
 export type QuizGrade = {
-  _id?: string;
+  _id: string;
+  studentId: string;
   quizId: string;
   score: number;
-  correctCount?: number;
-  totalQuestions?: number;
-  completedAt?: string;
+  correctCount: number;
+  totalQuestions: number;
+  completedAt: string;
+  createdAt: string;
 };
 
 export type TeacherSchedule = {
@@ -220,6 +252,9 @@ export const getStageById = async (id: string): Promise<Stage> => (await api.get
 export const createStage = async (data: StageInput): Promise<Stage> => (await api.post<Stage>('/stages', data)).data;
 export const updateStage = async (id: string, data: StageInput): Promise<Stage> => (await api.put<Stage>(`/stages/${id}`, data)).data;
 export const deleteStage = async (id: string): Promise<{ message?: string }> => (await api.delete<{ message?: string }>(`/stages/${id}`)).data;
+/** Returns a map of stageId → distinct subject count. Public, no auth required. */
+export const getStageSubjectCounts = async (): Promise<Record<string, number>> =>
+  (await api.get<Record<string, number>>('/stages/subject-counts')).data;
 
 // ── Subjects ──────────────────────────────────────────────────────
 export const getSubjects = async (options?: { stageId?: string; stageName?: string }): Promise<Subject[]> => {
@@ -233,20 +268,33 @@ export const getSubjects = async (options?: { stageId?: string; stageName?: stri
   return (await api.get<Subject[]>(url)).data;
 };
 export const getSubjectsByStage = async (stageId: string): Promise<Subject[]> => (await api.get<Subject[]>(`/stages/${stageId}/subjects`)).data;
+export const getSubscribedSubjects = async (): Promise<SubscribedSubject[]> =>
+  (await api.get<SubscribedSubject[]>('/users/subscribed-subjects')).data;
 export const getSubjectById = async (id: string): Promise<Subject> => (await api.get<Subject>(`/subjects/${id}`)).data;
+export const getSubjectTeachers = async (subjectId: string): Promise<SubjectTeacherAssignment[]> =>
+  (await api.get<SubjectTeacherAssignment[]>(`/subjects/${subjectId}/teachers`)).data;
+export const getSubjectTeacherContent = async (
+  subjectId: string,
+  teacherId: string
+): Promise<SubjectTeacherContent> =>
+  (await api.get<SubjectTeacherContent>(`/subjects/${subjectId}/teachers/${teacherId}/content`)).data;
 export const createSubject = async (data: SubjectInput): Promise<Subject> => (await api.post<Subject>('/subjects', data)).data;
 export const updateSubject = async (id: string, data: SubjectInput): Promise<Subject> => (await api.put<Subject>(`/subjects/${id}`, data)).data;
 export const deleteSubject = async (id: string): Promise<{ message?: string }> => (await api.delete<{ message?: string }>(`/subjects/${id}`)).data;
 
 // ── Units ─────────────────────────────────────────────────────────
 export const getUnitsBySubject = async (subjectId: string): Promise<Unit[]> => (await api.get<Unit[]>(`/subjects/${subjectId}/units`)).data;
+/** Get units for a specific teacher assignment (teacher-scoped course view) */
+export const getUnitsByAssignment = async (assignmentId: string): Promise<Unit[]> =>
+  (await api.get<Unit[]>(`/teacher-assignments/${assignmentId}/units`)).data;
 export const getUnitById = async (id: string): Promise<Unit> => (await api.get<Unit>(`/units/${id}`)).data;
 export const createUnit = async (
-  subjectId: string, 
-  data: UnitInput, 
+  subjectId: string,
+  data: UnitInput & { assignmentId?: string },
   gradeId?: string
 ): Promise<Unit> => {
-  const payload = gradeId ? { ...data, gradeId } : data;
+  const payload: Record<string, unknown> = { ...data };
+  if (gradeId) payload.gradeId = gradeId;
   return (await api.post<Unit>(`/subjects/${subjectId}/units`, payload)).data;
 };
 export const updateUnit = async (id: string, data: UnitInput): Promise<Unit> => (await api.put<Unit>(`/units/${id}`, data)).data;

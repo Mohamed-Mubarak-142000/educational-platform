@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { getQuestionsByQuiz } from '@/api/subjectApi';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { getQuestionsByQuiz, saveQuizGrade } from '@/api/subjectApi';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
 import {
@@ -12,6 +12,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { EmptyState } from '@/components/shared';
 import { Clock, CheckCircle2, XCircle, ClipboardList, Trophy } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 // ── Types ──────────────────────────────────────────────────────────
 
@@ -44,19 +45,28 @@ export default function StudentQuizModal({
   onClose,
   quizId,
   quizTitle,
+  timeLimitMinutes,
   onComplete,
 }: {
   open: boolean;
   onClose: () => void;
   quizId: string;
   quizTitle: string;
+  timeLimitMinutes?: number;
   onComplete?: (_score: number, _correctCount: number, _total: number) => void;
 }) {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [phase, setPhase] = useState<Phase>('taking');
   // questionId → chosen option index (0–3)
   const [answers, setAnswers] = useState<Record<string, number>>({});
-  const [timeLeft, setTimeLeft] = useState(DEFAULT_TIME_SECONDS);
+  const initialSeconds = timeLimitMinutes && timeLimitMinutes > 0 ? timeLimitMinutes * 60 : DEFAULT_TIME_SECONDS;
+  const [timeLeft, setTimeLeft] = useState(initialSeconds);
+
+  const saveGradeMutation = useMutation({
+    mutationFn: ({ score, correctCount, totalQuestions }: { score: number; correctCount: number; totalQuestions: number }) =>
+      saveQuizGrade(user?._id ?? '', quizId, score, correctCount, totalQuestions),
+  });
 
   // Reset state every time dialog is opened.
   // React 18 automatic batching ensures all three calls produce a single render.
@@ -67,9 +77,9 @@ export default function StudentQuizModal({
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setPhase('taking');
       setAnswers({});
-      setTimeLeft(DEFAULT_TIME_SECONDS);
+      setTimeLeft(timeLimitMinutes && timeLimitMinutes > 0 ? timeLimitMinutes * 60 : DEFAULT_TIME_SECONDS);
     }
-  }, [open, quizId]);
+  }, [open, quizId, timeLimitMinutes]);
 
   const { data: questions = [], isLoading } = useQuery<QuizQuestion[]>({
     queryKey: ['quiz-questions', quizId],
@@ -79,15 +89,18 @@ export default function StudentQuizModal({
 
   // ── Submission ───────────────────────────────────────────────────
   const submit = useCallback(() => {
-    setPhase('result');
-    // Calculate score at submission time
     const correct = questions.filter(
       (q) => answers[q._id] !== undefined && answers[q._id] === q.correctAnswer
     ).length;
     const total = questions.length;
     const pctScore = total > 0 ? Math.round((correct / total) * 100) : 0;
+    // Save to backend (fire-and-forget, don't block UI)
+    if (user?._id) {
+      saveGradeMutation.mutate({ score: pctScore, correctCount: correct, totalQuestions: total });
+    }
+    setPhase('result');
     onComplete?.(pctScore, correct, total);
-  }, [questions, answers, onComplete]);
+  }, [questions, answers, onComplete, user?._id, saveGradeMutation]);
 
   // ── Countdown timer (interval-based; does not depend on timeLeft) ─
   useEffect(() => {

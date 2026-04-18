@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { useState, useEffect } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, GraduationCap, BookOpen, FileText, CreditCard, Settings, ChevronLeft, LogOut, GraduationCap as LearnIcon, Calendar, UserSquare2, Award, ShieldAlert, X, type LucideIcon } from 'lucide-react';
+import { LayoutDashboard, Users, GraduationCap, BookOpen, FileText, CreditCard, Settings, ChevronLeft, LogOut, GraduationCap as LearnIcon, Calendar, UserSquare2, ShieldAlert, X, Trophy, Pencil, type LucideIcon } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { roleHome, type Role } from '@/utils/routes';
 import { useTranslation } from 'react-i18next';
@@ -152,16 +152,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     { to: '/teacher/subjects', label: t('stagesAndSubjects'), icon: BookOpen, end: false },
     { to: '/teacher/students', label: t('myStudents'), icon: GraduationCap, end: false },
     { to: '/teacher/exams', label: t('teacherExams'), icon: FileText, end: false },
-    { to: '/teacher/settings', label: t('teacherSettings'), icon: Settings, end: false },
+    { to: '/teacher/profile/edit', label: t('editProfile'), icon: Pencil, end: false },
   ];
 
   const studentLinks = [
     { to: '/student', label: t('studentOverview'), icon: LayoutDashboard, end: true },
-    { to: '/student/teachers', label: t('teachersDirectoryTitle'), icon: Users, end: false },
     { to: '/student/learn', label: t('studentLearn'), icon: LearnIcon, end: false },
     { to: '/student/schedule', label: t('mySchedule'), icon: Calendar, end: false },
-    { to: '/student/grades', label: t('myGrades'), icon: Award, end: false },
-    { to: '/student/subscriptions', label: t('studentSubscriptions'), icon: CreditCard, end: false },
+    { to: '/student/quiz-history', label: t('quizHistoryTitle'), icon: Trophy, end: false },
     { to: '/student/payments-record', label: t('paymentsRecord'), icon: CreditCard, end: false },
     { to: '/student/courses', label: t('stageCourses'), icon: BookOpen, end: false },
   ];

@@ -81,7 +81,7 @@ export default function StudentPaymentsRecord() {
                       <td className="py-3 px-2">{getPaymentMethodLabel(payment.method)}</td>
                       <td className="py-3 px-2">{getPaymentStatusLabel(payment.status)}</td>
                       <td className="py-3 px-2">
-                        {payment.createdAt ? new Date(payment.createdAt).toLocaleDateString(locale) : '-'}
+                        {payment.createdAt ? new Date(payment.createdAt).toLocaleDateString(locale) : t('notAvailableShort')}
                       </td>
                       <td className="py-3 px-2">
                         {payment.screenshotUrl ? (
@@ -89,7 +89,7 @@ export default function StudentPaymentsRecord() {
                             {t('view')}
                           </a>
                         ) : (
-                          '-'
+                          t('notAvailableShort')
                         )}
                       </td>
                     </tr>
