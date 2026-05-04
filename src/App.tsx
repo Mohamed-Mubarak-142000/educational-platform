@@ -1,79 +1,81 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth } from './context/AuthContext';
-import { useTranslation } from 'react-i18next';
-import { useEffect, lazy, Suspense } from 'react';
-import { SiteNavbar } from '@/components/ui/SiteNavbar';
-import RequireAuth from '@/components/RequireAuth';
-import { roleHome, type Role } from '@/utils/routes';
-import DashboardLayout from '@/components/DashboardLayout';
-import PageLoader from '@/components/PageLoader';
-import SplashScreen from '@/components/SplashScreen';
-import { SidebarProvider } from '@/context/SidebarContext';
-import { PlatformConfigProvider } from '@/context/PlatformConfigContext';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { useAuth } from "./context/AuthContext";
+import { useTranslation } from "react-i18next";
+import { useEffect, lazy, Suspense } from "react";
+import { SiteNavbar } from "@/components/ui/SiteNavbar";
+import RequireAuth from "@/components/RequireAuth";
+import { roleHome, type Role } from "@/utils/routes";
+import DashboardLayout from "@/components/DashboardLayout";
+import PageLoader from "@/components/PageLoader";
+import SplashScreen from "@/components/SplashScreen";
+import { SidebarProvider } from "@/context/SidebarContext";
+import { PlatformConfigProvider } from "@/context/PlatformConfigContext";
 
-const Landing = lazy(() => import('./pages/Landing'));
-const Login = lazy(() => import('./pages/Login'));
-const Register = lazy(() => import('./pages/Register'));
-const CourseView = lazy(() => import('./pages/CourseView'));
-const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
-const ResetPassword = lazy(() => import('./pages/ResetPassword'));
-const ChangePassword = lazy(() => import('./pages/ChangePassword'));
-const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
-const AdminOverview = lazy(() => import('./pages/AdminOverview'));
-const AdminTeachers = lazy(() => import('./pages/AdminTeachers'));
-const AdminStudents = lazy(() => import('./pages/AdminStudents'));
-const AdminCourses = lazy(() => import('./pages/AdminCourses'));
-const AdminStages = lazy(() => import('./pages/AdminStages'));
-const AdminSubjectDetail = lazy(() => import('./pages/AdminSubjectDetail'));
-const AdminLessonForm = lazy(() => import('./pages/AdminLessonForm'));
-const LessonView = lazy(() => import('./pages/LessonView'));
-const AdminExams = lazy(() => import('./pages/AdminExams'));
-const AdminPayments = lazy(() => import('./pages/AdminPayments'));
-const AdminTeacherDetail = lazy(() => import('./pages/AdminTeacherDetail'));
-const AdminStudentDetail = lazy(() => import('./pages/AdminStudentDetail'));
-const AdminCourseDetail = lazy(() => import('./pages/AdminCourseDetail'));
-const AdminExamDetail = lazy(() => import('./pages/AdminExamDetail'));
-const AdminTeacherRequests = lazy(() => import('./pages/AdminTeacherRequests'));
-const CourseForm = lazy(() => import('./pages/CourseForm'));
-const ExamForm = lazy(() => import('./pages/ExamForm'));
-const TeacherForm = lazy(() => import('./pages/TeacherForm'));
-const StudentForm = lazy(() => import('./pages/StudentForm'));
-const TeacherOverview = lazy(() => import('./pages/TeacherOverview'));
-const CourseLessonForm = lazy(() => import('./pages/CourseLessonForm'));
-const TeacherStudents = lazy(() => import('./pages/TeacherStudents'));
-const TeacherExams = lazy(() => import('./pages/TeacherExams'));
-const TeacherProfileEdit = lazy(() => import('./pages/TeacherProfileEdit'));
-const TeacherStages = lazy(() => import('./pages/TeacherStages'));
-const TeacherSubjects = lazy(() => import('./pages/TeacherSubjects'));
-const TeacherSubjectDetail = lazy(() => import('./pages/TeacherSubjectDetail'));
-const TeacherLessonForm = lazy(() => import('./pages/TeacherLessonForm'));
-const StudentOverview = lazy(() => import('./pages/StudentOverview'));
-const StudentPaymentsRecord = lazy(() => import('./pages/StudentPaymentsRecord'));
-const StudentCourses = lazy(() => import('./pages/StudentCourses'));
-const StudentLearn = lazy(() => import('./pages/StudentLearn'));
-const StudentSubjectDetail = lazy(() => import('./pages/StudentSubjectDetail'));
-const StudentSchedule = lazy(() => import('./pages/StudentSchedule'));
+const Landing = lazy(() => import("./pages/Landing"));
+const Login = lazy(() => import("./pages/Login"));
+const Register = lazy(() => import("./pages/Register"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const ChangePassword = lazy(() => import("./pages/ChangePassword"));
+const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
+const AdminOverview = lazy(() => import("./pages/AdminOverview"));
+const AdminTeachers = lazy(() => import("./pages/AdminTeachers"));
+const AdminStudents = lazy(() => import("./pages/AdminStudents"));
+const AdminStages = lazy(() => import("./pages/AdminStages"));
+const AdminSubjectDetail = lazy(() => import("./pages/AdminSubjectDetail"));
+const AdminLessonForm = lazy(() => import("./pages/AdminLessonForm"));
+const LessonView = lazy(() => import("./pages/LessonView"));
+const AdminPayments = lazy(() => import("./pages/AdminPayments"));
+const AdminTeacherDetail = lazy(() => import("./pages/AdminTeacherDetail"));
+const AdminStudentDetail = lazy(() => import("./pages/AdminStudentDetail"));
+const AdminTeacherRequests = lazy(() => import("./pages/AdminTeacherRequests"));
+const TeacherForm = lazy(() => import("./pages/TeacherForm"));
+const StudentForm = lazy(() => import("./pages/StudentForm"));
+const TeacherOverview = lazy(() => import("./pages/TeacherOverview"));
+const TeacherStudents = lazy(() => import("./pages/TeacherStudents"));
+const TeacherProfileEdit = lazy(() => import("./pages/TeacherProfileEdit"));
+const TeacherStages = lazy(() => import("./pages/TeacherStages"));
+const TeacherSubjects = lazy(() => import("./pages/TeacherSubjects"));
+const TeacherSubjectDetail = lazy(() => import("./pages/TeacherSubjectDetail"));
+const TeacherLessonForm = lazy(() => import("./pages/TeacherLessonForm"));
+const StudentOverview = lazy(() => import("./pages/StudentOverview"));
+const StudentPaymentsRecord = lazy(
+  () => import("./pages/StudentPaymentsRecord"),
+);
+const StudentLearn = lazy(() => import("./pages/StudentLearn"));
+const StudentSubjectDetail = lazy(() => import("./pages/StudentSubjectDetail"));
+const StudentSchedule = lazy(() => import("./pages/StudentSchedule"));
+const LiveClassroomPage = lazy(() => import("./pages/LiveClassroomPage"));
+const SessionLobbyPage = lazy(() => import("./pages/SessionLobbyPage"));
 
-const AdminGrades = lazy(() => import('./pages/AdminGrades'));
-const AdminPlatformConfig = lazy(() => import('./pages/AdminPlatformConfig'));
-const AdminGradeSubjects = lazy(() => import('./pages/AdminGradeSubjects'));
-const StudentLearnBrowser = lazy(() => import('./pages/StudentLearnBrowser'));
-const StudentSubjectTeachers = lazy(() => import('./pages/StudentSubjectTeachers'));
-const StudentQuizHistory = lazy(() => import('./pages/StudentQuizHistory'));
-const PublicStageSubjects = lazy(() => import('./pages/PublicStageSubjects'));
-const PublicSubjectTeachers = lazy(() => import('./pages/PublicSubjectTeachers'));
-const PublicAllStages = lazy(() => import('./pages/PublicAllStages'));
-const PublicGradeSubjects = lazy(() => import('./pages/PublicGradeSubjects'));
-const Unauthorized = lazy(() => import('./pages/Unauthorized'));
+const AdminGrades = lazy(() => import("./pages/AdminGrades"));
+const AdminPlatformConfig = lazy(() => import("./pages/AdminPlatformConfig"));
+const AdminGradeSubjects = lazy(() => import("./pages/AdminGradeSubjects"));
+const StudentLearnBrowser = lazy(() => import("./pages/StudentLearnBrowser"));
+const StudentSubjectTeachers = lazy(
+  () => import("./pages/StudentSubjectTeachers"),
+);
+const StudentQuizHistory = lazy(() => import("./pages/StudentQuizHistory"));
+const PublicStageSubjects = lazy(() => import("./pages/PublicStageSubjects"));
+const PublicSubjectTeachers = lazy(
+  () => import("./pages/PublicSubjectTeachers"),
+);
+const PublicAllStages = lazy(() => import("./pages/PublicAllStages"));
+const PublicGradeSubjects = lazy(() => import("./pages/PublicGradeSubjects"));
+const Unauthorized = lazy(() => import("./pages/Unauthorized"));
+const PaymentResult = lazy(() => import("./pages/PaymentResult"));
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 font-sans selection:bg-blue-200 flex flex-col">
         <SiteNavbar variant="app" position="fixed" />
-        <main className="flex-1">
-          {children}
-        </main>
+        <main className="flex-1">{children}</main>
       </div>
     </SidebarProvider>
   );
@@ -83,10 +85,13 @@ function App() {
   const { i18n } = useTranslation();
   const { user, isLoading } = useAuth();
   const role = user?.role;
-  const normalizedRole: Role | undefined = role === 'Admin' || role === 'Teacher' || role === 'Student' ? role : undefined;
-  
+  const normalizedRole: Role | undefined =
+    role === "Admin" || role === "Teacher" || role === "Student"
+      ? role
+      : undefined;
+
   useEffect(() => {
-    document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.dir = i18n.language === "ar" ? "rtl" : "ltr";
     document.documentElement.lang = i18n.language;
   }, [i18n.language]);
 
@@ -94,508 +99,570 @@ function App() {
 
   return (
     <PlatformConfigProvider>
-    <>
-      <SplashScreen />
-      <Router>
-      <Suspense fallback={<PageLoader />}>
-      <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/curriculums" element={<Navigate to="/stages" replace />} />
-        <Route path="/login" element={!user ? <Login /> : <Navigate to={roleHome(normalizedRole)} />} />
-        <Route path="/register" element={!user ? <Register /> : <Navigate to={roleHome(normalizedRole)} />} />
-        <Route path="/verify-email" element={<VerifyEmail />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/unauthorized" element={<Unauthorized />} />
-        <Route path="/change-password" element={
-          <RequireAuth>
-            <ChangePassword />
-          </RequireAuth>
-        } />
-        <Route path="/dashboard" element={
-          <RequireAuth>
-            <Navigate to={roleHome(normalizedRole)} />
-          </RequireAuth>
-        } />
-        <Route path="/admin" element={
-          <RequireAuth allowedRoles={['Admin']}>
-            <Layout>
-              <DashboardLayout>
-                <AdminOverview />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/admin/teachers" element={
-          <RequireAuth allowedRoles={['Admin']}>
-            <Layout>
-              <DashboardLayout>
-                <AdminTeachers />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/admin/teachers/new" element={
-          <RequireAuth allowedRoles={['Admin']}>
-            <Layout>
-              <DashboardLayout>
-                <TeacherForm />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/admin/teachers/:id/edit" element={
-          <RequireAuth allowedRoles={['Admin']}>
-            <Layout>
-              <DashboardLayout>
-                <TeacherForm />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/admin/teachers/:id" element={
-          <RequireAuth allowedRoles={['Admin']}>
-            <Layout>
-              <DashboardLayout>
-                <AdminTeacherDetail />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/admin/teacher-requests" element={
-          <RequireAuth allowedRoles={['Admin']}>
-            <Layout>
-              <DashboardLayout>
-                <AdminTeacherRequests />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/admin/students" element={
-          <RequireAuth allowedRoles={['Admin']}>
-            <Layout>
-              <DashboardLayout>
-                <AdminStudents />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/admin/students/new" element={
-          <RequireAuth allowedRoles={['Admin']}>
-            <Layout>
-              <DashboardLayout>
-                <StudentForm />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/admin/students/:id/edit" element={
-          <RequireAuth allowedRoles={['Admin']}>
-            <Layout>
-              <DashboardLayout>
-                <StudentForm />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/admin/students/:id" element={
-          <RequireAuth allowedRoles={['Admin']}>
-            <Layout>
-              <DashboardLayout>
-                <AdminStudentDetail />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/admin/courses" element={
-          <RequireAuth allowedRoles={['Admin']}>
-            <Layout>
-              <DashboardLayout>
-                <AdminCourses />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/admin/courses/new" element={
-          <RequireAuth allowedRoles={['Admin']}>
-            <Layout>
-              <DashboardLayout>
-                <CourseForm />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/admin/courses/:id/edit" element={
-          <RequireAuth allowedRoles={['Admin']}>
-            <Layout>
-              <DashboardLayout>
-                <CourseForm />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/admin/courses/:id" element={
-          <RequireAuth allowedRoles={['Admin']}>
-            <Layout>
-              <DashboardLayout>
-                <AdminCourseDetail />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/admin/courses/:courseId/lessons/new" element={
-          <RequireAuth allowedRoles={['Admin']}>
-            <Layout>
-              <DashboardLayout>
-                <CourseLessonForm />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/admin/courses/:courseId/lessons/:lessonId/edit" element={
-          <RequireAuth allowedRoles={['Admin']}>
-            <Layout>
-              <DashboardLayout>
-                <CourseLessonForm />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/admin/exams" element={
-          <RequireAuth allowedRoles={['Admin']}>
-            <Layout>
-              <DashboardLayout>
-                <AdminExams />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/admin/exams/new" element={
-          <RequireAuth allowedRoles={['Admin']}>
-            <Layout>
-              <DashboardLayout>
-                <ExamForm />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/admin/exams/:id/edit" element={
-          <RequireAuth allowedRoles={['Admin']}>
-            <Layout>
-              <DashboardLayout>
-                <ExamForm />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/admin/exams/:id" element={
-          <RequireAuth allowedRoles={['Admin']}>
-            <Layout>
-              <DashboardLayout>
-                <AdminExamDetail />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/admin/payments" element={
-          <RequireAuth allowedRoles={['Admin']}>
-            <Layout>
-              <DashboardLayout>
-                <AdminPayments />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/teacher" element={
-          <RequireAuth allowedRoles={['Teacher']}>
-            <Layout>
-              <DashboardLayout>
-                <TeacherOverview />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/teacher/students" element={
-          <RequireAuth allowedRoles={['Teacher']}>
-            <Layout>
-              <DashboardLayout>
-                <TeacherStudents />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/teacher/exams" element={
-          <RequireAuth allowedRoles={['Teacher']}>
-            <Layout>
-              <DashboardLayout>
-                <TeacherExams />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/teacher/profile/edit" element={
-          <RequireAuth allowedRoles={['Teacher']}>
-            <Layout>
-              <DashboardLayout>
-                <TeacherProfileEdit />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/teacher/subjects" element={
-          <RequireAuth allowedRoles={['Teacher']}>
-            <Layout>
-              <DashboardLayout>
-                <TeacherStages />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/teacher/stages/:stageId/subjects" element={
-          <RequireAuth allowedRoles={['Teacher']}>
-            <Layout>
-              <DashboardLayout>
-                <TeacherSubjects />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/teacher/subjects/:id" element={
-          <RequireAuth allowedRoles={['Teacher']}>
-            <Layout>
-              <DashboardLayout>
-                <TeacherSubjectDetail />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/teacher/subjects/:subjectId/units/:unitId/lessons/new" element={
-          <RequireAuth allowedRoles={['Teacher']}>
-            <Layout>
-              <DashboardLayout>
-                <TeacherLessonForm />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/teacher/subjects/:subjectId/units/:unitId/lessons/:lessonId/edit" element={
-          <RequireAuth allowedRoles={['Teacher']}>
-            <Layout>
-              <DashboardLayout>
-                <TeacherLessonForm />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/student" element={
-          <RequireAuth allowedRoles={['Student']}>
-            <Layout>
-              <DashboardLayout>
-                <StudentOverview />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/student/payments-record" element={
-          <RequireAuth allowedRoles={['Student']}>
-            <Layout>
-              <DashboardLayout>
-                <StudentPaymentsRecord />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/student/courses" element={
-          <RequireAuth allowedRoles={['Student']}>
-            <Layout>
-              <DashboardLayout>
-                <StudentCourses />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/student/learn" element={
-          <RequireAuth allowedRoles={['Student']}>
-            <Layout>
-              <DashboardLayout>
-                <StudentLearn />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/student/subjects/:subjectId" element={
-          <RequireAuth allowedRoles={['Student']}>
-            <Layout>
-              <DashboardLayout>
-                <StudentSubjectTeachers />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        {/* Teacher selection for a subject */}
-        <Route path="/student/subjects/:subjectId/teachers" element={
-          <RequireAuth allowedRoles={['Student']}>
-            <Layout>
-              <DashboardLayout>
-                <StudentSubjectTeachers />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        {/* Teacher-scoped subject course view */}
-        <Route path="/student/subjects/:subjectId/teachers/:teacherId" element={
-          <RequireAuth allowedRoles={['Student']}>
-            <Layout>
-              <DashboardLayout>
-                <StudentSubjectDetail />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/student/quiz-history" element={
-          <RequireAuth allowedRoles={['Student']}>
-            <Layout>
-              <DashboardLayout>
-                <StudentQuizHistory />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/student/schedule" element={
-          <RequireAuth allowedRoles={['Student']}>
-            <Layout>
-              <DashboardLayout>
-                <StudentSchedule />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/courses/:id" element={
-          <RequireAuth allowedRoles={['Student', 'Teacher', 'Admin']}>
-            <Layout><CourseView /></Layout>
-          </RequireAuth>
-        } />
-        <Route path="/admin/subjects" element={
-          <RequireAuth allowedRoles={['Admin']}>
-            <Layout>
-              <DashboardLayout>
-                <AdminStages />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/admin/subjects/:id" element={
-          <RequireAuth allowedRoles={['Admin']}>
-            <Layout>
-              <DashboardLayout>
-                <AdminSubjectDetail />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/admin/subjects/:subjectId/units/:unitId/lessons/new" element={
-          <RequireAuth allowedRoles={['Teacher']}>
-            <Layout>
-              <DashboardLayout>
-                <AdminLessonForm />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/admin/subjects/:subjectId/units/:unitId/lessons/:lessonId/edit" element={
-          <RequireAuth allowedRoles={['Teacher']}>
-            <Layout>
-              <DashboardLayout>
-                <AdminLessonForm />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
-        <Route path="/lesson/:lessonId" element={
-          <RequireAuth>
-            <Layout>
-              <DashboardLayout>
-                <LessonView />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
+      <>
+        <SplashScreen />
+        <Router>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route
+                path="/curriculums"
+                element={<Navigate to="/stages" replace />}
+              />
+              <Route
+                path="/login"
+                element={
+                  !user ? <Login /> : <Navigate to={roleHome(normalizedRole)} />
+                }
+              />
+              <Route
+                path="/register"
+                element={
+                  !user ? (
+                    <Register />
+                  ) : (
+                    <Navigate to={roleHome(normalizedRole)} />
+                  )
+                }
+              />
+              <Route path="/verify-email" element={<VerifyEmail />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/unauthorized" element={<Unauthorized />} />
+              <Route
+                path="/change-password"
+                element={
+                  <RequireAuth>
+                    <ChangePassword />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/dashboard"
+                element={
+                  <RequireAuth>
+                    <Navigate to={roleHome(normalizedRole)} />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <RequireAuth allowedRoles={["Admin"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <AdminOverview />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/admin/teachers"
+                element={
+                  <RequireAuth allowedRoles={["Admin"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <AdminTeachers />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/admin/teachers/new"
+                element={
+                  <RequireAuth allowedRoles={["Admin"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <TeacherForm />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/admin/teachers/:id/edit"
+                element={
+                  <RequireAuth allowedRoles={["Admin"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <TeacherForm />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/admin/teachers/:id"
+                element={
+                  <RequireAuth allowedRoles={["Admin"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <AdminTeacherDetail />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/admin/teacher-requests"
+                element={
+                  <RequireAuth allowedRoles={["Admin"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <AdminTeacherRequests />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/admin/students"
+                element={
+                  <RequireAuth allowedRoles={["Admin"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <AdminStudents />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/admin/students/new"
+                element={
+                  <RequireAuth allowedRoles={["Admin"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <StudentForm />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/admin/students/:id/edit"
+                element={
+                  <RequireAuth allowedRoles={["Admin"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <StudentForm />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/admin/students/:id"
+                element={
+                  <RequireAuth allowedRoles={["Admin"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <AdminStudentDetail />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/admin/payments"
+                element={
+                  <RequireAuth allowedRoles={["Admin"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <AdminPayments />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/teacher"
+                element={
+                  <RequireAuth allowedRoles={["Teacher"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <TeacherOverview />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/teacher/students"
+                element={
+                  <RequireAuth allowedRoles={["Teacher"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <TeacherStudents />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/teacher/profile/edit"
+                element={
+                  <RequireAuth allowedRoles={["Teacher"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <TeacherProfileEdit />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/teacher/subjects"
+                element={
+                  <RequireAuth allowedRoles={["Teacher"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <TeacherStages />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/teacher/stages/:stageId/subjects"
+                element={
+                  <RequireAuth allowedRoles={["Teacher"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <TeacherSubjects />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/teacher/subjects/:id"
+                element={
+                  <RequireAuth allowedRoles={["Teacher"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <TeacherSubjectDetail />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/teacher/subjects/:subjectId/units/:unitId/lessons/new"
+                element={
+                  <RequireAuth allowedRoles={["Teacher"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <TeacherLessonForm />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/teacher/subjects/:subjectId/units/:unitId/lessons/:lessonId/edit"
+                element={
+                  <RequireAuth allowedRoles={["Teacher"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <TeacherLessonForm />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/student"
+                element={
+                  <RequireAuth allowedRoles={["Student"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <StudentOverview />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/student/payments-record"
+                element={
+                  <RequireAuth allowedRoles={["Student"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <StudentPaymentsRecord />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/payment/result"
+                element={
+                  <RequireAuth allowedRoles={["Student"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <PaymentResult />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/student/learn"
+                element={
+                  <RequireAuth allowedRoles={["Student"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <StudentLearn />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/student/subjects/:subjectId"
+                element={
+                  <RequireAuth allowedRoles={["Student"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <StudentSubjectTeachers />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              {/* Teacher selection for a subject */}
+              <Route
+                path="/student/subjects/:subjectId/teachers"
+                element={
+                  <RequireAuth allowedRoles={["Student"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <StudentSubjectTeachers />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              {/* Teacher-scoped subject course view */}
+              <Route
+                path="/student/subjects/:subjectId/teachers/:teacherId"
+                element={
+                  <RequireAuth allowedRoles={["Student"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <StudentSubjectDetail />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/student/quiz-history"
+                element={
+                  <RequireAuth allowedRoles={["Student"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <StudentQuizHistory />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/student/schedule"
+                element={
+                  <RequireAuth allowedRoles={["Student"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <StudentSchedule />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/admin/subjects"
+                element={
+                  <RequireAuth allowedRoles={["Admin"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <AdminStages />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/admin/subjects/:id"
+                element={
+                  <RequireAuth allowedRoles={["Admin"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <AdminSubjectDetail />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/admin/subjects/:subjectId/units/:unitId/lessons/new"
+                element={
+                  <RequireAuth allowedRoles={["Teacher"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <AdminLessonForm />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/admin/subjects/:subjectId/units/:unitId/lessons/:lessonId/edit"
+                element={
+                  <RequireAuth allowedRoles={["Teacher"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <AdminLessonForm />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/lesson/:lessonId"
+                element={
+                  <RequireAuth>
+                    <Layout>
+                      <DashboardLayout>
+                        <LessonView />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
 
-        {/* ── New generic-platform routes ─────────────────────────── */}
+              {/* ── New generic-platform routes ─────────────────────────── */}
 
-        {/* Admin: Grade management */}
-        <Route path="/admin/stages/:stageId/grades" element={
-          <RequireAuth allowedRoles={['Admin']}>
-            <Layout>
-              <DashboardLayout>
-                <AdminGrades />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
+              {/* Admin: Grade management */}
+              <Route
+                path="/admin/stages/:stageId/grades"
+                element={
+                  <RequireAuth allowedRoles={["Admin"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <AdminGrades />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
 
-        {/* Admin: Grade-scoped subject management */}
-        <Route path="/admin/stages/:stageId/grades/:gradeId/subjects" element={
-          <RequireAuth allowedRoles={['Admin']}>
-            <Layout>
-              <DashboardLayout>
-                <AdminGradeSubjects />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
+              {/* Admin: Grade-scoped subject management */}
+              <Route
+                path="/admin/stages/:stageId/grades/:gradeId/subjects"
+                element={
+                  <RequireAuth allowedRoles={["Admin"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <AdminGradeSubjects />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
 
-        {/* Admin: Platform configuration */}
-        <Route path="/admin/platform-config" element={
-          <RequireAuth allowedRoles={['Admin']}>
-            <Layout>
-              <DashboardLayout>
-                <AdminPlatformConfig />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
+              {/* Admin: Platform configuration */}
+              <Route
+                path="/admin/platform-config"
+                element={
+                  <RequireAuth allowedRoles={["Admin"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <AdminPlatformConfig />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
 
-        {/* Public learn browser (also accessible via /learn) */}
-        <Route path="/learn" element={
-          <RequireAuth allowedRoles={['Student', 'Teacher', 'Admin']}>
-            <Layout>
-              <DashboardLayout>
-                <StudentLearnBrowser />
-              </DashboardLayout>
-            </Layout>
-          </RequireAuth>
-        } />
+              {/* Public learn browser (also accessible via /learn) */}
+              <Route
+                path="/learn"
+                element={
+                  <RequireAuth allowedRoles={["Student", "Teacher", "Admin"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <StudentLearnBrowser />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
 
-        {/* Alias: /courses → /learn (backward compat redirect) */}
-        <Route path="/courses" element={<Navigate to="/learn" replace />} />
+              {/* Alias: /courses → /learn (backward compat redirect) */}
+              <Route
+                path="/courses"
+                element={<Navigate to="/learn" replace />}
+              />
 
-        {/* ──────────────────────────────────────────────────────────
+              {/* ──────────────────────────────────────────────────────────
             PUBLIC: Home Page → Stages Explorer flow
             No auth required; accessible directly from the landing page.
             ────────────────────────────────────────────────────────── */}
 
-        {/* All stages directory (from "View More" on landing) */}
-        <Route path="/stages" element={<PublicAllStages />} />
+              {/* All stages directory (from "View More" on landing) */}
+              <Route path="/stages" element={<PublicAllStages />} />
 
-        {/* Stage detail → all grades within that stage (from stage card on landing) */}
-        <Route path="/stages/:stageId" element={<PublicStageSubjects />} />
+              {/* Stage detail → all grades within that stage (from stage card on landing) */}
+              <Route
+                path="/stages/:stageId"
+                element={<PublicStageSubjects />}
+              />
 
-        {/* Grade detail → subjects for that grade (click grade from stage page) */}
-        <Route path="/stages/:stageId/grades/:gradeId" element={<PublicGradeSubjects />} />
+              {/* Grade detail → subjects for that grade (click grade from stage page) */}
+              <Route
+                path="/stages/:stageId/grades/:gradeId"
+                element={<PublicGradeSubjects />}
+              />
 
-        {/* Subject detail → teachers filtered by stage/grade/subject (click subject from grade page) */}
-        <Route
-          path="/stages/:stageId/grades/:gradeId/subjects/:subjectId"
-          element={<PublicSubjectTeachers />}
-        />
+              {/* Subject detail → teachers filtered by stage/grade/subject (click subject from grade page) */}
+              <Route
+                path="/stages/:stageId/grades/:gradeId/subjects/:subjectId"
+                element={<PublicSubjectTeachers />}
+              />
 
+              {/* ──────────────────────────────────────────────────────────
+            LIVE CLASSROOM: WebRTC-based virtual classroom
+            Requires authentication. Accessible to teachers and students.
+            ────────────────────────────────────────────────────────── */}
 
-      </Routes>
-      </Suspense>
-    </Router>
-    </>
-  </PlatformConfigProvider>
+              {/* Session Lobby - Pre-join device testing and waiting room */}
+              <Route
+                path="/live-session/:roomId/lobby"
+                element={
+                  <RequireAuth allowedRoles={["Teacher", "Student"]}>
+                    <SessionLobbyPage />
+                  </RequireAuth>
+                }
+              />
+
+              {/* Live Classroom - Active session with video, whiteboard, chat */}
+              <Route
+                path="/live-session/:roomId"
+                element={
+                  <RequireAuth allowedRoles={["Teacher", "Student"]}>
+                    <LiveClassroomPage />
+                  </RequireAuth>
+                }
+              />
+            </Routes>
+          </Suspense>
+        </Router>
+      </>
+    </PlatformConfigProvider>
   );
 }
 

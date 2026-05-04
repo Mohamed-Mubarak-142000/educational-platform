@@ -1,149 +1,105 @@
-import { useState } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { approvePayment, getPayments, rejectPayment, type Payment } from '@/api/adminApi';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import ConfirmDialog from '@/components/ui/ConfirmDialog';
-import { useToast } from '@/components/ui/ToastProvider';
-import { useTranslation } from 'react-i18next';
-import { SkeletonTable, EmptyState, ErrorState } from '@/components/shared';
-import { spacing, cardVariants } from '@/lib/constants';
-import { PageHeader } from '@/components/shared';
+import { useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import {
+  getAdminPaymentsAnalytics,
+  refundPayment,
+  type PaymobPayment,
+} from "@/api/paymobApi";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import { useToast } from "@/components/ui/ToastProvider";
+import { useTranslation } from "react-i18next";
+import { SkeletonTable, EmptyState, ErrorState } from "@/components/shared";
+import { spacing, cardVariants } from "@/lib/constants";
+import { PageHeader } from "@/components/shared";
+import {
+  TrendingUp,
+  CreditCard,
+  Users,
+  AlertTriangle,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  RefreshCw,
+} from "lucide-react";
 
-export default function AdminPayments() {
-  const { t } = useTranslation();
-  const { pushToast } = useToast();
-  const [confirmAction, setConfirmAction] = useState<'approve' | 'reject' | null>(null);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-
-  const { data: payments = [], refetch, isLoading, isError } = useQuery({
-    queryKey: ['payments'],
-    queryFn: () => getPayments('Pending'),
-  });
-
-  const approveMutation = useMutation({
-    mutationFn: approvePayment,
-    onSuccess: () => {
-      pushToast({ type: 'success', title: t('toastPaymentApproved') });
-      refetch();
-    },
-    onError: () => pushToast({ type: 'error', title: t('toastActionFailed') }),
-  });
-
-  const rejectMutation = useMutation({
-    mutationFn: rejectPayment,
-    onSuccess: () => {
-      pushToast({ type: 'success', title: t('toastPaymentRejected') });
-      refetch();
-    },
-    onError: () => pushToast({ type: 'error', title: t('toastActionFailed') }),
-  });
-
-  const getPaymentMethodLabel = (method: string) => {
-    if (method === 'Vodafone Cash') return t('vodafoneCash');
-    if (method === 'InstaPay') return t('instaPay');
-    return method;
-  };
-  
-  const getPaymentStatusLabel = (status: string) => {
-    const normalized = status.toLowerCase();
-    if (normalized === 'approved') return t('paymentStatusApproved');
-    if (normalized === 'pending') return t('paymentStatusPending');
-    if (normalized === 'rejected') return t('paymentStatusRejected');
-    return status;
-  };
-  
-  const getPlanLabel = (plan: string) => {
-    if (plan === 'Monthly') return t('planMonthly');
-    if (plan === 'Quarterly') return t('planQuarterly');
-    if (plan === 'Yearly') return t('planYearly');
-    return plan;
-  };
-
-  const requestAction = (id: string, action: 'approve' | 'reject') => {
-    setSelectedId(id);
-    setConfirmAction(action);
-  };
-
-  const onConfirm = async () => {
-    if (!selectedId || !confirmAction) return;
-    if (confirmAction === 'approve') {
-      await approveMutation.mutateAsync(selectedId);
-    }
-    if (confirmAction === 'reject') {
-      await rejectMutation.mutateAsync(selectedId);
-    }
-    setConfirmAction(null);
-  };
-
+function StatCard({
+  title,
+  value,
+  sub,
+  icon: Icon,
+  color,
+}: {
+  title: string;
+  value: string;
+  sub?: string;
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
+}) {
   return (
-    <div className={spacing.pageContainer}>
-      <PageHeader title={t('adminPayments')} subtitle={t('adminPaymentsSubtitle')} />
-
-      <Card className={cardVariants.default}>
-        <CardHeader>
-          <CardTitle>{t('pendingPayments')}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <SkeletonTable columns={6} rows={6} />
-          ) : isError ? (
-            <ErrorState onRetry={() => refetch()} />
-          ) : payments.length === 0 ? (
-            <EmptyState />
-          ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="text-slate-500 dark:text-slate-400">
-                <tr>
-                  <th className="text-start py-3 px-2">{t('studentName')}</th>
-                  <th className="text-start py-3 px-2">{t('plan')}</th>
-                  <th className="text-start py-3 px-2">{t('paymentMethod')}</th>
-                  <th className="text-start py-3 px-2">{t('screenshot')}</th>
-                  <th className="text-start py-3 px-2">{t('status')}</th>
-                  <th className="text-end py-3 px-2">{t('actions')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {payments.map((payment: Payment) => (
-                  <tr key={payment._id} className="border-t border-slate-200/60 dark:border-slate-800">
-                    <td className="py-3 px-2 font-medium">
-                      {typeof payment.studentId === 'object' ? payment.studentId?.name : '-'}
-                    </td>
-                    <td className="py-3 px-2">{getPlanLabel(payment.plan)}</td>
-                    <td className="py-3 px-2">{getPaymentMethodLabel(payment.method)}</td>
-                    <td className="py-3 px-2">
-                      <a href={payment.screenshotUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
-                        {t('view')}
-                      </a>
-                    </td>
-                    <td className="py-3 px-2">{getPaymentStatusLabel(payment.status)}</td>
-                    <td className="py-3 px-2 text-end space-x-2">
-                      <Button variant="ghost" onClick={() => requestAction(payment._id, 'approve')}>
-                        {t('approve')}
-                      </Button>
-                      <Button variant="ghost" className="text-red-500" onClick={() => requestAction(payment._id, 'reject')}>
-                        {t('reject')}
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+    <Card className={cardVariants.default}>
+      <CardContent className="pt-5 pb-4">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+              {title}
+            </p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+              {value}
+            </p>
+            {sub && (
+              <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                {sub}
+              </p>
+            )}
           </div>
-          )}
-        </CardContent>
-      </Card>
+          <div
+            className={`w-10 h-10 rounded-xl ${color} flex items-center justify-center flex-shrink-0`}
+          >
+            <Icon className="w-5 h-5 text-white" />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
-      <ConfirmDialog
-        open={confirmAction !== null}
-        title={t('confirmAction')}
-        description={t('confirmActionDescription')}
-        confirmLabel={t('confirm')}
-        cancelLabel={t('cancel')}
-        onCancel={() => setConfirmAction(null)}
-        onConfirm={onConfirm}
-      />
-    </div>
+function StatusBadge({ status }: { status: string }) {
+  const { t } = useTranslation();
+  const cfg: Record<string, { cls: string; icon: React.ReactNode }> = {
+    success: {
+      cls: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-800/40",
+      icon: <CheckCircle2 className="w-3 h-3" />,
+    },
+    failed: {
+      cls: "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800/40",
+      icon: <XCircle className="w-3 h-3" />,
+    },
+    pending: {
+      cls: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-800/40",
+      icon: <Clock className="w-3 h-3" />,
+    },
+    refunded: {
+      cls: "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-900/20 dark:text-violet-300 dark:border-violet-800/40",
+      icon: <RefreshCw className="w-3 h-3" />,
+    },
+    voided: {
+      cls: "bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-900/20 dark:text-slate-400 dark:border-slate-800/40",
+      icon: <AlertTriangle className="w-3 h-3" />,
+    },
+    expired: {
+      cls: "bg-slate-50 text-slate-500 border-slate-200 dark:bg-slate-900/20 dark:text-slate-500 dark:border-slate-800/40",
+      icon: <Clock className="w-3 h-3" />,
+    },
+  };
+  const { cls, icon } = cfg[status] ?? cfg.failed;
+  const labelKey = `paymentStatus${status.charAt(0).toUpperCase() + status.slice(1)}`;
+  return (
+    <span
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs font-medium ${cls}`}
+    >
+      {icon} {t(labelKey)}
+    </span>
   );
 }

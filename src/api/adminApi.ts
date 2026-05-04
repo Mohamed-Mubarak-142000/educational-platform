@@ -1,8 +1,15 @@
-import api from './axiosConfig';
-import type { Subject, TeacherSchedule } from './subjectApi';
+import api from "./axiosConfig";
+import type { Subject, TeacherSchedule } from "./subjectApi";
 
 /** Days of the week used in teacher scheduling. */
-export type DayOfWeek = 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday';
+export type DayOfWeek =
+  | "Sunday"
+  | "Monday"
+  | "Tuesday"
+  | "Wednesday"
+  | "Thursday"
+  | "Friday"
+  | "Saturday";
 
 export type Teacher = {
   _id: string;
@@ -12,8 +19,27 @@ export type Teacher = {
   subject?: string;
   bio?: string;
   stageId?: string;
-  stageIds?: Array<string | { _id: string; name: string; nameAr?: string; icon?: string; color?: string }>;
-  subjectIds?: Array<string | { _id: string; name: string; nameAr?: string; icon?: string; color?: string; description?: string }>;
+  stageIds?: Array<
+    | string
+    | {
+        _id: string;
+        name: string;
+        nameAr?: string;
+        icon?: string;
+        color?: string;
+      }
+  >;
+  subjectIds?: Array<
+    | string
+    | {
+        _id: string;
+        name: string;
+        nameAr?: string;
+        icon?: string;
+        color?: string;
+        description?: string;
+      }
+  >;
   status?: string;
   profileImage?: string;
   cvUrl?: string | null;
@@ -40,7 +66,7 @@ export type TeacherApplicationRecord = {
   name: string;
   email: string;
   phone: string;
-  status: 'Pending' | 'Under Evaluation' | 'Accepted' | 'Rejected';
+  status: "Pending" | "Under Evaluation" | "Accepted" | "Rejected";
   profileImageUrl?: string;
   availableDays: string[];
   availableHours?: Record<string, { start?: string; end?: string }>;
@@ -136,7 +162,7 @@ export type TeacherApplicationInput = {
 };
 
 export const getTeachers = async (): Promise<Teacher[]> => {
-  const response = await api.get<Teacher[]>('/users/teachers');
+  const response = await api.get<Teacher[]>("/users/teachers");
   return response.data;
 };
 
@@ -146,22 +172,29 @@ export const getTeacherById = async (id: string): Promise<Teacher> => {
 };
 
 export const createTeacher = async (data: TeacherInput): Promise<Teacher> => {
-  const response = await api.post<Teacher>('/users/teachers', data);
+  const response = await api.post<Teacher>("/users/teachers", data);
   return response.data;
 };
 
-export const updateTeacher = async (id: string, data: TeacherInput): Promise<Teacher> => {
+export const updateTeacher = async (
+  id: string,
+  data: TeacherInput,
+): Promise<Teacher> => {
   const response = await api.put<Teacher>(`/users/teachers/${id}`, data);
   return response.data;
 };
 
-export const deleteTeacher = async (id: string): Promise<{ message?: string }> => {
-  const response = await api.delete<{ message?: string }>(`/users/teachers/${id}`);
+export const deleteTeacher = async (
+  id: string,
+): Promise<{ message?: string }> => {
+  const response = await api.delete<{ message?: string }>(
+    `/users/teachers/${id}`,
+  );
   return response.data;
 };
 
 export const getStudents = async (): Promise<Student[]> => {
-  const response = await api.get<Student[]>('/users/students');
+  const response = await api.get<Student[]>("/users/students");
   return response.data;
 };
 
@@ -171,79 +204,124 @@ export const getStudentById = async (id: string): Promise<Student> => {
 };
 
 export const createStudent = async (data: StudentInput): Promise<Student> => {
-  const response = await api.post<Student>('/users/students', data);
+  const response = await api.post<Student>("/users/students", data);
   return response.data;
 };
 
-export const updateStudent = async (id: string, data: StudentInput): Promise<Student> => {
+export const updateStudent = async (
+  id: string,
+  data: StudentInput,
+): Promise<Student> => {
   const response = await api.put<Student>(`/users/students/${id}`, data);
   return response.data;
 };
 
-export const deleteStudent = async (id: string): Promise<{ message?: string }> => {
-  const response = await api.delete<{ message?: string }>(`/users/students/${id}`);
+export const deleteStudent = async (
+  id: string,
+): Promise<{ message?: string }> => {
+  const response = await api.delete<{ message?: string }>(
+    `/users/students/${id}`,
+  );
   return response.data;
 };
 
 export const getPayments = async (status?: string): Promise<Payment[]> => {
-  const response = await api.get<Payment[]>('/payments', { params: status ? { status } : undefined });
-  return response.data;
+  // Legacy endpoint — kept for backward compatibility but returns empty array
+  console.warn(
+    "[adminApi] getPayments is deprecated. Use paymobApi.getAdminPaymentsAnalytics instead.",
+  );
+  return [];
 };
 
-export const approvePayment = async (id: string): Promise<{ message?: string }> => {
-  const response = await api.post<{ message?: string }>(`/payments/${id}/approve`);
-  return response.data;
+export const approvePayment = async (
+  _id: string,
+): Promise<{ message?: string }> => {
+  console.warn(
+    "[adminApi] approvePayment is deprecated. Payments are now auto-processed via Paymob webhook.",
+  );
+  return {};
 };
 
-export const rejectPayment = async (id: string): Promise<{ message?: string }> => {
-  const response = await api.post<{ message?: string }>(`/payments/${id}/reject`);
-  return response.data;
+export const rejectPayment = async (
+  _id: string,
+): Promise<{ message?: string }> => {
+  console.warn("[adminApi] rejectPayment is deprecated.");
+  return {};
 };
 
 export const getMyPayments = async (): Promise<Payment[]> => {
-  const response = await api.get<Payment[]>('/payments/my');
-  return response.data;
+  // Legacy — use paymobApi.getMyPaymentHistory instead
+  console.warn(
+    "[adminApi] getMyPayments is deprecated. Use paymobApi.getMyPaymentHistory instead.",
+  );
+  return [];
 };
 
-export const submitPayment = async (data: PaymentSubmission): Promise<Payment> => {
-  const response = await api.post<Payment>('/payments', data);
-  return response.data;
+export const submitPayment = async (
+  _data: PaymentSubmission,
+): Promise<Payment> => {
+  throw new Error(
+    "submitPayment is deprecated. Use paymobApi.createCheckoutIntention instead.",
+  );
 };
 
-export const uploadPaymentProof = async (file: File): Promise<PaymentUploadResponse> => {
+export const uploadPaymentProof = async (
+  file: File,
+): Promise<PaymentUploadResponse> => {
   const formData = new FormData();
-  formData.append('file', file);
-  const response = await api.post<PaymentUploadResponse>('/payments/upload', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
+  formData.append("file", file);
+  const response = await api.post<PaymentUploadResponse>(
+    "/payments/upload",
+    formData,
+    {
+      headers: { "Content-Type": "multipart/form-data" },
+    },
+  );
   return response.data;
 };
 
-export const uploadTeacherApplicationFile = async (file: File): Promise<TeacherApplicationUploadResponse> => {
+export const uploadTeacherApplicationFile = async (
+  file: File,
+): Promise<TeacherApplicationUploadResponse> => {
   const formData = new FormData();
-  formData.append('file', file);
-  const response = await api.post<TeacherApplicationUploadResponse>('/teacher-applications/upload', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
+  formData.append("file", file);
+  const response = await api.post<TeacherApplicationUploadResponse>(
+    "/teacher-applications/upload",
+    formData,
+    {
+      headers: { "Content-Type": "multipart/form-data" },
+    },
+  );
   return response.data;
 };
 
-
-export const getTeacherApplications = async (): Promise<TeacherApplicationRecord[]> => {
-  const response = await api.get<TeacherApplicationRecord[]>('/teacher-applications');
+export const getTeacherApplications = async (): Promise<
+  TeacherApplicationRecord[]
+> => {
+  const response = await api.get<TeacherApplicationRecord[]>(
+    "/teacher-applications",
+  );
   return response.data;
 };
 
-export const submitTeacherApplication = async (data: TeacherApplicationInput): Promise<{ message?: string }> => {
-  const response = await api.post<{ message?: string }>('/teacher-applications', data);
+export const submitTeacherApplication = async (
+  data: TeacherApplicationInput,
+): Promise<{ message?: string }> => {
+  const response = await api.post<{ message?: string }>(
+    "/teacher-applications",
+    data,
+  );
   return response.data;
 };
 
 export const reviewTeacherApplication = async (
   id: string,
-  action: 'evaluate' | 'accept' | 'reject',
-  payload?: { zoomLink?: string; rejectionReason?: string }
+  action: "evaluate" | "accept" | "reject",
+  payload?: { zoomLink?: string; rejectionReason?: string },
 ) => {
-  const response = await api.post<{ message?: string }>(`/teacher-applications/${id}/review`, { action, ...payload });
+  const response = await api.post<{ message?: string }>(
+    `/teacher-applications/${id}/review`,
+    { action, ...payload },
+  );
   return response.data;
 };
