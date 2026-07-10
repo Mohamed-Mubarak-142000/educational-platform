@@ -24,7 +24,7 @@ import {
   declineRequest,
   type LiveLessonRequest,
 } from "@/api/liveLessonApi";
-import { useToast } from "./ui/use-toast";
+import { useToast } from "./ui/ToastProvider";
 
 export default function TeacherLiveLessonRequests() {
   const { t } = useTranslation();
@@ -53,7 +53,7 @@ export default function TeacherLiveLessonRequests() {
       pushToast({
         title: t("requestAccepted"),
         description: t("liveLessonScheduledSuccessfully"),
-        variant: "success",
+        type: "success",
       });
       queryClient.invalidateQueries({ queryKey: ["pending-requests"] });
       queryClient.invalidateQueries({ queryKey: ["teacher-sessions"] });
@@ -64,7 +64,7 @@ export default function TeacherLiveLessonRequests() {
       pushToast({
         title: t("acceptFailed"),
         description: error.response?.data?.message || t("somethingWentWrong"),
-        variant: "destructive",
+        type: "error",
       });
     },
   });
@@ -81,7 +81,7 @@ export default function TeacherLiveLessonRequests() {
       pushToast({
         title: t("requestDeclined"),
         description: t("studentWillBeNotified"),
-        variant: "default",
+        type: "success",
       });
       queryClient.invalidateQueries({ queryKey: ["pending-requests"] });
       setExpandedRequest(null);
@@ -91,7 +91,7 @@ export default function TeacherLiveLessonRequests() {
       pushToast({
         title: t("declineFailed"),
         description: error.response?.data?.message || t("somethingWentWrong"),
-        variant: "destructive",
+        type: "error",
       });
     },
   });
@@ -108,7 +108,7 @@ export default function TeacherLiveLessonRequests() {
       pushToast({
         title: t("reasonRequired"),
         description: t("pleaseProvideDeclineReason"),
-        variant: "destructive",
+        type: "error",
       });
       return;
     }

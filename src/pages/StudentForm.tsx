@@ -8,7 +8,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { createStudent, getStudents, updateStudent, type Student, type StudentInput } from '@/api/adminApi';
+import { createStudent, getStudents, updateStudent, uploadTeacherApplicationFile, type Student, type StudentInput } from '@/api/adminApi';
 import { getStages, type Stage } from '@/api/subjectApi';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,15 +18,18 @@ import { useCRUDOperations, useFormDialog } from '@/hooks';
 import { buttonVariants, formClasses, inputVariants } from '@/lib/constants';
 import { FormPageLayout, FormField } from '@/components/shared';
 import AvatarUpload from '@/components/AvatarUpload';
+import { useToast } from '@/components/ui/ToastProvider';
 import { GraduationCap, Video } from 'lucide-react';
 
 export default function StudentForm() {
   const { t, i18n } = useTranslation();
+  const { pushToast } = useToast();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const isEditMode = !!id;
   const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
   const [profileImagePreview, setProfileImagePreview] = useState<string>('');
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   // CRUD operations
   const { createMutation, updateMutation } = useCRUDOperations({
@@ -106,13 +109,23 @@ export default function StudentForm() {
       subscribeLiveLessons: formState.subscribeLiveLessons === 'true',
     };
 
-    // TODO: Implement image upload to cloudinary
-    // For now, use the URL from form state
     if (profileImageFile) {
-      // When upload is implemented, upload the file and get URL
-      // const uploadedUrl = await uploadToCloudinary(profileImageFile);
-      // data.profileImage = uploadedUrl;
-      data.profileImage = profileImagePreview;
+      setIsUploadingImage(true);
+      try {
+        const uploaded = await uploadTeacherApplicationFile(profileImageFile);
+        data.profileImage = uploaded.url;
+      } catch {
+        pushToast({
+          title: t('imageUploadFailed', { defaultValue: 'Image upload failed' }),
+          description: t('imageUploadFailedDesc', {
+            defaultValue: 'The profile picture could not be uploaded. You can try saving again.',
+          }),
+          type: 'error',
+        });
+        setIsUploadingImage(false);
+        return;
+      }
+      setIsUploadingImage(false);
     } else if (formState.profileImage) {
       data.profileImage = formState.profileImage;
     }
@@ -131,7 +144,7 @@ export default function StudentForm() {
     }
   };
 
-  const isLoading = createMutation.isPending || updateMutation.isPending;
+  const isLoading = createMutation.isPending || updateMutation.isPending || isUploadingImage;
 
   return (
     <FormPageLayout

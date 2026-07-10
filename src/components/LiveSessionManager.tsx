@@ -22,8 +22,7 @@ interface SessionCardProps {
 }
 
 const SessionCard: React.FC<SessionCardProps> = ({ session, onJoin }) => {
-  const { status, message: statusMessage } =
-    liveClassroomApi.getSessionTimeStatus(session);
+  const { status } = liveClassroomApi.getSessionTimeStatus(session);
   const canJoinNow = liveClassroomApi.canJoinSessionNow(session);
 
   const statusColors = {
@@ -141,7 +140,7 @@ export const LiveSessionManager: React.FC = () => {
   const loadSessions = async () => {
     try {
       const data = await liveClassroomApi.getTeacherActiveSessions();
-      setSessions(data.sessions || []);
+      setSessions(data || []);
     } catch (error: any) {
       console.error("Failed to load sessions:", error);
       toast.error("Failed to load sessions");
@@ -175,12 +174,12 @@ export const LiveSessionManager: React.FC = () => {
   const activeSessions = sessions.filter(
     (s) =>
       s.status === "active" ||
-      liveClassroomApi.getSessionTimeStatus(s) === "starting-soon",
+      liveClassroomApi.getSessionTimeStatus(s).status === "starting-soon",
   );
   const upcomingSessions = sessions.filter(
     (s) =>
       s.status === "scheduled" &&
-      liveClassroomApi.getSessionTimeStatus(s) === "upcoming",
+      liveClassroomApi.getSessionTimeStatus(s).status === "upcoming",
   );
 
   return (

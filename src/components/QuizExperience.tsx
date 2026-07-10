@@ -9,6 +9,7 @@ import {
   saveQuizGrade,
   type LessonPartQuizItem,
   type QuizQuestion,
+  type QuizGradeResult,
 } from '@/api/subjectApi';
 
 const OPT_LABELS = ['A', 'B', 'C', 'D'] as const;
@@ -50,6 +51,10 @@ export default function QuizExperience({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  // Correct answers are withheld from the fetched questions while a student
+  // is taking the quiz; they're only revealed once the server confirms the
+  // graded attempt, via this state.
+  const [result, setResult] = useState<QuizGradeResult | null>(null);
 
   const isAttached = source.mode === 'attached';
   const quizId = isAttached ? source.quizId : '';
@@ -67,7 +72,8 @@ export default function QuizExperience({
         id: q._id,
         text: q.text,
         options: q.options,
-        correctIndex: q.correctAnswer,
+        // -1 (no match) until the server reveals it post-submission.
+        correctIndex: result?.correctAnswers[q._id] ?? q.correctAnswer ?? -1,
       }));
     }
     return source.questions.map((q, idx) => ({
@@ -76,11 +82,10 @@ export default function QuizExperience({
       options: q.options,
       correctIndex: q.correctIndex,
     }));
-  }, [isAttached, fetchedQuestions, source]);
+  }, [isAttached, fetchedQuestions, source, result]);
 
   const saveGradeMutation = useMutation({
-    mutationFn: ({ score, correctCount, totalQuestions }: { score: number; correctCount: number; totalQuestions: number }) =>
-      saveQuizGrade(source.mode === 'attached' ? source.studentId ?? '' : '', quizId, score, correctCount, totalQuestions),
+    mutationFn: (submittedAnswers: Record<string, number>) => saveQuizGrade(quizId, submittedAnswers),
   });
 
   const inlineCount = source.mode === 'inline' ? source.questions.length : 0;
@@ -89,6 +94,7 @@ export default function QuizExperience({
     setPhase('taking');
     setCurrentIndex(0);
     setAnswers({});
+    setResult(null);
     if (isAttached && timeLimitMinutes && timeLimitMinutes > 0 && !previewMode) {
       setTimeLeft(timeLimitMinutes * 60);
     } else {
@@ -127,7 +133,7 @@ export default function QuizExperience({
     if (previewMode) return;
     const score = total > 0 ? Math.round((correctCount / total) * 100) : 0;
     if (isAttached && source.studentId) {
-      saveGradeMutation.mutate({ score, correctCount, totalQuestions: total });
+      saveGradeMutation.mutate(answers, { onSuccess: setResult });
     }
     setPhase('result');
     onComplete?.(score, correctCount, total);
@@ -137,6 +143,7 @@ export default function QuizExperience({
     setPhase('taking');
     setCurrentIndex(0);
     setAnswers({});
+    setResult(null);
     if (isAttached && timeLimitMinutes && timeLimitMinutes > 0 && !previewMode) {
       setTimeLeft(timeLimitMinutes * 60);
     }

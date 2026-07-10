@@ -25,6 +25,7 @@ import {
   type SubscriptionPlan,
 } from "@/api/paymobApi";
 import PaymobCheckoutModal from "@/components/PaymobCheckoutModal";
+import ManualPaymentModal from "@/components/ManualPaymentModal";
 import { useAuth } from "@/context/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/shared";
@@ -47,6 +48,7 @@ import {
   Lock,
   CheckCircle2,
   CreditCard,
+  Landmark,
   Video,
   Users,
   UserCheck,
@@ -623,6 +625,7 @@ export default function StudentSubjectDetail() {
     planDays: number;
   } | null>(null);
   const [isInitiating, setIsInitiating] = useState(false);
+  const [manualPaymentOpen, setManualPaymentOpen] = useState(false);
 
   const { data: content, isLoading: contentLoading } =
     useQuery<SubjectTeacherContent>({
@@ -1036,20 +1039,28 @@ export default function StudentSubjectDetail() {
               )}
             </div>
 
-            <div className="flex items-center justify-end gap-2">
+            <div className="flex flex-col gap-2">
               <Button
-                variant="outline"
-                onClick={() => setPlanSelectOpen(false)}
-              >
-                {t("cancel")}
-              </Button>
-              <Button
-                className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+                className="bg-blue-600 hover:bg-blue-700 text-white gap-2 w-full"
                 onClick={initiatePayment}
                 disabled={isInitiating}
               >
                 <CreditCard className="w-4 h-4" />
-                {isInitiating ? t("loadingEllipsis") : t("payNow")}
+                {isInitiating ? t("loadingEllipsis") : t("payWithCard", { defaultValue: "Pay by card (Paymob)" })}
+              </Button>
+              <Button
+                variant="outline"
+                className="gap-2 w-full"
+                onClick={() => setManualPaymentOpen(true)}
+              >
+                <Landmark className="w-4 h-4" />
+                {t("payManually", { defaultValue: "InstaPay / Vodafone Cash / Fawry" })}
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => setPlanSelectOpen(false)}
+              >
+                {t("cancel")}
               </Button>
             </div>
           </div>
@@ -1067,6 +1078,30 @@ export default function StudentSubjectDetail() {
           plan={selectedPlan}
           planDays={checkoutData.planDays}
           onPaymentComplete={handleCheckoutComplete}
+        />
+      )}
+
+      {/* Manual transfer payment modal (InstaPay / Vodafone Cash / Fawry) */}
+      {assignmentTeacherId && assignmentGradeId && resolvedSubjectId && (
+        <ManualPaymentModal
+          open={manualPaymentOpen}
+          onClose={() => setManualPaymentOpen(false)}
+          target={{
+            kind: requestType,
+            teacherId: assignmentTeacherId,
+            subjectId: resolvedSubjectId,
+            gradeId: assignmentGradeId,
+            unitId: requestType === "unit" ? selectedUnit?._id : undefined,
+            plan: selectedPlan,
+          }}
+          onSubmitted={() => {
+            setManualPaymentOpen(false);
+            setPlanSelectOpen(false);
+            pushToast({
+              type: "success",
+              title: t("manualPaymentSubmittedTitle", { defaultValue: "Submitted for review" }),
+            });
+          }}
         />
       )}
 

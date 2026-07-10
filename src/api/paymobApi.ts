@@ -28,8 +28,17 @@ export type CheckoutIntentionResponse = {
   message?: string;
 };
 
+export type LiveLessonCheckoutResponse = {
+  paymentId: string;
+  iframeUrl: string;
+  amountEGP: number;
+  retryRequired?: boolean;
+  message?: string;
+};
+
 export type PaymobPayment = {
   _id: string;
+  studentId?: { _id: string; name?: string; email?: string } | string;
   teacherId?: { _id: string; name?: string; profileImage?: string } | string;
   subjectId?:
     | {
@@ -41,9 +50,10 @@ export type PaymobPayment = {
       }
     | string;
   unitId?: { _id: string; title?: string; titleAr?: string } | string;
-  subscriptionType: "subject" | "unit";
-  plan: SubscriptionPlan;
-  planDays: number;
+  // "liveLesson" pays for a single live-lesson request, not a recurring plan.
+  subscriptionType: "subject" | "unit" | "liveLesson";
+  plan?: SubscriptionPlan;
+  planDays?: number;
   amountCents: number;
   currency: string;
   status: PaymentStatus;
@@ -96,6 +106,19 @@ export const createCheckoutIntention = async (
   const response = await api.post<CheckoutIntentionResponse>(
     "/payments/create-intention",
     data,
+  );
+  return response.data;
+};
+
+/**
+ * Initiate a Paymob checkout for a single live-lesson request.
+ */
+export const createLiveLessonCheckoutIntention = async (
+  requestId: string,
+): Promise<LiveLessonCheckoutResponse> => {
+  const response = await api.post<LiveLessonCheckoutResponse>(
+    "/payments/live-lesson/create-intention",
+    { requestId },
   );
   return response.data;
 };

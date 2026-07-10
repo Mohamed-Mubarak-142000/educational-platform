@@ -17,12 +17,19 @@ class SocketService {
         return;
       }
 
+      const token = localStorage.getItem("token");
+      if (!token) {
+        reject(new Error("Not authenticated"));
+        return;
+      }
+
       this.socket = io(SOCKET_URL, {
         transports: ["websocket", "polling"],
         reconnection: true,
         reconnectionAttempts: this.maxReconnectAttempts,
         reconnectionDelay: 1000,
         timeout: 20000,
+        auth: { token },
       });
 
       this.socket.on("connect", () => {

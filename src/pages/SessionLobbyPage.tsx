@@ -226,8 +226,6 @@ export const SessionLobbyPage: React.FC = () => {
     );
   }
 
-  const isSessionStartingSoon =
-    session && liveClassroomApi.canJoinSessionNow(session);
   const sessionStatus = session
     ? liveClassroomApi.getSessionTimeStatus(session)
     : { status: "ended" as const, message: "Session ended" };

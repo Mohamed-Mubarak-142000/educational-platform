@@ -25,7 +25,6 @@ import {
   getAssignmentContent,
   type AssignmentContentUnit,
 } from "@/api/teacherAssignmentApi";
-import { getMySubscriptions } from "@/api/subscriptionApi";
 import { updateLessonProgress } from "@/api/progressApi";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -480,6 +479,7 @@ function LessonPartsSection({
 function PartCard({
   part,
   index,
+  studentId,
   grades,
   activePartId,
   isTeacher,
@@ -861,16 +861,10 @@ export default function LessonView() {
     enabled: !!resolvedSubjectId,
   });
 
-  const { data: units, isLoading: unitsLoading } = useQuery<Unit[]>({
+  const { data: units = [], isLoading: unitsLoading } = useQuery<Unit[]>({
     queryKey: ["units", resolvedSubjectId],
     queryFn: () => getUnitsBySubject(resolvedSubjectId),
     enabled: !!resolvedSubjectId && !(fromStudent && assignmentId),
-  });
-
-  const { data: myRequests = [] } = useQuery({
-    queryKey: ["subscription-requests", user?._id],
-    queryFn: () => getMySubscriptions(),
-    enabled: !!user?._id && fromStudent && !!assignmentId,
   });
 
   // Check for a quiz attached to this lesson
@@ -919,26 +913,6 @@ export default function LessonView() {
   const lessonLocked =
     fromStudent && (lessonStatus === 403 || !!assignmentLesson?.locked);
 
-  const pendingRequest = myRequests.find((req) => {
-    if (req.status !== "Pending") return false;
-    const reqTeacherId =
-      typeof req.teacherId === "string" ? req.teacherId : req.teacherId?._id;
-    const reqSubjectId =
-      typeof req.subjectId === "string" ? req.subjectId : req.subjectId?._id;
-    const reqGradeId =
-      typeof req.gradeId === "string" ? req.gradeId : req.gradeId?._id;
-    const reqUnitId =
-      typeof req.unitId === "string" ? req.unitId : req.unitId?._id;
-    if (assignmentTeacherId && reqTeacherId !== assignmentTeacherId)
-      return false;
-    if (assignmentSubjectId && reqSubjectId !== assignmentSubjectId)
-      return false;
-    if (assignmentGradeId && reqGradeId !== assignmentGradeId) return false;
-    if (req.type === "unit" && activeUnitId && reqUnitId !== activeUnitId)
-      return false;
-    return true;
-  });
-
   const sidebarUnits: SidebarUnitItem[] =
     fromStudent && assignmentContent
       ? assignmentContent.units.map((unit) => ({
@@ -951,7 +925,6 @@ export default function LessonView() {
 
   const accessStatus = (() => {
     if (!fromStudent) return "subscribed";
-    if (pendingRequest) return "pending";
     const subjectAccess = assignmentContent?.access?.subject ?? false;
     const unitAccess = activeUnitId
       ? assignmentContent?.access?.unitIds?.includes(activeUnitId)
@@ -1219,28 +1192,15 @@ export default function LessonView() {
                       <Lock className="w-5 h-5 text-slate-500" />
                     </div>
                     <div className="flex-1">
-                      {pendingRequest ? (
-                        <>
-                          <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-200">
-                            {t("lessonPendingTitle")}
-                          </h2>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                            {t("lessonPendingDesc")}
-                          </p>
-                        </>
-                      ) : (
-                        <>
-                          <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-200">
-                            {t("lessonLockedTitle")}
-                          </h2>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                            {t("lessonLockedDesc", {
-                              defaultValue:
-                                "Subscribe to unlock this lesson and its quizzes.",
-                            })}
-                          </p>
-                        </>
-                      )}
+                      <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                        {t("lessonLockedTitle")}
+                      </h2>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        {t("lessonLockedDesc", {
+                          defaultValue:
+                            "Subscribe to unlock this lesson and its quizzes.",
+                        })}
+                      </p>
                     </div>
                     <div className="flex items-center gap-2">
                       <Button
@@ -1250,8 +1210,7 @@ export default function LessonView() {
                       >
                         {t("back")}
                       </Button>
-                      {!pendingRequest &&
-                        assignmentTeacherId &&
+                      {assignmentTeacherId &&
                         resolvedSubjectId && (
                           <Button
                             size="sm"
@@ -1312,16 +1271,12 @@ export default function LessonView() {
                       className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border ${
                         accessStatus === "subscribed"
                           ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-800/40"
-                          : accessStatus === "pending"
-                            ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-800/40"
-                            : "bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700"
+                          : "bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700"
                       }`}
                     >
                       {accessStatus === "subscribed"
                         ? t("subscriptionStatusSubscribed")
-                        : accessStatus === "pending"
-                          ? t("subscriptionStatusPending")
-                          : t("subscriptionStatusNone")}
+                        : t("subscriptionStatusNone")}
                     </span>
                   )}
                 </div>

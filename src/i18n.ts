@@ -1262,8 +1262,6 @@ i18n
           thisYear: "This year",
           days: "days",
           access: "access",
-          previous: "Previous",
-          next: "Next",
           // ── Error messages ──
           unknownError: "Unknown error",
           passwordsDoNotMatchValidation: "Passwords do not match",
@@ -2228,8 +2226,6 @@ i18n
           thisYear: "هذا العام",
           days: "يوم",
           access: "وصول",
-          previous: "السابق",
-          next: "التالي",
           // ── رسائل الخطأ ──
           unknownError: "خطأ غير معروف",
           passwordsDoNotMatchValidation: "كلمتا المرور غير متطابقتين",

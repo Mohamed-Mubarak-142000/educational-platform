@@ -68,6 +68,7 @@ const PublicSubjectTeachers = lazy(
 const PublicAllStages = lazy(() => import("./pages/PublicAllStages"));
 const PublicGradeSubjects = lazy(() => import("./pages/PublicGradeSubjects"));
 const Unauthorized = lazy(() => import("./pages/Unauthorized"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 const PaymentResult = lazy(() => import("./pages/PaymentResult"));
 
 function Layout({ children }: { children: React.ReactNode }) {
@@ -658,6 +659,9 @@ function App() {
                   </RequireAuth>
                 }
               />
+
+              {/* Catch-all — any unmatched URL gets a real 404 instead of a blank page */}
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
         </Router>

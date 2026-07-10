@@ -23,6 +23,7 @@ import { SkeletonBlock, SkeletonStatsGrid } from "@/components/shared";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LiveSessionManager } from "@/components/LiveSessionManager";
+import TeacherLiveLessonRequests from "@/components/TeacherLiveLessonRequests";
 import {
   User,
   Phone,
@@ -543,6 +544,18 @@ export default function TeacherOverview() {
           </div>
         )}
       </div>
+
+      {/* ── Pending Live Lesson Requests ── */}
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            {t("liveLessonRequests", { defaultValue: "Live Lesson Requests" })}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <TeacherLiveLessonRequests />
+        </CardContent>
+      </Card>
 
       {/* ── Live Sessions ── */}
       <div className="space-y-4">

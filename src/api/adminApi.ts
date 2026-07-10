@@ -225,7 +225,7 @@ export const deleteStudent = async (
   return response.data;
 };
 
-export const getPayments = async (status?: string): Promise<Payment[]> => {
+export const getPayments = async (_status?: string): Promise<Payment[]> => {
   // Legacy endpoint — kept for backward compatibility but returns empty array
   console.warn(
     "[adminApi] getPayments is deprecated. Use paymobApi.getAdminPaymentsAnalytics instead.",

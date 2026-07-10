@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { getQuestionsByQuiz, saveQuizGrade } from '@/api/subjectApi';
+import { getQuestionsByQuiz, saveQuizGrade, type QuizGradeResult } from '@/api/subjectApi';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
 import {
@@ -22,7 +22,8 @@ type QuizQuestion = {
   _id: string;
   text: string;
   options: string[];
-  correctAnswer: number;
+  // Omitted by the API while the student is actively taking the quiz.
+  correctAnswer?: number;
 };
 
 const OPT_LABELS = ['A', 'B', 'C', 'D'] as const;
@@ -62,10 +63,13 @@ export default function StudentQuizModal({
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const initialSeconds = timeLimitMinutes && timeLimitMinutes > 0 ? timeLimitMinutes * 60 : DEFAULT_TIME_SECONDS;
   const [timeLeft, setTimeLeft] = useState(initialSeconds);
+  // Correct answers are withheld from the fetched questions while the
+  // student is taking the quiz; only revealed once the server confirms the
+  // graded attempt.
+  const [result, setResult] = useState<QuizGradeResult | null>(null);
 
   const saveGradeMutation = useMutation({
-    mutationFn: ({ score, correctCount, totalQuestions }: { score: number; correctCount: number; totalQuestions: number }) =>
-      saveQuizGrade(user?._id ?? '', quizId, score, correctCount, totalQuestions),
+    mutationFn: (submittedAnswers: Record<string, number>) => saveQuizGrade(quizId, submittedAnswers),
   });
 
   // Reset state every time dialog is opened.
@@ -77,15 +81,22 @@ export default function StudentQuizModal({
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setPhase('taking');
       setAnswers({});
+      setResult(null);
       setTimeLeft(timeLimitMinutes && timeLimitMinutes > 0 ? timeLimitMinutes * 60 : DEFAULT_TIME_SECONDS);
     }
   }, [open, quizId, timeLimitMinutes]);
 
-  const { data: questions = [], isLoading } = useQuery<QuizQuestion[]>({
+  const { data: fetchedQuestions = [], isLoading } = useQuery<QuizQuestion[]>({
     queryKey: ['quiz-questions', quizId],
     queryFn: () => getQuestionsByQuiz(quizId),
     enabled: open && !!quizId,
   });
+
+  // Merge in the server-revealed correct answers once available (post-submit).
+  const questions = fetchedQuestions.map((q) => ({
+    ...q,
+    correctAnswer: result?.correctAnswers[q._id] ?? q.correctAnswer ?? -1,
+  }));
 
   // ── Submission ───────────────────────────────────────────────────
   const submit = useCallback(() => {
@@ -96,10 +107,11 @@ export default function StudentQuizModal({
     const pctScore = total > 0 ? Math.round((correct / total) * 100) : 0;
     // Save to backend (fire-and-forget, don't block UI)
     if (user?._id) {
-      saveGradeMutation.mutate({ score: pctScore, correctCount: correct, totalQuestions: total });
+      saveGradeMutation.mutate(answers, { onSuccess: setResult });
     }
     setPhase('result');
     onComplete?.(pctScore, correct, total);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [questions, answers, onComplete, user?._id, saveGradeMutation]);
 
   // ── Countdown timer (interval-based; does not depend on timeLeft) ─

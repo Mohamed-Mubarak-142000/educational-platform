@@ -6,7 +6,10 @@ import webrtcService from "@/services/webrtcService";
 import * as liveClassroomApi from "@/api/liveClassroomApi";
 import { VideoStream } from "@/components/VideoStream";
 import { LiveChatPanel, type ChatMessage } from "@/components/LiveChatPanel";
-import { CollaborativeWhiteboard } from "@/components/CollaborativeWhiteboard";
+import {
+  CollaborativeWhiteboard,
+  type CollaborativeWhiteboardHandle,
+} from "@/components/CollaborativeWhiteboard";
 import { type DrawAction } from "@/hooks/useWhiteboard";
 import { Button } from "@/components/ui/button";
 import { PhoneOff, Clock, Book, Maximize2, Minimize2 } from "lucide-react";
@@ -55,7 +58,7 @@ export const LiveClassroomPage: React.FC = () => {
   >("connecting");
 
   // Refs
-  const whiteboardRef = useRef<any>(null);
+  const whiteboardRef = useRef<CollaborativeWhiteboardHandle>(null);
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const isInitiator = useRef(false);
 
@@ -106,11 +109,12 @@ export const LiveClassroomPage: React.FC = () => {
         setLocalStream(stream);
         console.log("✅ Local media initialized");
 
-        // Join room
+        // Join room — the server resolves the real identity from the JWT
+        // itself, this payload is only used for local display fallbacks.
         socketService.joinRoom(roomId, {
           userId: user._id,
-          name: user.name,
-          role: user.role,
+          name: user.name ?? "User",
+          role: user.role === "Teacher" ? "teacher" : "student",
         });
 
         setConnectionStatus("connected");
@@ -391,7 +395,7 @@ export const LiveClassroomPage: React.FC = () => {
   // Whiteboard handler
   const handleWhiteboardDraw = useCallback(
     (action: DrawAction) => {
-      socketService.sendWhiteboardAction(roomId!, action, action, user!._id);
+      socketService.sendWhiteboardAction(roomId!, "draw", action, user!._id);
     },
     [roomId, user],
   );
@@ -399,37 +403,27 @@ export const LiveClassroomPage: React.FC = () => {
   // Chat handler
   const handleSendMessage = useCallback(
     (message: string) => {
-      const chatMsg = {
+      const userName = user!.name ?? "User";
+      const chatMsg: ChatMessage = {
         id: `msg-${Date.now()}-${user!._id}`,
-        roomId: roomId!,
         message,
         userId: user!._id,
-        userName: user!.name,
+        userName,
         timestamp: new Date(),
+        type: "user",
       };
 
-      socketService.sendChatMessage(
-        roomId!,
-        chatMsg.message,
-        user!._id,
-        user!.name,
-      );
+      socketService.sendChatMessage(roomId!, message, user!._id, userName);
 
       // Add to local state immediately
-      setChatMessages((prev) => [
-        ...prev,
-        {
-          ...chatMsg,
-          type: "user" as const,
-        },
-      ]);
+      setChatMessages((prev) => [...prev, chatMsg]);
     },
     [roomId, user],
   );
 
   // End session (teacher only)
   const handleEndSession = async () => {
-    if (!user || user.role !== "teacher") return;
+    if (!user || user.role !== "Teacher") return;
 
     try {
       await liveClassroomApi.endSession(session._id);
@@ -479,7 +473,7 @@ export const LiveClassroomPage: React.FC = () => {
     );
   }
 
-  const isTeacher = user?.role === "teacher";
+  const isTeacher = user?.role === "Teacher";
   const remotePeer = participants.find((p) => p.userId !== user?._id);
 
   return (
@@ -559,7 +553,7 @@ export const LiveClassroomPage: React.FC = () => {
           {/* Teacher Video (Large) */}
           <VideoStream
             stream={isTeacher ? localStream : remoteStream}
-            name={isTeacher ? user!.name : remotePeer?.name || "Teacher"}
+            name={isTeacher ? (user!.name ?? "Teacher") : remotePeer?.name || "Teacher"}
             role="teacher"
             isLocal={isTeacher}
             isAudioEnabled={isTeacher ? isAudioEnabled : remotePeerAudio}
@@ -575,7 +569,7 @@ export const LiveClassroomPage: React.FC = () => {
           {/* Student Video (Small) */}
           <VideoStream
             stream={!isTeacher ? localStream : remoteStream}
-            name={!isTeacher ? user!.name : remotePeer?.name || "Student"}
+            name={!isTeacher ? (user!.name ?? "Student") : remotePeer?.name || "Student"}
             role="student"
             isLocal={!isTeacher}
             isAudioEnabled={!isTeacher ? isAudioEnabled : remotePeerAudio}

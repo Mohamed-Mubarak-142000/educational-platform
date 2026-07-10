@@ -159,8 +159,8 @@ export default function AdminOverview() {
   }, [students, t, locale]);
 
   const paymentSplit = useMemo(() => {
-    const success = analytics?.successfulPayments ?? 0;
-    const failed = analytics?.failedPayments ?? 0;
+    const success = analytics?.successCount ?? 0;
+    const failed = analytics?.failedCount ?? 0;
     return {
       labels: [t("paymentStatusSuccess"), t("paymentStatusFailed")],
       datasets: [

@@ -158,7 +158,7 @@ export default function StudentPaymentsRecord() {
           subtitle={t("paymentsRecordSubtitle")}
         />
         <ErrorState
-          message={
+          description={
             error instanceof Error ? error.message : t("errorLoadingPayments")
           }
           onRetry={refetch}
@@ -208,7 +208,7 @@ export default function StudentPaymentsRecord() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className={spacing.cardContent}>
+        <CardContent className={spacing.cardPadding}>
           <DataTable<PaymobPayment>
             columns={columns}
             data={filteredPayments}

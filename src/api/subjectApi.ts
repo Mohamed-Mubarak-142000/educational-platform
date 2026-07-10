@@ -52,8 +52,7 @@ export type SubjectTeacherContent = {
   units: (Unit & { isUnlocked?: boolean; lessons: Lesson[] })[];
   pricing?: { subject?: number };
   access?: { subject: boolean; unitIds: string[] };
-  subscriptionStatus?: 'Approved' | 'Pending' | 'None';
-  pendingUnitIds?: string[];
+  subscriptionStatus?: 'active' | 'None';
 };
 
 export type SubjectInput = {
@@ -187,7 +186,9 @@ export type QuizQuestion = {
   _id: string;
   text: string;
   options: string[];
-  correctAnswer: number;
+  // Omitted by the API while a student is actively taking the quiz — only
+  // present for Teacher/Admin previews, or after submission via saveQuizGrade.
+  correctAnswer?: number;
 };
 
 export type QuizQuestionInput = {
@@ -220,6 +221,12 @@ export type QuizGrade = {
   totalQuestions: number;
   completedAt: string;
   createdAt: string;
+};
+
+export type QuizGradeResult = QuizGrade & {
+  // The correct option index per question ID — safe to reveal now that the
+  // attempt has been recorded server-side.
+  correctAnswers: Record<string, number>;
 };
 
 export type TeacherSchedule = {
@@ -347,13 +354,13 @@ export const getUnitAvailability = async (): Promise<UnitAvailability[]> => (awa
 export const setUnitAvailability = async (unitId: string, data: UnitAvailabilityInput): Promise<UnitAvailability> => (await api.put<UnitAvailability>(`/units/${unitId}/availability`, data)).data;
 
 // ── Quiz Grades ───────────────────────────────────────────────────
+// The server recomputes the score from `answers` (questionId -> chosen
+// option index) against the stored correct answers — it never trusts a
+// client-supplied score.
 export const saveQuizGrade = async (
-  _studentId: string,
   quizId: string,
-  score: number,
-  correctCount: number,
-  totalQuestions: number
-) => (await api.post<QuizGrade>('/quizzes/grades', { quizId, score, correctCount, totalQuestions })).data;
+  answers: Record<string, number>
+): Promise<QuizGradeResult> => (await api.post<QuizGradeResult>('/quizzes/grades', { quizId, answers })).data;
 
 export const getGradesByStudent = async (studentId: string): Promise<QuizGrade[]> => (await api.get<QuizGrade[]>(`/quizzes/grades/student/${studentId}`)).data;
 export const getGradesByQuiz = async (quizId: string): Promise<QuizGrade[]> => (await api.get<QuizGrade[]>(`/quizzes/grades/quiz/${quizId}`)).data;

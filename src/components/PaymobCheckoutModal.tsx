@@ -11,8 +11,9 @@ interface PaymobCheckoutModalProps {
   iframeUrl: string;
   paymentId: string;
   amountEGP: number;
-  plan: SubscriptionPlan;
-  planDays: number;
+  /** Omit both for a one-off payment (e.g. a live lesson) that isn't a recurring plan */
+  plan?: SubscriptionPlan;
+  planDays?: number;
   /** Called when the payment is completed (browser focus returns to this window) */
   onPaymentComplete?: () => void;
 }
@@ -64,7 +65,7 @@ export default function PaymobCheckoutModal({
     }
   }, [open]);
 
-  const planLabel = t(PLAN_LABEL_MAP[plan] ?? plan);
+  const planLabel = plan ? t(PLAN_LABEL_MAP[plan] ?? plan) : undefined;
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
@@ -83,8 +84,8 @@ export default function PaymobCheckoutModal({
                 {t("payNow")}
               </p>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                {planLabel} — {amountEGP.toLocaleString("ar-EG")}{" "}
-                {t("currencyEgp")}
+                {planLabel ? `${planLabel} — ` : ""}
+                {amountEGP.toLocaleString("ar-EG")} {t("currencyEgp")}
               </p>
             </div>
           </div>
@@ -100,7 +101,8 @@ export default function PaymobCheckoutModal({
         <div className="flex items-center gap-2 px-5 py-2 bg-emerald-50 dark:bg-emerald-900/20 border-b border-emerald-100 dark:border-emerald-800/30">
           <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
           <p className="text-xs text-emerald-700 dark:text-emerald-300">
-            {t("paymobSecurePayment")} · {planDays} {t("days")} {t("access")}
+            {t("paymobSecurePayment")}
+            {planDays ? ` · ${planDays} ${t("days")} ${t("access")}` : ""}
           </p>
         </div>
 

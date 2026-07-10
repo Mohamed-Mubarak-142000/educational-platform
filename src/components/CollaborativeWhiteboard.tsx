@@ -25,6 +25,10 @@ interface CollaborativeWhiteboardProps {
   className?: string;
 }
 
+export interface CollaborativeWhiteboardHandle {
+  drawRemoteAction: (action: DrawAction) => void;
+}
+
 const COLORS = [
   "#000000", // Black
   "#FF0000", // Red
@@ -55,9 +59,10 @@ const TOOLS: { tool: DrawTool; icon: React.ReactNode; label: string }[] = [
   },
 ];
 
-export const CollaborativeWhiteboard: React.FC<
+export const CollaborativeWhiteboard = React.forwardRef<
+  CollaborativeWhiteboardHandle,
   CollaborativeWhiteboardProps
-> = ({ onDraw, disabled = false, className = "" }) => {
+>(({ onDraw, disabled = false, className = "" }, ref) => {
   const {
     canvasRef,
     tool,
@@ -74,12 +79,9 @@ export const CollaborativeWhiteboard: React.FC<
     drawRemoteAction,
   } = useWhiteboard({ onDraw, width: 1200, height: 800 });
 
-  // Expose drawRemoteAction for parent to call
-  React.useImperativeHandle(
-    React.useRef<{ drawRemoteAction: (action: DrawAction) => void }>(),
-    () => ({ drawRemoteAction }),
-    [drawRemoteAction],
-  );
+  // Expose drawRemoteAction to whoever holds the forwarded ref (e.g. the
+  // live-classroom page, which feeds it incoming socket events).
+  React.useImperativeHandle(ref, () => ({ drawRemoteAction }), [drawRemoteAction]);
 
   return (
     <div className={`flex flex-col bg-gray-50 dark:bg-gray-900 ${className}`}>
@@ -196,6 +198,8 @@ export const CollaborativeWhiteboard: React.FC<
       </div>
     </div>
   );
-};
+});
+
+CollaborativeWhiteboard.displayName = "CollaborativeWhiteboard";
 
 export default CollaborativeWhiteboard;

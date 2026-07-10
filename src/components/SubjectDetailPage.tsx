@@ -479,7 +479,7 @@ function QuizDialog({
   const openAddQuestion = () => { setEditQId(null); setQForm(emptyQForm); setView('question'); };
   const openEditQuestion = (q: QuizQuestion) => {
     setEditQId(q._id);
-    setQForm({ text: q.text, optA: q.options[0], optB: q.options[1], optC: q.options[2], optD: q.options[3], correct: q.correctAnswer });
+    setQForm({ text: q.text, optA: q.options[0], optB: q.options[1], optC: q.options[2], optD: q.options[3], correct: q.correctAnswer ?? 0 });
     setView('question');
   };
 
