@@ -327,7 +327,7 @@ function TestimonialsSection({ section, isRtl }: { section: LandingSection; isRt
             {title || t('testiTitle')}
           </motion.h2>
         </div>
-        <Carousel items={cards} isRtl={isRtl} autoplayMs={5000} perView={{ base: 1, md: 1, lg: 1 }} ariaPrevLabel={t('previous')} ariaNextLabel={t('next')} ariaSlideLabel={t('slide')} />
+        <Carousel items={cards} isRtl={isRtl} autoplayMs={5000} perView={{ base: 1, md: 1, lg: 1 }} className="max-w-3xl mx-auto" ariaPrevLabel={t('previous')} ariaNextLabel={t('next')} ariaSlideLabel={t('slide')} />
       </div>
     </section>
   );
@@ -606,7 +606,7 @@ export default function Landing() {
       <main className="flex-1">
 
       {/* Hero Section */}
-      <section id="home" className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden flex items-center min-h-[90vh]">
+      <section id="home" className="relative pt-16 pb-20 lg:pt-20 lg:pb-32 overflow-hidden flex items-center min-h-[90vh]">
         <div className="absolute top-0 right-0 -translate-y-12 translate-x-1/3 w-[800px] h-[800px] bg-blue-400/20 dark:bg-blue-900/20 rounded-full blur-[120px] pointer-events-none transition-colors duration-500" />
         <div className="absolute bottom-0 left-0 translate-y-1/3 -translate-x-1/3 w-[600px] h-[600px] bg-indigo-400/20 dark:bg-indigo-900/20 rounded-full blur-[100px] pointer-events-none transition-colors duration-500" />
         
@@ -662,7 +662,7 @@ export default function Landing() {
                   transition={{ repeat: Infinity, duration: 8, ease: "easeInOut" }}
                   src={heroImage}
                   alt={config ? (isRtl ? config.platformName.ar : config.platformName.en) : t('brandName')}
-                  className="relative z-10 w-full max-w-lg drop-shadow-2xl rounded-[2rem] object-contain"
+                  className="relative z-10 w-full max-w-md drop-shadow-2xl rounded-[2rem] object-contain"
                />
                
                {/* Students Card */}
