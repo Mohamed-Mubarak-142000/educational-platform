@@ -333,8 +333,8 @@ export default function TeacherForm() {
                       onClick={() => toggleSubject(subject._id)}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${
                         checked
-                          ? 'bg-blue-600 text-white border-blue-600'
-                          : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:border-blue-400'
+                          ? 'bg-violet-600 text-white border-violet-600'
+                          : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:border-violet-400'
                       }`}
                     >
                       {checked && <CheckCircle2 className="w-3.5 h-3.5" />}
@@ -351,7 +351,7 @@ export default function TeacherForm() {
           <div className="space-y-2">
             <div
               onClick={() => cvInputRef.current?.click()}
-              className="flex items-center gap-3 px-4 py-3 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg cursor-pointer hover:border-blue-500 transition bg-slate-50 dark:bg-slate-800"
+              className="flex items-center gap-3 px-4 py-3 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg cursor-pointer hover:border-violet-500 transition bg-slate-50 dark:bg-slate-800"
             >
               <Upload className="w-5 h-5 text-slate-400" />
               <span className="text-sm text-slate-500">
@@ -415,10 +415,10 @@ export default function TeacherForm() {
                   onClick={() => toggleDay(day)}
                   className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${
                     selected
-                      ? 'bg-blue-600 text-white border-blue-600'
+                      ? 'bg-violet-600 text-white border-violet-600'
                       : disabled
                       ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed opacity-50'
-                      : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:border-blue-400'
+                      : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:border-violet-400'
                   }`}
                 >
                   {selected ? <CheckCircle2 className="inline w-3.5 h-3.5 mr-1" /> : <Plus className="inline w-3.5 h-3.5 mr-1" />}

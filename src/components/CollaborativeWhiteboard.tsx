@@ -113,7 +113,7 @@ export const CollaborativeWhiteboard = React.forwardRef<
               disabled={disabled}
               className={`w-7 h-7 rounded-full border-2 transition-all ${
                 color === c
-                  ? "border-blue-500 dark:border-blue-400 scale-110"
+                  ? "border-violet-500 dark:border-violet-400 scale-110"
                   : "border-gray-300 dark:border-gray-600 hover:scale-105"
               }`}
               style={{ backgroundColor: c }}

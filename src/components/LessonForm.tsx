@@ -215,7 +215,7 @@ function MediaSection({ media, onChange, idPrefix, onUploadStateChange }: MediaS
             <input type="file" accept="video/*" id={`${idPrefix}-video`}
               className="hidden" onChange={(e) => handleFile(e, 'video')} />
             <label htmlFor={`${idPrefix}-video`}
-              className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-xs font-medium">
+              className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition text-xs font-medium">
               <FileVideo className="w-3.5 h-3.5" />{t('uploadVideo')}
             </label>
             {videoFile && (
@@ -229,7 +229,7 @@ function MediaSection({ media, onChange, idPrefix, onUploadStateChange }: MediaS
               onChange={(e) => set('videoUrl', e.target.value)} />
           )}
           {media.videoUrl && !videoFile && (
-            <p className="text-xs text-blue-600">{t('videoUploaded')}</p>
+            <p className="text-xs text-violet-600">{t('videoUploaded')}</p>
           )}
           {videoUploadError && (
             <p className="text-xs text-red-500">{videoUploadError}</p>
@@ -274,7 +274,7 @@ function MediaSection({ media, onChange, idPrefix, onUploadStateChange }: MediaS
             <input type="file" accept="image/*" id={`${idPrefix}-image`}
               className="hidden" onChange={(e) => handleFile(e, 'image')} />
             <label htmlFor={`${idPrefix}-image`}
-              className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-xs font-medium">
+              className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition text-xs font-medium">
               <Image className="w-3.5 h-3.5" />{t('uploadImage')}
             </label>
             {imageFile && (
@@ -474,7 +474,7 @@ function PartCard({
 
       {/* Header (always visible) */}
       <div className="flex items-center gap-2 px-4 py-3 bg-slate-50 dark:bg-slate-800/50">
-        <span className="w-6 h-6 rounded-md bg-blue-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
+        <span className="w-6 h-6 rounded-md bg-violet-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
           {index + 1}
         </span>
         <Input
@@ -660,18 +660,18 @@ export default function LessonForm({ initialData, onSubmit, onCancel, isLoading 
       )}
 
       {/* ── Lesson Parts ── */}
-      <div className="border border-blue-200 dark:border-blue-800/40 rounded-xl p-5 space-y-4 bg-blue-50/40 dark:bg-blue-900/10">
+      <div className="border border-violet-200 dark:border-violet-800/40 rounded-xl p-5 space-y-4 bg-violet-50/40 dark:bg-violet-900/10">
         <div className="flex items-start justify-between gap-3">
           <div>
             <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
-              <Layers className="w-4 h-4 text-blue-600" />{t('lessonParts')}
+              <Layers className="w-4 h-4 text-violet-600" />{t('lessonParts')}
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               {t('lessonPartsHint')}
             </p>
           </div>
           <Button type="button" size="sm" onClick={addPart}
-            className="bg-blue-600 hover:bg-blue-700 text-white gap-1.5 flex-shrink-0">
+            className="bg-violet-600 hover:bg-violet-700 text-white gap-1.5 flex-shrink-0">
             <Plus className="w-3.5 h-3.5" />{t('addPart')}
           </Button>
         </div>
@@ -719,7 +719,7 @@ export default function LessonForm({ initialData, onSubmit, onCancel, isLoading 
         <Button
           type="submit"
           disabled={isLoading || uploadingCount > 0 || !formData.title.trim()}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
+          className="bg-violet-600 hover:bg-violet-700 text-white"
         >
           {isLoading ? t('saving') : t('saveLesson')}
         </Button>

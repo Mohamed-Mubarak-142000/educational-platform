@@ -71,8 +71,8 @@ function MultiPill<T extends { _id: string; name: string; nameAr?: string }>({
             onClick={() => toggle(item._id)}
             className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors disabled:opacity-50 ${
               active
-                ? 'bg-blue-600 text-white border-blue-600'
-                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-blue-400'
+                ? 'bg-violet-600 text-white border-violet-600'
+                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-violet-400'
             }`}
           >
             {label}
@@ -405,7 +405,7 @@ export default function TeacherProfileEdit() {
                 onChange={(e) => setBio(e.target.value)}
                 rows={4}
                 placeholder={t('bioPlaceholder')}
-                className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-sm text-slate-800 dark:text-slate-200 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-sm text-slate-800 dark:text-slate-200 resize-none focus:outline-none focus:ring-2 focus:ring-violet-500"
               />
             </div>
           </FormField>
@@ -494,8 +494,8 @@ export default function TeacherProfileEdit() {
                     onClick={() => toggleDay(day)}
                     className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
                       active
-                        ? 'bg-blue-600 text-white border-blue-600'
-                        : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-blue-400'
+                        ? 'bg-violet-600 text-white border-violet-600'
+                        : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-violet-400'
                     }`}
                   >
                     {isAr ? DAYS_AR[day] : day}
@@ -541,7 +541,7 @@ export default function TeacherProfileEdit() {
         <div className="flex items-center gap-4 flex-wrap">
           <Button
             type="submit"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-8"
+            className="bg-violet-600 hover:bg-violet-700 text-white px-8"
             disabled={mutation.isPending}
           >
             {mutation.isPending ? (

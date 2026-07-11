@@ -56,7 +56,7 @@ export default function AdminStudentDetail() {
           <ArrowLeft className="w-4 h-4" /> {t('backToStudents')}
         </Button>
         <Button
-          className="bg-blue-600 hover:bg-blue-700 text-white"
+          className="bg-violet-600 hover:bg-violet-700 text-white"
           onClick={() => navigate(`/admin/students/${id}/edit`)}
         >
           <Pencil className="w-4 h-4 mr-2" /> {t('edit')}
@@ -69,10 +69,10 @@ export default function AdminStudentDetail() {
             <img
               src={student.profileImage}
               alt={student.name}
-              className="w-24 h-24 rounded-full object-cover border-4 border-blue-500 shrink-0"
+              className="w-24 h-24 rounded-full object-cover border-4 border-violet-500 shrink-0"
             />
           ) : (
-            <div className="w-24 h-24 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-3xl font-bold text-blue-600 shrink-0">
+            <div className="w-24 h-24 rounded-full bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center text-3xl font-bold text-violet-600 shrink-0">
               {student.name?.[0]?.toUpperCase() || '?'}
             </div>
           )}
@@ -108,7 +108,7 @@ export default function AdminStudentDetail() {
       <Card className={`${cardVariants.default} mt-6`}>
         <CardHeader className="border-b border-slate-200 dark:border-slate-800">
           <div className="flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-blue-600" />
+            <BookOpen className="w-4 h-4 text-violet-600" />
             <CardTitle className="text-lg">
               {t('subscribedSubjects')}
             </CardTitle>
@@ -122,7 +122,7 @@ export default function AdminStudentDetail() {
               {subscribedSubjects.map((subject) => (
                 <div
                   key={subject._id}
-                  className="border border-slate-200 dark:border-slate-800 rounded-lg p-4 cursor-pointer hover:border-blue-400 hover:shadow-sm transition"
+                  className="border border-slate-200 dark:border-slate-800 rounded-lg p-4 cursor-pointer hover:border-violet-400 hover:shadow-sm transition"
                   onClick={() => navigate(`/admin/subjects/${subject._id}`)}
                   role="button"
                   tabIndex={0}
@@ -133,7 +133,7 @@ export default function AdminStudentDetail() {
                   }}
                 >
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-lg">
+                    <div className="w-10 h-10 rounded-lg bg-violet-50 dark:bg-violet-900/20 flex items-center justify-center text-lg">
                       {subject.icon || '📘'}
                     </div>
                     <div className="min-w-0">

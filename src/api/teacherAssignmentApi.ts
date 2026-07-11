@@ -6,7 +6,17 @@ import api from './axiosConfig';
 
 export type TeacherAssignment = {
   _id: string;
-  teacherId: string | { _id: string; name: string; email: string; bio?: string; profileImage?: string };
+  teacherId:
+    | string
+    | {
+        _id: string;
+        name: string;
+        email: string;
+        bio?: string;
+        profileImage?: string;
+        isAvailableForInstantLessons?: boolean;
+        instantLessonPricePerHour?: number;
+      };
   subjectId: string | { _id: string; name: string; nameAr?: string; icon?: string; color?: string };
   gradeId: string | { _id: string; name: string; nameAr?: string; stageId?: string };
   isPrimary: boolean;
@@ -128,6 +138,20 @@ export const getTeachersBySubjectStage = async (filters: {
   stageId: string;
 }): Promise<TeacherAssignment[]> =>
   (await api.get<TeacherAssignment[]>('/teacher-assignments/by-subject-stage', { params: filters })).data;
+
+// Public-facing: preview a teacher's units/lessons for a subject+grade —
+// first lesson per unit is unlocked, everything else stays locked. No auth required.
+export type PublicAssignmentContent = {
+  assignment: TeacherAssignment;
+  units: AssignmentContentUnit[];
+};
+
+export const getPublicAssignmentContent = async (filters: {
+  subjectId: string;
+  gradeId: string;
+  teacherId: string;
+}): Promise<PublicAssignmentContent> =>
+  (await api.get<PublicAssignmentContent>('/teacher-assignments/public-content', { params: filters })).data;
 
 // ─────────────────────────────────────────────────────────────────
 // Teacher dashboard stats

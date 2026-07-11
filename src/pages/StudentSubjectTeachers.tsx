@@ -182,7 +182,7 @@ export default function StudentSubjectTeachers() {
           <CardContent className="py-10 text-center space-y-4">
             <p className="font-semibold text-slate-800 dark:text-slate-200">{t('noStageSet')}</p>
             <p className="text-sm text-slate-500 dark:text-slate-400">{t('setStageInProfile')}</p>
-            <Button onClick={() => navigate('/student')} className="bg-blue-600 hover:bg-blue-700 text-white">
+            <Button onClick={() => navigate('/student')} className="bg-violet-600 hover:bg-violet-700 text-white">
               {t('goToProfile')}
             </Button>
           </CardContent>

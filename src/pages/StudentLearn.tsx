@@ -45,7 +45,7 @@ export default function StudentLearn() {
     <div className={spacing.pageContainer}>
       {/* Subjects */}
       <div className="flex items-center gap-2 mb-4">
-        <GraduationCap className="w-5 h-5 text-blue-600" />
+        <GraduationCap className="w-5 h-5 text-violet-600" />
         <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">{t('studentLearn')}</h2>
         <span className="text-sm text-slate-400 dark:text-slate-500 ml-1">({resolvedSubjects.length})</span>
       </div>
@@ -84,7 +84,7 @@ export default function StudentLearn() {
                     </div>
                     <div className="mt-1 h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
                       <div
-                        className="h-full rounded-full bg-blue-600"
+                        className="h-full rounded-full bg-violet-600"
                         style={{ width: `${subject.progressPercentage}%` }}
                       />
                     </div>

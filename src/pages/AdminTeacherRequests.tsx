@@ -90,7 +90,7 @@ function StatusBadge({ status }: { status: TeacherApplicationRecord['status'] })
     case 'Pending':
       return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">{t('applicationStatusPending')}</span>;
     case 'Under Evaluation':
-      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">{t('applicationStatusUnderEvaluation')}</span>;
+      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-300">{t('applicationStatusUnderEvaluation')}</span>;
     case 'Accepted':
       return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">{t('applicationStatusAccepted')}</span>;
     case 'Rejected':
@@ -166,7 +166,7 @@ function ApplicationDetails({
               return (
                 <span
                   key={day}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-full bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-800/50"
                 >
                   <Clock className="w-3 h-3" />
                   {t(`dayName_${day}`)} {hours ? `${hours.start}–${hours.end}` : ''}
@@ -181,7 +181,7 @@ function ApplicationDetails({
             <button
               type="button"
               onClick={() => onViewCv(app._id)}
-              className="inline-flex items-center gap-1.5 text-sm text-blue-600 dark:text-blue-400 hover:underline"
+              className="inline-flex items-center gap-1.5 text-sm text-violet-600 dark:text-violet-400 hover:underline"
             >
               <FileText className="w-4 h-4" />
               {isCvOpen ? t('close') : t('viewCv')}
@@ -216,7 +216,7 @@ function ApplicationDetails({
           <Button
             size="sm"
             onClick={() => onEvaluate(app._id)}
-            className="bg-blue-600 hover:bg-blue-700 text-white gap-1.5"
+            className="bg-violet-600 hover:bg-violet-700 text-white gap-1.5"
           >
             <Calendar className="w-4 h-4" />
             {t('startEvaluation')}
@@ -322,7 +322,7 @@ export default function AdminTeacherRequests() {
                 className="w-10 h-10 rounded-full object-cover ring-2 ring-slate-200 dark:ring-slate-700"
               />
             ) : (
-              <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-base font-bold text-blue-700 dark:text-blue-300 ring-2 ring-slate-200 dark:ring-slate-700">
+              <div className="w-10 h-10 rounded-full bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center text-base font-bold text-violet-700 dark:text-violet-300 ring-2 ring-slate-200 dark:ring-slate-700">
                 {app.name.charAt(0)}
               </div>
             )}
@@ -384,7 +384,7 @@ export default function AdminTeacherRequests() {
           {/* Under Evaluation */}
           <section>
             <h2 className="text-base font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
-              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-bold">{evaluating.length}</span>
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-violet-100 text-violet-700 text-xs font-bold">{evaluating.length}</span>
               {t('underEvaluation')}
             </h2>
             {evaluating.length === 0 ? (
@@ -409,7 +409,7 @@ export default function AdminTeacherRequests() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-blue-600" />
+              <Calendar className="w-5 h-5 text-violet-600" />
               {t('startEvaluationTitle')}
             </DialogTitle>
           </DialogHeader>
@@ -433,7 +433,7 @@ export default function AdminTeacherRequests() {
             <Button
               onClick={handleEvaluateConfirm}
               disabled={!zoomLink.trim() || reviewMutation.isPending}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-violet-600 hover:bg-violet-700 text-white"
             >
               {reviewMutation.isPending ? t('sending') : t('sendAndStartEvaluation')}
             </Button>

@@ -13,9 +13,9 @@ export function SiteFooter() {
           </span>
         </div>
         <div className="flex gap-6 text-sm font-medium text-slate-500 dark:text-slate-400">
-          <a href="#" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">{t('privacyPolicy')}</a>
-          <a href="#" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">{t('termsOfService')}</a>
-          <a href="#" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">{t('contactUs')}</a>
+          <a href="#" className="hover:text-violet-600 dark:hover:text-violet-400 transition-colors">{t('privacyPolicy')}</a>
+          <a href="#" className="hover:text-violet-600 dark:hover:text-violet-400 transition-colors">{t('termsOfService')}</a>
+          <a href="#" className="hover:text-violet-600 dark:hover:text-violet-400 transition-colors">{t('contactUs')}</a>
         </div>
       </div>
       <p className="text-slate-400 dark:text-slate-500 text-sm mb-4">© {new Date().getFullYear()} {t('brandName')}. {t('allRightsReserved')}</p>

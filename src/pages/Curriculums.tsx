@@ -33,12 +33,12 @@ export default function Curriculums() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 font-sans selection:bg-blue-200 flex flex-col">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 font-sans selection:bg-violet-200 flex flex-col">
       <SiteNavbar />
       <main className="flex-1">
         <section className="pt-32 pb-16 relative overflow-hidden">
-          <div className="absolute top-0 right-0 -translate-y-1/3 translate-x-1/3 w-[520px] h-[520px] bg-blue-400/20 dark:bg-blue-900/20 rounded-full blur-[120px] pointer-events-none" />
-          <div className="absolute bottom-0 left-0 translate-y-1/3 -translate-x-1/3 w-[420px] h-[420px] bg-indigo-400/20 dark:bg-indigo-900/20 rounded-full blur-[110px] pointer-events-none" />
+          <div className="absolute top-0 right-0 -translate-y-1/3 translate-x-1/3 w-[520px] h-[520px] bg-violet-400/20 dark:bg-violet-900/20 rounded-full blur-[120px] pointer-events-none" />
+          <div className="absolute bottom-0 left-0 translate-y-1/3 -translate-x-1/3 w-[420px] h-[420px] bg-purple-400/20 dark:bg-purple-900/20 rounded-full blur-[110px] pointer-events-none" />
           <div className="max-w-7xl mx-auto px-6 relative z-10">
             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
               <div className={isRtl ? 'text-right' : 'text-left'}>
@@ -79,14 +79,14 @@ export default function Curriculums() {
               >
                 <Card className="border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/60 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
                   <CardContent className="p-6 flex flex-col h-full">
-                    <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-600/30 mb-5">
+                    <div className="w-12 h-12 rounded-2xl bg-violet-600 text-white flex items-center justify-center shadow-lg shadow-violet-600/30 mb-5">
                       <stage.icon className="w-6 h-6" />
                     </div>
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white">{stage.title}</h3>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
                       {t('stageCardSubtitle')}
                     </p>
-                    <div className="mt-5 flex items-center gap-2 text-blue-600 dark:text-blue-400 font-semibold">
+                    <div className="mt-5 flex items-center gap-2 text-violet-600 dark:text-violet-400 font-semibold">
                       {t('viewStage')}
                       <ArrowRight className={`w-4 h-4 ${isRtl ? 'rotate-180' : ''}`} />
                     </div>
@@ -119,7 +119,7 @@ export default function Curriculums() {
               >
                 <Card className="border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/60 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
                   <CardContent className="p-6 flex items-start gap-4">
-                    <div className="w-11 h-11 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-600/30">
+                    <div className="w-11 h-11 rounded-2xl bg-purple-600 text-white flex items-center justify-center shadow-lg shadow-purple-600/30">
                       <item.icon className="w-5 h-5" />
                     </div>
                     <div>

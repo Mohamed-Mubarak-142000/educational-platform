@@ -58,7 +58,7 @@ export default function AdminDashboard() {
                 <span className="text-red-500 text-sm">{form.formState.errors.email.message}</span>
               )}
             </div>
-            <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/30" disabled={mutation.isPending}>
+            <Button type="submit" className="bg-violet-600 hover:bg-violet-700 text-white shadow-lg shadow-violet-600/30" disabled={mutation.isPending}>
               {mutation.isPending ? t('loadingEllipsis') : t('createTeacherAction')}
             </Button>
             {mutation.isSuccess && (

@@ -370,14 +370,14 @@ export default function AdminOverview() {
               <button
                 type="button"
                 onClick={() => setRevenueView("line")}
-                className={`px-3 py-1 text-xs transition-colors ${revenueView === "line" ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"}`}
+                className={`px-3 py-1 text-xs transition-colors ${revenueView === "line" ? "bg-violet-600 text-white" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"}`}
               >
                 {t("lineView")}
               </button>
               <button
                 type="button"
                 onClick={() => setRevenueView("bar")}
-                className={`px-3 py-1 text-xs transition-colors ${revenueView === "bar" ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"}`}
+                className={`px-3 py-1 text-xs transition-colors ${revenueView === "bar" ? "bg-violet-600 text-white" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"}`}
               >
                 {t("barView")}
               </button>
@@ -398,14 +398,14 @@ export default function AdminOverview() {
               <button
                 type="button"
                 onClick={() => setGrowthView("line")}
-                className={`px-3 py-1 text-xs transition-colors ${growthView === "line" ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"}`}
+                className={`px-3 py-1 text-xs transition-colors ${growthView === "line" ? "bg-violet-600 text-white" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"}`}
               >
                 {t("lineView")}
               </button>
               <button
                 type="button"
                 onClick={() => setGrowthView("bar")}
-                className={`px-3 py-1 text-xs transition-colors ${growthView === "bar" ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"}`}
+                className={`px-3 py-1 text-xs transition-colors ${growthView === "bar" ? "bg-violet-600 text-white" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"}`}
               >
                 {t("barView")}
               </button>
@@ -429,14 +429,14 @@ export default function AdminOverview() {
               <button
                 type="button"
                 onClick={() => setPaymentsView("pie")}
-                className={`px-3 py-1 text-xs transition-colors ${paymentsView === "pie" ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"}`}
+                className={`px-3 py-1 text-xs transition-colors ${paymentsView === "pie" ? "bg-violet-600 text-white" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"}`}
               >
                 {t("pieView")}
               </button>
               <button
                 type="button"
                 onClick={() => setPaymentsView("bar")}
-                className={`px-3 py-1 text-xs transition-colors ${paymentsView === "bar" ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"}`}
+                className={`px-3 py-1 text-xs transition-colors ${paymentsView === "bar" ? "bg-violet-600 text-white" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"}`}
               >
                 {t("barView")}
               </button>
@@ -457,14 +457,14 @@ export default function AdminOverview() {
               <button
                 type="button"
                 onClick={() => setApplicationsView("pie")}
-                className={`px-3 py-1 text-xs transition-colors ${applicationsView === "pie" ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"}`}
+                className={`px-3 py-1 text-xs transition-colors ${applicationsView === "pie" ? "bg-violet-600 text-white" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"}`}
               >
                 {t("pieView")}
               </button>
               <button
                 type="button"
                 onClick={() => setApplicationsView("bar")}
-                className={`px-3 py-1 text-xs transition-colors ${applicationsView === "bar" ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"}`}
+                className={`px-3 py-1 text-xs transition-colors ${applicationsView === "bar" ? "bg-violet-600 text-white" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"}`}
               >
                 {t("barView")}
               </button>

@@ -219,7 +219,7 @@ export const SessionLobbyPage: React.FC = () => {
     return (
       <div className="h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-600 mx-auto mb-4"></div>
           <p className="text-gray-600 dark:text-gray-400">Loading session...</p>
         </div>
       </div>
@@ -482,11 +482,11 @@ export const SessionLobbyPage: React.FC = () => {
             </div>
 
             {/* Tips */}
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-              <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-200 mb-2">
+            <div className="bg-violet-50 dark:bg-violet-900/20 rounded-lg p-4">
+              <h3 className="text-sm font-semibold text-violet-900 dark:text-violet-200 mb-2">
                 Tips for a better experience:
               </h3>
-              <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-1">
+              <ul className="text-sm text-violet-800 dark:text-violet-300 space-y-1">
                 <li>• Use headphones to avoid echo</li>
                 <li>• Ensure good lighting for video</li>
                 <li>• Close other applications using camera/mic</li>

@@ -51,7 +51,7 @@ export function ScrollToTop() {
           whileTap={{ scale: 0.9 }}
           onClick={handleClick}
           aria-label={t('scrollToTop')}
-          className="fixed bottom-6 end-6 z-[60] w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/40 flex items-center justify-center cursor-pointer"
+          className="fixed bottom-6 end-6 z-[60] w-12 h-12 rounded-full bg-violet-600 hover:bg-violet-700 text-white shadow-lg shadow-violet-600/40 flex items-center justify-center cursor-pointer"
         >
           <ArrowUp className="w-5 h-5" />
         </motion.button>

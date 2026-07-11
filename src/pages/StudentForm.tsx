@@ -231,9 +231,9 @@ export default function StudentForm() {
         </div>
 
         {/* Live Lessons Subscription */}
-        <div className="border border-slate-200 dark:border-slate-700 rounded-xl p-5 bg-blue-50/40 dark:bg-blue-900/10">
+        <div className="border border-slate-200 dark:border-slate-700 rounded-xl p-5 bg-violet-50/40 dark:bg-violet-900/10">
           <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
-            <Video className="w-4 h-4 text-blue-600" />
+            <Video className="w-4 h-4 text-violet-600" />
             {t('liveLessonsSubscriptionTitle')}
           </h3>
           <label className="flex items-start gap-3 cursor-pointer">
@@ -241,7 +241,7 @@ export default function StudentForm() {
               type="checkbox"
               checked={formState.subscribeLiveLessons === 'true'}
               onChange={(e) => setFormState({ ...formState, subscribeLiveLessons: e.target.checked ? 'true' : 'false' })}
-              className="mt-0.5 w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+              className="mt-0.5 w-4 h-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500"
             />
             <div>
               <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{t('subscribeLiveLessonsTitle')}</p>

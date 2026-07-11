@@ -48,7 +48,7 @@ export function StatsCard({
 }: StatsCardProps) {
   const variantColors = {
     default: 'text-slate-600 dark:text-slate-400',
-    primary: 'text-blue-600 dark:text-blue-400',
+    primary: 'text-violet-600 dark:text-violet-400',
     success: 'text-green-600 dark:text-green-400',
     warning: 'text-yellow-600 dark:text-yellow-400',
     danger: 'text-red-600 dark:text-red-400',

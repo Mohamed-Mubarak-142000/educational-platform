@@ -11,10 +11,10 @@
 export const colors = {
   // Primary brand color
   primary: {
-    DEFAULT: 'blue-600',
-    hover: 'blue-700',
-    light: 'blue-100',
-    dark: 'blue-900',
+    DEFAULT: 'violet-600',
+    hover: 'violet-700',
+    light: 'violet-100',
+    dark: 'violet-900',
   },
   
   // Secondary colors
@@ -48,10 +48,10 @@ export const colors = {
   },
   
   info: {
-    DEFAULT: 'blue-600',
-    hover: 'blue-700',
-    light: 'blue-100',
-    dark: 'blue-900',
+    DEFAULT: 'violet-600',
+    hover: 'violet-700',
+    light: 'violet-100',
+    dark: 'violet-900',
   },
 } as const;
 

@@ -107,7 +107,7 @@ export default function AdminTeacherDetail() {
           <ArrowLeft className="w-4 h-4" /> {t('backToTeachers')}
         </Button>
         <Button
-          className="bg-blue-600 hover:bg-blue-700 text-white"
+          className="bg-violet-600 hover:bg-violet-700 text-white"
           onClick={() => navigate(`/admin/teachers/${id}/edit`)}
         >
           <Pencil className="w-4 h-4 mr-2" /> {t('edit')}
@@ -121,10 +121,10 @@ export default function AdminTeacherDetail() {
             <img
               src={teacher.profileImage}
               alt={teacher.name}
-              className="w-24 h-24 rounded-full object-cover border-4 border-blue-500 shrink-0"
+              className="w-24 h-24 rounded-full object-cover border-4 border-violet-500 shrink-0"
             />
           ) : (
-            <div className="w-24 h-24 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-3xl font-bold text-blue-600 shrink-0">
+            <div className="w-24 h-24 rounded-full bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center text-3xl font-bold text-violet-600 shrink-0">
               {teacherName?.[0]?.toUpperCase() || '?'}
             </div>
           )}
@@ -157,7 +157,7 @@ export default function AdminTeacherDetail() {
           {(teacher.bio || true) && (
             <div className="border-t border-slate-100 dark:border-slate-800 pt-4">
               <div className="flex items-center gap-2 mb-2">
-                <AlignLeft className="w-4 h-4 text-blue-600" />
+                <AlignLeft className="w-4 h-4 text-violet-600" />
                 <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">{t('bio')}</span>
               </div>
               <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
@@ -173,7 +173,7 @@ export default function AdminTeacherDetail() {
         <Card className={cardVariants.default}>
           <CardHeader className="border-b border-slate-200 dark:border-slate-800">
             <div className="flex items-center gap-2">
-              <GraduationCap className="w-4 h-4 text-blue-600" />
+              <GraduationCap className="w-4 h-4 text-violet-600" />
               <CardTitle className="text-lg">{t('assignedStages')}</CardTitle>
             </div>
           </CardHeader>
@@ -185,7 +185,7 @@ export default function AdminTeacherDetail() {
                 {populatedStages.map((stage: PopulatedItem) => (
                   <span
                     key={stage._id}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-800/50"
                   >
                     {stage.icon && <span>{stage.icon}</span>}
                     {getLocalizedName(stage, i18n.language)}
@@ -200,7 +200,7 @@ export default function AdminTeacherDetail() {
         <Card className={cardVariants.default}>
           <CardHeader className="border-b border-slate-200 dark:border-slate-800">
             <div className="flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-blue-600" />
+              <BookOpen className="w-4 h-4 text-violet-600" />
               <CardTitle className="text-lg">{t('assignedSubjects')}</CardTitle>
             </div>
           </CardHeader>
@@ -256,7 +256,7 @@ export default function AdminTeacherDetail() {
         <Card className={`${cardVariants.default} mt-6`}>
           <CardHeader className="border-b border-slate-200 dark:border-slate-800">
             <div className="flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-blue-600" />
+              <BookOpen className="w-4 h-4 text-violet-600" />
               <CardTitle className="text-lg">{t('subjectsTaught')}</CardTitle>
             </div>
           </CardHeader>
@@ -285,7 +285,7 @@ export default function AdminTeacherDetail() {
       <Card className={`${cardVariants.default} mt-6`}>
         <CardHeader className="border-b border-slate-200 dark:border-slate-800">
           <div className="flex items-center gap-2">
-            <CalendarClock className="w-4 h-4 text-blue-600" />
+            <CalendarClock className="w-4 h-4 text-violet-600" />
             <CardTitle className="text-lg">{t('availabilitySchedule')}</CardTitle>
           </div>
         </CardHeader>
@@ -299,11 +299,11 @@ export default function AdminTeacherDetail() {
                 return (
                   <div
                     key={day}
-                    className="rounded-xl border border-blue-200 dark:border-blue-800/50 bg-blue-50 dark:bg-blue-900/10 p-4 space-y-2"
+                    className="rounded-xl border border-violet-200 dark:border-violet-800/50 bg-violet-50 dark:bg-violet-900/10 p-4 space-y-2"
                   >
-                    <p className="text-sm font-semibold text-blue-700 dark:text-blue-300">{t(`dayName_${day}`)}</p>
+                    <p className="text-sm font-semibold text-violet-700 dark:text-violet-300">{t(`dayName_${day}`)}</p>
                     <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
-                      <Clock className="w-3 h-3 text-blue-500" />
+                      <Clock className="w-3 h-3 text-violet-500" />
                       <span>{hours?.start || '--:--'}</span>
                       <span>–</span>
                       <span>{hours?.end || '--:--'}</span>
@@ -321,7 +321,7 @@ export default function AdminTeacherDetail() {
         <Card className={`${cardVariants.default} mt-6`}>
           <CardHeader className="border-b border-slate-200 dark:border-slate-800">
             <div className="flex items-center gap-2">
-              <CalendarClock className="w-4 h-4 text-blue-600" />
+              <CalendarClock className="w-4 h-4 text-violet-600" />
               <CardTitle className="text-lg">{t('scheduledLiveLessons')}</CardTitle>
             </div>
           </CardHeader>
@@ -338,7 +338,7 @@ export default function AdminTeacherDetail() {
                       {getLocalizedName(schedule.subjectId as { name: string; nameAr?: string }, i18n.language)}
                     </p>
                   )}
-                  <div className="flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400">
+                  <div className="flex items-center gap-1.5 text-xs text-violet-600 dark:text-violet-400">
                     <Clock className="w-3 h-3" />
                     <span>{schedule.startTime} – {schedule.endTime}</span>
                   </div>
@@ -353,7 +353,7 @@ export default function AdminTeacherDetail() {
       <Card className={`${cardVariants.default} mt-6`}>
         <CardHeader className="border-b border-slate-200 dark:border-slate-800">
           <div className="flex items-center gap-2">
-            <FileText className="w-4 h-4 text-blue-600" />
+            <FileText className="w-4 h-4 text-violet-600" />
             <CardTitle className="text-lg">{t('teacherCv')}</CardTitle>
           </div>
         </CardHeader>

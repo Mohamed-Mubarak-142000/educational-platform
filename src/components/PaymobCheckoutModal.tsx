@@ -76,7 +76,7 @@ export default function PaymobCheckoutModal({
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl bg-violet-600 flex items-center justify-center">
               <CreditCard className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -113,7 +113,7 @@ export default function PaymobCheckoutModal({
             id="paymob-loading"
             style={{ opacity: 1 }}
           >
-            <Loader2 className="w-8 h-8 text-blue-600 animate-spin mb-3" />
+            <Loader2 className="w-8 h-8 text-violet-600 animate-spin mb-3" />
             <p className="text-sm text-slate-500 dark:text-slate-400">
               {t("paymentProcessing")}
             </p>

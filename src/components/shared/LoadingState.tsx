@@ -22,7 +22,7 @@ export function LoadingState({ message, variant = 'section', className }: Loadin
           className,
         )}
       >
-        <Loader2 className="w-10 h-10 animate-spin text-blue-500" />
+        <Loader2 className="w-10 h-10 animate-spin text-violet-500" />
         <p className="text-sm font-medium">{text}</p>
       </div>
     );
@@ -35,7 +35,7 @@ export function LoadingState({ message, variant = 'section', className }: Loadin
         className,
       )}
     >
-      <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
       <p className="text-sm font-medium">{text}</p>
     </div>
   );

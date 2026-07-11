@@ -50,7 +50,7 @@ export default function AvatarUpload({ preview, name, onChange, size = 'md' }: A
       <button
         type="button"
         onClick={handleClick}
-        className={`relative ${sizeClass} rounded-full overflow-hidden border-4 border-blue-500 shadow-md cursor-pointer group focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2`}
+        className={`relative ${sizeClass} rounded-full overflow-hidden border-4 border-violet-500 shadow-md cursor-pointer group focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-2`}
         aria-label={t('uploadAvatarAriaLabel')}
       >
         {preview ? (

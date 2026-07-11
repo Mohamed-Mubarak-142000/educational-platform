@@ -37,7 +37,7 @@ export const pageHeaderClasses = {
  * Used across all authentication pages
  */
 export const authPageClasses = {
-  container: 'min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 font-sans selection:bg-blue-200 flex flex-col',
+  container: 'min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 font-sans selection:bg-violet-200 flex flex-col',
   section: 'pt-32 pb-20 relative overflow-hidden',
   grid: 'max-w-6xl mx-auto px-6 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center',
   heroText: 'text-4xl md:text-5xl font-extrabold tracking-tight',

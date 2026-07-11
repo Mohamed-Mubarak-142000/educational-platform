@@ -314,7 +314,7 @@ export default function StudentOverview() {
     <div className={spacing.pageContainer}>
       <div className="space-y-8">
         {/* ── Header banner ── */}
-        <div className="rounded-2xl bg-gradient-to-r from-blue-600 to-blue-800 dark:from-blue-700 dark:to-blue-900 p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 shadow-lg">
+        <div className="rounded-2xl bg-gradient-to-r from-violet-600 to-violet-800 dark:from-violet-700 dark:to-violet-900 p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 shadow-lg">
           <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
             <span className="text-3xl">🎓</span>
           </div>
@@ -323,7 +323,7 @@ export default function StudentOverview() {
               {t("welcomeBack")},{" "}
               {user?.name?.split(" ")[0] || t("studentLabel")}
             </h1>
-            <p className="text-blue-100 text-sm mt-0.5">
+            <p className="text-violet-100 text-sm mt-0.5">
               {selectedStage
                 ? `${getLocalizedName(selectedStage, i18n.language)} · ${resolvedSubjects.length} ${t("subjectsCount")}`
                 : t("noStageAssigned")}
@@ -334,7 +334,7 @@ export default function StudentOverview() {
               <p className="text-2xl font-bold text-white">
                 {resolvedEnrolledUnitIds.length}
               </p>
-              <p className="text-blue-100 text-xs mt-0.5">
+              <p className="text-violet-100 text-xs mt-0.5">
                 {t("enrolledUnitsCount")}
               </p>
             </div>
@@ -342,7 +342,7 @@ export default function StudentOverview() {
               <p className="text-2xl font-bold text-white">
                 {resolvedSubjects.length}
               </p>
-              <p className="text-blue-100 text-xs mt-0.5">
+              <p className="text-violet-100 text-xs mt-0.5">
                 {t("subjectsCount")}
               </p>
             </div>
@@ -356,7 +356,7 @@ export default function StudentOverview() {
             <Card className="border border-slate-200 dark:border-slate-800 shadow-sm">
               <CardContent className="p-5 space-y-4">
                 <div className="flex items-center gap-2 mb-1">
-                  <User className="w-4 h-4 text-blue-600" />
+                  <User className="w-4 h-4 text-violet-600" />
                   <h2 className="font-bold text-slate-900 dark:text-slate-100 text-sm">
                     {t("studentProfile")}
                   </h2>
@@ -431,7 +431,7 @@ export default function StudentOverview() {
                   <Button
                     onClick={handleSave}
                     disabled={!isDirty || updateProfileMutation.isPending}
-                    className="bg-blue-600 hover:bg-blue-700 text-white h-8 px-4 text-xs"
+                    className="bg-violet-600 hover:bg-violet-700 text-white h-8 px-4 text-xs"
                   >
                     {updateProfileMutation.isPending
                       ? t("savingLabel")
@@ -450,7 +450,7 @@ export default function StudentOverview() {
             <Card className="border border-slate-200 dark:border-slate-800 shadow-sm">
               <CardContent className="p-5">
                 <div className="flex items-center gap-2 mb-3">
-                  <TrendingUp className="w-4 h-4 text-blue-600" />
+                  <TrendingUp className="w-4 h-4 text-violet-600" />
                   <h2 className="font-bold text-slate-900 dark:text-slate-100 text-sm">
                     {t("progressOverview")}
                   </h2>
@@ -522,7 +522,7 @@ export default function StudentOverview() {
           <div className="lg:col-span-2 space-y-5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <GraduationCap className="w-5 h-5 text-blue-600" />
+                <GraduationCap className="w-5 h-5 text-violet-600" />
                 <h2 className="font-bold text-slate-900 dark:text-slate-100">
                   {t("mySubjects")}
                   {selectedStage && (
@@ -537,7 +537,7 @@ export default function StudentOverview() {
                   variant="ghost"
                   size="sm"
                   onClick={() => navigate("/student/learn")}
-                  className="text-blue-600 hover:text-blue-700 text-xs h-8"
+                  className="text-violet-600 hover:text-violet-700 text-xs h-8"
                 >
                   {t("browseAll")} <ArrowRight className="w-3.5 h-3.5 ms-1" />
                 </Button>

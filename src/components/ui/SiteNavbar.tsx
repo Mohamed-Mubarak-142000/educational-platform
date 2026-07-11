@@ -106,7 +106,7 @@ export function SiteNavbar({ variant = 'marketing', position = 'fixed', classNam
           ) : (
             <Link to="/" className="flex items-center gap-3 shrink-0">
               <img src="/academix-logo.svg" alt={t('brandLogoAlt')} className="w-9 h-9 drop-shadow-sm" />
-              <span className="font-extrabold text-xl tracking-tight hidden sm:block bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
+              <span className="font-extrabold text-xl tracking-tight hidden sm:block bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-purple-600 dark:from-violet-400 dark:to-purple-400">
                 {t('brandName')}
               </span>
             </Link>
@@ -122,7 +122,7 @@ export function SiteNavbar({ variant = 'marketing', position = 'fixed', classNam
                   onClick={() => link.href ? undefined : scrollToSection(link.id)}
                   className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
                     activeSection === link.id
-                      ? 'bg-blue-600/10 text-blue-600 dark:bg-blue-400/10 dark:text-blue-400'
+                      ? 'bg-violet-600/10 text-violet-600 dark:bg-violet-400/10 dark:text-violet-400'
                       : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
                   }`}
                 >
@@ -152,19 +152,19 @@ export function SiteNavbar({ variant = 'marketing', position = 'fixed', classNam
                 {!user ? (
                   <div className="hidden lg:flex items-center gap-2">
                     <Link to="/login">
-                      <Button variant="ghost" className="font-medium hover:text-blue-600 dark:hover:text-blue-400 rounded-full text-slate-800 dark:text-slate-200">
+                      <Button variant="ghost" className="font-medium hover:text-violet-600 dark:hover:text-violet-400 rounded-full text-slate-800 dark:text-slate-200">
                         {t('login')}
                       </Button>
                     </Link>
                     <Link to="/stages">
-                      <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20 hover:shadow-blue-600/40 transition-all rounded-full px-6">
+                      <Button className="bg-violet-600 hover:bg-violet-700 text-white shadow-lg shadow-violet-600/20 hover:shadow-violet-600/40 transition-all rounded-full px-6">
                         {t('getStarted')}
                       </Button>
                     </Link>
                   </div>
                 ) : (
                   <Link to="/dashboard" className="hidden lg:block">
-                    <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20 hover:shadow-blue-600/40 transition-all rounded-full px-6">
+                    <Button className="bg-violet-600 hover:bg-violet-700 text-white shadow-lg shadow-violet-600/20 hover:shadow-violet-600/40 transition-all rounded-full px-6">
                       {t('dashboard')}
                     </Button>
                   </Link>
@@ -222,7 +222,7 @@ export function SiteNavbar({ variant = 'marketing', position = 'fixed', classNam
                       onClick={() => link.href ? undefined : scrollToSection(link.id)}
                       className={`w-full text-start px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150 ${
                         activeSection === link.id
-                          ? 'bg-blue-600/10 text-blue-600 dark:bg-blue-400/10 dark:text-blue-400'
+                          ? 'bg-violet-600/10 text-violet-600 dark:bg-violet-400/10 dark:text-violet-400'
                           : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                       }`}
                     >
@@ -242,7 +242,7 @@ export function SiteNavbar({ variant = 'marketing', position = 'fixed', classNam
                         </Button>
                       </Link>
                       <Link to="/stages" onClick={() => setMenuOpen(false)}>
-                        <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium">
+                        <Button className="w-full bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-medium">
                           {t('getStarted')}
                         </Button>
                       </Link>
@@ -250,7 +250,7 @@ export function SiteNavbar({ variant = 'marketing', position = 'fixed', classNam
                   ) : (
                     <div className="py-2">
                       <Link to="/dashboard" onClick={() => setMenuOpen(false)}>
-                        <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium">
+                        <Button className="w-full bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-medium">
                           {t('dashboard')}
                         </Button>
                       </Link>

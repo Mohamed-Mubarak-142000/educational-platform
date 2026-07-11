@@ -410,7 +410,7 @@ export default function AdminPayments() {
               count: analytics.expiringSoon,
             })}
             icon={Users}
-            color="bg-blue-600"
+            color="bg-violet-600"
           />
           <StatCard
             title={t("paymentStatusSuccess")}

@@ -169,7 +169,7 @@ export default function QuizExperience({
     <div className={`rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 overflow-hidden ${className ?? ''}`}>
       <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60">
         <div className="flex items-center gap-2 min-w-0">
-          <ClipboardList className="w-4 h-4 text-blue-600 flex-shrink-0" />
+          <ClipboardList className="w-4 h-4 text-violet-600 flex-shrink-0" />
           <span className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">
             {title ?? t('quizLabel')}
           </span>
@@ -226,7 +226,7 @@ export default function QuizExperience({
                         : showWrongStyling
                         ? 'border-red-400 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 line-through'
                         : chosen
-                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 font-medium'
+                        ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20 text-violet-800 dark:text-violet-200 font-medium'
                         : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-slate-700 dark:text-slate-300'
                     }`}
                   >
@@ -236,7 +236,7 @@ export default function QuizExperience({
                         : showWrongStyling
                         ? 'border-red-500 bg-red-500 text-white'
                         : chosen
-                        ? 'border-blue-500 bg-blue-500 text-white'
+                        ? 'border-violet-500 bg-violet-500 text-white'
                         : 'border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400'
                     }`}>
                       {OPT_LABELS[i]}
@@ -353,7 +353,7 @@ export default function QuizExperience({
               {currentIndex < total - 1 ? (
                 <Button
                   size="sm"
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  className="bg-violet-600 hover:bg-violet-700 text-white"
                   onClick={() => setCurrentIndex((prev) => Math.min(total - 1, prev + 1))}
                 >
                   {t('next', { defaultValue: 'Next' })}
@@ -362,7 +362,7 @@ export default function QuizExperience({
                 !previewMode && (
                   <Button
                     size="sm"
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    className="bg-violet-600 hover:bg-violet-700 text-white"
                     onClick={submit}
                     disabled={answeredCount < total}
                   >

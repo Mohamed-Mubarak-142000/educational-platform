@@ -87,8 +87,8 @@ export default function PaymentResult() {
       icon: <Clock className="w-16 h-16 animate-pulse" />,
       titleKey: "paymentProcessing",
       messageKey: "paymentProcessingMessage",
-      bg: "bg-blue-50 dark:bg-blue-900/20",
-      iconColor: "text-blue-500",
+      bg: "bg-violet-50 dark:bg-violet-900/20",
+      iconColor: "text-violet-500",
     },
     success: {
       icon: <CheckCircle2 className="w-16 h-16" />,
@@ -182,7 +182,7 @@ export default function PaymentResult() {
             <div className="flex flex-col gap-3">
               {resultState === "success" && (
                 <Button
-                  className="bg-blue-600 hover:bg-blue-700 text-white w-full gap-2"
+                  className="bg-violet-600 hover:bg-violet-700 text-white w-full gap-2"
                   onClick={() => navigate("/student/learn")}
                 >
                   <BookOpen className="w-4 h-4" />
@@ -192,7 +192,7 @@ export default function PaymentResult() {
 
               {resultState === "failed" && (
                 <Button
-                  className="bg-blue-600 hover:bg-blue-700 text-white w-full gap-2"
+                  className="bg-violet-600 hover:bg-violet-700 text-white w-full gap-2"
                   onClick={() => navigate(-1)}
                 >
                   {t("retryPayment")}

@@ -312,7 +312,7 @@ export default function AdminGradeSubjects() {
                 id="category"
                 value={form.category}
                 onChange={(e) => setForm(f => ({ ...f, category: e.target.value }))}
-                className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
               >
                 <option value="general">
                   {i18n.language === 'ar' ? '📌 عام - مشترك بين جميع المراحل' : '📌 General - Common across all stages'}
@@ -390,7 +390,7 @@ export default function AdminGradeSubjects() {
                       key={c.value}
                       type="button"
                       onClick={() => setForm(f => ({ ...f, color: c.value as SubjectColor }))}
-                      className={`w-10 h-10 rounded-lg bg-gradient-to-br ${c.bg} transition-all ${form.color === c.value ? 'ring-2 ring-offset-2 ring-blue-500 scale-110' : 'hover:scale-105'}`}
+                      className={`w-10 h-10 rounded-lg bg-gradient-to-br ${c.bg} transition-all ${form.color === c.value ? 'ring-2 ring-offset-2 ring-violet-500 scale-110' : 'hover:scale-105'}`}
                       title={c.value}
                     />
                   ))}
@@ -438,7 +438,7 @@ export default function AdminGradeSubjects() {
                 id="subject"
                 value={selectedSubjectId}
                 onChange={(e) => setSelectedSubjectId(e.target.value)}
-                className="w-full rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 hover:border-slate-400 dark:hover:border-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                className="w-full rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 hover:border-slate-400 dark:hover:border-slate-500 focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-all"
               >
                 <option value="">
                   {isLoadingSubjects
@@ -457,7 +457,7 @@ export default function AdminGradeSubjects() {
               
               {/* Helper text */}
               {isLoadingSubjects && (
-                <p className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                <p className="text-xs text-violet-600 dark:text-violet-400 flex items-center gap-1">
                   <span className="animate-spin">⏳</span>
                   <span>{i18n.language === 'ar' ? 'جارٍ تحميل المواد...' : 'Loading subjects...'}</span>
                 </p>

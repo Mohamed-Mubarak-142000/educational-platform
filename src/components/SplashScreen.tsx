@@ -30,7 +30,7 @@ export default function SplashScreen() {
       {visible && (
         <motion.div
           key="splash"
-          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-gradient-to-br from-blue-700 via-blue-600 to-blue-800 dark:from-blue-900 dark:via-blue-800 dark:to-slate-900"
+          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-gradient-to-br from-violet-700 via-violet-600 to-violet-800 dark:from-violet-900 dark:via-violet-800 dark:to-slate-900"
           initial={{ opacity: 1 }}
           exit={{ opacity: 0, scale: 1.04 }}
           transition={{ duration: 0.55, ease: [0.43, 0.13, 0.23, 0.96] }}
@@ -71,7 +71,7 @@ export default function SplashScreen() {
             >
               <h1 className="text-4xl font-extrabold text-white tracking-tight">{t('brandName')}</h1>
               <motion.p
-                className="text-blue-100 text-base mt-2 font-medium"
+                className="text-violet-100 text-base mt-2 font-medium"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.65, duration: 0.5 }}

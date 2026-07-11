@@ -155,7 +155,7 @@ export function Carousel({
               type="button"
               aria-label={`${slideLabel} ${index + 1}`}
               onClick={() => setActiveIndex(index)}
-              className={`h-2.5 rounded-full transition-all ${safeActiveIndex === index ? 'w-7 bg-blue-600 dark:bg-blue-400' : 'w-2.5 bg-slate-300 dark:bg-slate-700'}`}
+              className={`h-2.5 rounded-full transition-all ${safeActiveIndex === index ? 'w-7 bg-violet-600 dark:bg-violet-400' : 'w-2.5 bg-slate-300 dark:bg-slate-700'}`}
             />
           ))}
         </div>

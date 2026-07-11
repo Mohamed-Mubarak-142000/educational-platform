@@ -35,7 +35,7 @@ import { useSidebar } from "@/context/SidebarContext";
 
 const linkBase =
   "flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors";
-const activeClass = "bg-blue-600 text-white shadow-sm";
+const activeClass = "bg-violet-600 text-white shadow-sm";
 const inactiveClass =
   "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800";
 
@@ -74,7 +74,7 @@ function NavLinks({
               {isActive && (
                 <motion.span
                   layoutId={navLayoutId}
-                  className="absolute inset-0 bg-blue-600 rounded-xl"
+                  className="absolute inset-0 bg-violet-600 rounded-xl"
                   transition={{ type: "spring", stiffness: 350, damping: 30 }}
                 />
               )}
@@ -466,7 +466,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 {t("remindMeLater")}
               </Button>
               <Button
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                className="flex-1 bg-violet-600 hover:bg-violet-700 text-white"
                 onClick={() => {
                   setFirstLoginDialogOpen(false);
                   navigate("/change-password");

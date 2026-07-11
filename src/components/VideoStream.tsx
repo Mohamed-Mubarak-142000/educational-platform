@@ -107,7 +107,7 @@ export const VideoStream: React.FC<VideoStreamProps> = ({
         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
           <Avatar className="w-20 h-20">
             <AvatarImage src="" />
-            <AvatarFallback className="text-2xl bg-blue-600 text-white">
+            <AvatarFallback className="text-2xl bg-violet-600 text-white">
               {initials}
             </AvatarFallback>
           </Avatar>
@@ -120,7 +120,7 @@ export const VideoStream: React.FC<VideoStreamProps> = ({
           {name} {isLocal && "(You)"}
         </span>
         {role === "teacher" && (
-          <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full">
+          <span className="text-xs bg-violet-600 text-white px-2 py-0.5 rounded-full">
             Teacher
           </span>
         )}

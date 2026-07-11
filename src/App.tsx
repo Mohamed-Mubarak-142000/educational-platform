@@ -65,6 +65,9 @@ const PublicStageSubjects = lazy(() => import("./pages/PublicStageSubjects"));
 const PublicSubjectTeachers = lazy(
   () => import("./pages/PublicSubjectTeachers"),
 );
+const PublicTeacherProfile = lazy(
+  () => import("./pages/PublicTeacherProfile"),
+);
 const PublicAllStages = lazy(() => import("./pages/PublicAllStages"));
 const PublicGradeSubjects = lazy(() => import("./pages/PublicGradeSubjects"));
 const Unauthorized = lazy(() => import("./pages/Unauthorized"));
@@ -74,7 +77,7 @@ const PaymentResult = lazy(() => import("./pages/PaymentResult"));
 function Layout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 font-sans selection:bg-blue-200 flex flex-col">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 font-sans selection:bg-violet-200 flex flex-col">
         <SiteNavbar variant="app" position="fixed" />
         <main className="flex-1">{children}</main>
       </div>
@@ -633,6 +636,12 @@ function App() {
               <Route
                 path="/stages/:stageId/grades/:gradeId/subjects/:subjectId"
                 element={<PublicSubjectTeachers />}
+              />
+
+              {/* Teacher profile → public preview of a teacher's content (first lesson per unit free, no auth required) */}
+              <Route
+                path="/stages/:stageId/grades/:gradeId/subjects/:subjectId/teachers/:teacherId"
+                element={<PublicTeacherProfile />}
               />
 
               {/* ──────────────────────────────────────────────────────────

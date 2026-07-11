@@ -90,7 +90,7 @@ export const LiveChatPanel: React.FC<LiveChatPanelProps> = ({
                 className="flex items-center gap-2 text-sm"
               >
                 <Avatar className="w-6 h-6">
-                  <AvatarFallback className="text-xs bg-blue-600 text-white">
+                  <AvatarFallback className="text-xs bg-violet-600 text-white">
                     {getInitials(participant.name)}
                   </AvatarFallback>
                 </Avatar>
@@ -98,7 +98,7 @@ export const LiveChatPanel: React.FC<LiveChatPanelProps> = ({
                   {participant.name}
                 </span>
                 {participant.role === "teacher" && (
-                  <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-0.5 rounded-full">
+                  <span className="text-xs bg-violet-100 dark:bg-violet-900 text-violet-800 dark:text-violet-200 px-2 py-0.5 rounded-full">
                     Teacher
                   </span>
                 )}
@@ -138,7 +138,7 @@ export const LiveChatPanel: React.FC<LiveChatPanelProps> = ({
                 >
                   {!isOwn && (
                     <Avatar className="w-8 h-8 flex-shrink-0">
-                      <AvatarFallback className="text-xs bg-blue-600 text-white">
+                      <AvatarFallback className="text-xs bg-violet-600 text-white">
                         {getInitials(msg.userName)}
                       </AvatarFallback>
                     </Avatar>
@@ -157,7 +157,7 @@ export const LiveChatPanel: React.FC<LiveChatPanelProps> = ({
                     <div
                       className={`px-3 py-2 rounded-lg ${
                         isOwn
-                          ? "bg-blue-600 text-white"
+                          ? "bg-violet-600 text-white"
                           : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
                       }`}
                     >

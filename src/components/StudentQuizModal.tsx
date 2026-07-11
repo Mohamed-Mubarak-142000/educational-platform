@@ -149,7 +149,7 @@ export default function StudentQuizModal({
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex-shrink-0 bg-white dark:bg-slate-900">
           <DialogHeader className="flex-1 min-w-0">
             <DialogTitle className="flex items-center gap-2 text-base truncate">
-              <ClipboardList className="w-4 h-4 text-blue-600 flex-shrink-0" />
+              <ClipboardList className="w-4 h-4 text-violet-600 flex-shrink-0" />
               <span className="truncate">{quizTitle}</span>
             </DialogTitle>
           </DialogHeader>
@@ -204,14 +204,14 @@ export default function StudentQuizModal({
                               onClick={() => setAnswers((prev) => ({ ...prev, [q._id]: i }))}
                               className={`flex items-center gap-3 w-full text-left px-4 py-3 rounded-xl border-2 text-sm transition-colors ${
                                 chosen === i
-                                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 font-medium'
+                                  ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20 text-violet-800 dark:text-violet-200 font-medium'
                                   : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-slate-700 dark:text-slate-300'
                               }`}
                             >
                               <span
                                 className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 text-xs font-bold ${
                                   chosen === i
-                                    ? 'border-blue-500 bg-blue-500 text-white'
+                                    ? 'border-violet-500 bg-violet-500 text-white'
                                     : 'border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400'
                                 }`}
                               >
@@ -331,7 +331,7 @@ export default function StudentQuizModal({
                 {t('quizAnsweredCount', { count: Object.keys(answers).length, total: questions.length })}
               </p>
               <Button
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-violet-600 hover:bg-violet-700 text-white"
                 onClick={submit}
                 disabled={isLoading || questions.length === 0}
               >

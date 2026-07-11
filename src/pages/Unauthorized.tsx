@@ -75,7 +75,7 @@ export default function Unauthorized({ allowedRoles }: UnauthorizedProps) {
             {t('goBack')}
           </Button>
           <Button
-            className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+            className="bg-violet-600 hover:bg-violet-700 text-white flex items-center gap-2"
             onClick={() => navigate(dashboardPath)}
           >
             <LayoutDashboard className="w-4 h-4" />

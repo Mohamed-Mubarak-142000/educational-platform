@@ -127,9 +127,9 @@ export function DataTable<T extends Record<string, unknown>>({
                           {flexRender(header.column.columnDef.header, header.getContext())}
                           {isSortable && (
                             header.column.getIsSorted() === 'asc' ? (
-                              <ChevronUp className="w-3 h-3 text-blue-600" />
+                              <ChevronUp className="w-3 h-3 text-violet-600" />
                             ) : header.column.getIsSorted() === 'desc' ? (
-                              <ChevronDown className="w-3 h-3 text-blue-600" />
+                              <ChevronDown className="w-3 h-3 text-violet-600" />
                             ) : (
                               <ChevronsUpDown className="w-3 h-3 text-slate-400" />
                             )
@@ -190,9 +190,9 @@ export function DataTable<T extends Record<string, unknown>>({
                         {flexRender(header.column.columnDef.header, header.getContext())}
                         {isSortable && (
                           header.column.getIsSorted() === 'asc' ? (
-                            <ChevronUp className="w-3 h-3 text-blue-600" />
+                            <ChevronUp className="w-3 h-3 text-violet-600" />
                           ) : header.column.getIsSorted() === 'desc' ? (
-                            <ChevronDown className="w-3 h-3 text-blue-600" />
+                            <ChevronDown className="w-3 h-3 text-violet-600" />
                           ) : (
                             <ChevronsUpDown className="w-3 h-3 text-slate-400" />
                           )

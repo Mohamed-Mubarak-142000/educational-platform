@@ -56,7 +56,7 @@ export default function Login() {
   const { register, formState: { errors } } = form;
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 font-sans selection:bg-blue-200 flex flex-col">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 font-sans selection:bg-violet-200 flex flex-col">
       <SiteNavbar />
       <main className="flex-1">
         <section className="pt-32 pb-20 relative overflow-hidden">
@@ -136,7 +136,7 @@ export default function Login() {
                     </p>
                   )}
                   <div className="text-center text-sm text-slate-500 dark:text-slate-400">
-                    <Link to="/forgot-password" className="text-blue-600 dark:text-blue-400 hover:underline">
+                    <Link to="/forgot-password" className="text-violet-600 dark:text-violet-400 hover:underline">
                       {t('forgotPassword')}
                     </Link>
                   </div>
@@ -146,7 +146,7 @@ export default function Login() {
                     </Link>
                   </div>
                   <div className="text-center mt-4 text-sm text-slate-500 dark:text-slate-400">
-                    {t('authNoAccount')} <Link to="/register" className="text-blue-600 dark:text-blue-400 hover:underline">{t('register')}</Link>
+                    {t('authNoAccount')} <Link to="/register" className="text-violet-600 dark:text-violet-400 hover:underline">{t('register')}</Link>
                   </div>
                 </form>
               </CardContent>

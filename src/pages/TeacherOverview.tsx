@@ -101,7 +101,7 @@ function ViewToggle({
           onClick={() => onChange(opt.key)}
           className={`px-3 py-1 text-xs transition-colors ${
             value === opt.key
-              ? "bg-blue-600 text-white"
+              ? "bg-violet-600 text-white"
               : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
           }`}
         >
@@ -286,8 +286,8 @@ export default function TeacherOverview() {
                 className="w-20 h-20 rounded-2xl object-cover border-2 border-slate-200 dark:border-slate-700"
               />
             ) : (
-              <div className="w-20 h-20 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                <User className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+              <div className="w-20 h-20 rounded-2xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center">
+                <User className="w-8 h-8 text-violet-600 dark:text-violet-400" />
               </div>
             )}
           </div>
@@ -444,7 +444,7 @@ export default function TeacherOverview() {
                 onClick={() => setStudentsTab(key)}
                 className={`flex items-center gap-1.5 px-4 py-1.5 text-xs font-medium transition-colors ${
                   studentsTab === key
-                    ? "bg-blue-600 text-white"
+                    ? "bg-violet-600 text-white"
                     : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                 }`}
               >

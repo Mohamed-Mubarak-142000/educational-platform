@@ -230,7 +230,7 @@ export default function RequestLiveLessonModal({
                 <div className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex items-center justify-between">
                   <div>
                     <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                      <Video className="w-5 h-5 text-blue-600" />
+                      <Video className="w-5 h-5 text-violet-600" />
                       {t("requestLiveLesson")}
                     </h2>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
@@ -248,12 +248,12 @@ export default function RequestLiveLessonModal({
 
                 {createdRequest ? (
                   <div className="p-6 space-y-6">
-                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 flex items-center justify-between">
+                    <div className="bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800 rounded-lg p-4 flex items-center justify-between">
                       <span className="font-semibold text-slate-900 dark:text-slate-100">
                         {t("amountToPay", { defaultValue: "Amount to pay" })}
                       </span>
-                      <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                        {createdRequest.priceEGP} {t("egp")}
+                      <span className="text-2xl font-bold text-violet-600 dark:text-violet-400">
+                        {createdRequest.priceEGP} {t("currencyEgp")}
                       </span>
                     </div>
                     <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -266,9 +266,9 @@ export default function RequestLiveLessonModal({
                         type="button"
                         onClick={() => checkoutMutation.mutate(createdRequest.id)}
                         disabled={checkoutMutation.isPending}
-                        className="flex items-center gap-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-4 text-left hover:border-blue-400 transition-all disabled:opacity-60"
+                        className="flex items-center gap-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-4 text-left hover:border-violet-400 transition-all disabled:opacity-60"
                       >
-                        <CreditCard className="w-6 h-6 text-blue-600 flex-shrink-0" />
+                        <CreditCard className="w-6 h-6 text-violet-600 flex-shrink-0" />
                         <div>
                           <div className="font-semibold text-slate-900 dark:text-slate-100">
                             {t("payWithCard", { defaultValue: "Pay by card (Paymob)" })}
@@ -281,7 +281,7 @@ export default function RequestLiveLessonModal({
                       <button
                         type="button"
                         onClick={() => setManualOpen(true)}
-                        className="flex items-center gap-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-4 text-left hover:border-blue-400 transition-all"
+                        className="flex items-center gap-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-4 text-left hover:border-violet-400 transition-all"
                       >
                         <Landmark className="w-6 h-6 text-emerald-600 flex-shrink-0" />
                         <div>
@@ -309,7 +309,7 @@ export default function RequestLiveLessonModal({
                         onClick={() => setRequestType("scheduled")}
                         className={`flex flex-col items-center justify-between rounded-lg border-2 p-4 transition-all ${
                           requestType === "scheduled"
-                            ? "border-blue-600 bg-blue-50 dark:bg-blue-900/20"
+                            ? "border-violet-600 bg-violet-50 dark:bg-violet-900/20"
                             : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/80"
                         }`}
                       >
@@ -329,7 +329,7 @@ export default function RequestLiveLessonModal({
                         onClick={() => setRequestType("instant")}
                         className={`flex flex-col items-center justify-between rounded-lg border-2 p-4 transition-all ${
                           requestType === "instant"
-                            ? "border-blue-600 bg-blue-50 dark:bg-blue-900/20"
+                            ? "border-violet-600 bg-violet-50 dark:bg-violet-900/20"
                             : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/80"
                         }`}
                       >
@@ -361,7 +361,7 @@ export default function RequestLiveLessonModal({
                         value={preferredDateTime}
                         onChange={(e) => setPreferredDateTime(e.target.value)}
                         min={getMinDateTime()}
-                        className="w-full px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
                       />
                     </div>
                   )}
@@ -381,7 +381,7 @@ export default function RequestLiveLessonModal({
                         onChange={(e) =>
                           setUrgencyLevel(e.target.value as UrgencyLevel)
                         }
-                        className="w-full px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
                       >
                         <option value="low">{t("urgencyLow")} (+0%)</option>
                         <option value="medium">{t("urgencyMedium")} (+0%)</option>
@@ -405,7 +405,7 @@ export default function RequestLiveLessonModal({
                       id="duration"
                       value={duration}
                       onChange={(e) => setDuration(Number(e.target.value))}
-                      className="w-full px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
                     >
                       {DURATIONS.map((mins) => (
                         <option key={mins} value={mins}>
@@ -438,16 +438,16 @@ export default function RequestLiveLessonModal({
                   </div>
 
                   {/* Price Estimate */}
-                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <div className="bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800 rounded-lg p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <DollarSign className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        <DollarSign className="w-5 h-5 text-violet-600 dark:text-violet-400" />
                         <span className="font-semibold text-slate-900 dark:text-slate-100">
                           {t("estimatedPrice")}
                         </span>
                       </div>
-                      <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                        {estimatedPrice} {t("egp")}
+                      <div className="text-2xl font-bold text-violet-600 dark:text-violet-400">
+                        {estimatedPrice} {t("currencyEgp")}
                       </div>
                     </div>
                     {requestType === "instant" && urgencyLevel !== "medium" && (
@@ -473,7 +473,7 @@ export default function RequestLiveLessonModal({
                   <Button
                     onClick={handleSubmit}
                     disabled={isSubmitting}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    className="bg-violet-600 hover:bg-violet-700 text-white"
                   >
                     {isSubmitting ? t("sending") : t("sendRequest")}
                   </Button>

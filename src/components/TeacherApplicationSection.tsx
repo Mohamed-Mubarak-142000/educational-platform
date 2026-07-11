@@ -211,7 +211,7 @@ export default function TeacherApplicationSection() {
 
   if (submitted) {
     return (
-      <section id="join-as-teacher" className="scroll-mt-20 py-20 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-900 dark:to-slate-900/80">
+      <section id="join-as-teacher" className="scroll-mt-20 py-20 bg-gradient-to-br from-violet-50 to-purple-50 dark:from-slate-900 dark:to-slate-900/80">
         <div className="max-w-2xl mx-auto px-6 text-center">
           <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5 }}>
             <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
@@ -219,7 +219,7 @@ export default function TeacherApplicationSection() {
             <p className="text-lg text-slate-600 dark:text-slate-300">
               {t('applicationThankYou')}
             </p>
-            <Button className="mt-8 bg-blue-600 hover:bg-blue-700 text-white" onClick={() => { setSubmitted(false); setForm(emptyForm); setProfilePreview(''); }}>
+            <Button className="mt-8 bg-violet-600 hover:bg-violet-700 text-white" onClick={() => { setSubmitted(false); setForm(emptyForm); setProfilePreview(''); }}>
               {t('submitAnotherApp')}
             </Button>
           </motion.div>
@@ -229,11 +229,11 @@ export default function TeacherApplicationSection() {
   }
 
   return (
-    <section id="join-as-teacher" className="scroll-mt-20 py-20 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-900 dark:to-slate-900/80">
+    <section id="join-as-teacher" className="scroll-mt-20 py-20 bg-gradient-to-br from-violet-50 to-purple-50 dark:from-slate-900 dark:to-slate-900/80">
       <div className="max-w-5xl mx-auto px-6">
         {/* Header */}
         <div className="text-center mb-12">
-          <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-sm font-medium mb-4">
+          <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 text-sm font-medium mb-4">
             <GraduationCap className="w-4 h-4" />
             {t('joinAsTeacher')}
           </span>
@@ -269,7 +269,7 @@ export default function TeacherApplicationSection() {
             <div className="flex flex-col items-center gap-3">
               <div
                 onClick={() => profileRef.current?.click()}
-                className="w-24 h-24 rounded-full border-2 border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center cursor-pointer hover:border-blue-500 transition overflow-hidden bg-slate-50 dark:bg-slate-800"
+                className="w-24 h-24 rounded-full border-2 border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center cursor-pointer hover:border-violet-500 transition overflow-hidden bg-slate-50 dark:bg-slate-800"
               >
                 {profilePreview ? (
                   <img src={profilePreview} alt={t('profilePhotoAlt')} className="w-full h-full object-cover" />
@@ -333,7 +333,7 @@ export default function TeacherApplicationSection() {
                 <select
                   value={form.stageId}
                   onChange={(e) => handleStageChange(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 text-sm px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 text-sm px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-violet-500"
                 >
                   <option value="">{t('selectStagePlaceholder')}</option>
                   {stages.map((stage: Stage) => (
@@ -362,8 +362,8 @@ export default function TeacherApplicationSection() {
                           onClick={() => toggleGrade(grade._id)}
                           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${
                             checked
-                              ? 'bg-blue-600 text-white border-blue-600'
-                              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:border-blue-400'
+                              ? 'bg-violet-600 text-white border-violet-600'
+                              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:border-violet-400'
                           }`}
                         >
                           {checked && <CheckCircle2 className="w-3.5 h-3.5" />}
@@ -393,8 +393,8 @@ export default function TeacherApplicationSection() {
                           onClick={() => toggleSubject(subject._id)}
                           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${
                             checked
-                              ? 'bg-blue-600 text-white border-blue-600'
-                              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:border-blue-400'
+                              ? 'bg-violet-600 text-white border-violet-600'
+                              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:border-violet-400'
                           }`}
                         >
                           {checked && <CheckCircle2 className="w-3.5 h-3.5" />}
@@ -415,7 +415,7 @@ export default function TeacherApplicationSection() {
               </label>
               <div
                 onClick={() => cvRef.current?.click()}
-                className="flex items-center gap-3 px-4 py-3 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg cursor-pointer hover:border-blue-500 transition bg-slate-50 dark:bg-slate-800"
+                className="flex items-center gap-3 px-4 py-3 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg cursor-pointer hover:border-violet-500 transition bg-slate-50 dark:bg-slate-800"
               >
                 <Upload className="w-5 h-5 text-slate-400" />
                 <span className="text-sm text-slate-500">
@@ -452,10 +452,10 @@ export default function TeacherApplicationSection() {
                       onClick={() => toggleDay(day)}
                       className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${
                         selected
-                          ? 'bg-blue-600 text-white border-blue-600'
+                          ? 'bg-violet-600 text-white border-violet-600'
                           : disabled
                           ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed opacity-50'
-                          : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:border-blue-400'
+                          : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:border-violet-400'
                       }`}
                     >
                       {selected ? <CheckCircle2 className="inline w-3.5 h-3.5 mr-1" /> : <Plus className="inline w-3.5 h-3.5 mr-1" />}
@@ -488,14 +488,14 @@ export default function TeacherApplicationSection() {
                             type="time"
                             value={form.hours[day]?.start || '09:00'}
                             onChange={(e) => setHour(day, 'start', e.target.value)}
-                            className="flex-1 min-w-[110px] text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="flex-1 min-w-[110px] text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-500"
                           />
                           <span className="text-slate-400 text-sm flex-shrink-0">–</span>
                           <input
                             type="time"
                             value={form.hours[day]?.end || '11:00'}
                             onChange={(e) => setHour(day, 'end', e.target.value)}
-                            className="flex-1 min-w-[110px] text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="flex-1 min-w-[110px] text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-500"
                           />
                         </div>
                       </div>
@@ -509,7 +509,7 @@ export default function TeacherApplicationSection() {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl text-base font-semibold transition-all"
+              className="w-full bg-violet-600 hover:bg-violet-700 text-white py-3 rounded-xl text-base font-semibold transition-all"
             >
               {isSubmitting ? t('submitting') : t('submitApplication')}
             </Button>

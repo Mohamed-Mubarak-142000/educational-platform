@@ -90,12 +90,12 @@ export default function VerifyEmail() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 font-sans selection:bg-blue-200 flex flex-col">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 font-sans selection:bg-violet-200 flex flex-col">
       <SiteNavbar />
       <main className="flex-1">
         <section className="pt-28 pb-16 relative overflow-hidden">
-          <div className="absolute top-0 right-0 -translate-y-1/3 translate-x-1/3 w-[640px] h-[640px] bg-blue-400/20 dark:bg-blue-900/20 rounded-full blur-[120px] pointer-events-none" />
-          <div className="absolute bottom-0 left-0 translate-y-1/3 -translate-x-1/3 w-[460px] h-[460px] bg-indigo-400/20 dark:bg-indigo-900/20 rounded-full blur-[110px] pointer-events-none" />
+          <div className="absolute top-0 right-0 -translate-y-1/3 translate-x-1/3 w-[640px] h-[640px] bg-violet-400/20 dark:bg-violet-900/20 rounded-full blur-[120px] pointer-events-none" />
+          <div className="absolute bottom-0 left-0 translate-y-1/3 -translate-x-1/3 w-[460px] h-[460px] bg-purple-400/20 dark:bg-purple-900/20 rounded-full blur-[110px] pointer-events-none" />
 
           <div className="max-w-2xl mx-auto px-6 relative z-10">
             <Card className="border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/70 backdrop-blur-sm shadow-2xl rounded-3xl">
@@ -117,7 +117,7 @@ export default function VerifyEmail() {
                       <span className="text-red-500 text-sm">{form.formState.errors.otp.message}</span>
                     )}
                   </div>
-                  <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/30" disabled={verifyMutation.isPending}>
+                  <Button type="submit" className="w-full bg-violet-600 hover:bg-violet-700 text-white shadow-lg shadow-violet-600/30" disabled={verifyMutation.isPending}>
                     {verifyMutation.isPending ? t('loadingEllipsis') : t('verifyOTP')}
                   </Button>
                   {verifyMutation.isError && (
@@ -125,7 +125,7 @@ export default function VerifyEmail() {
                   )}
                 </form>
                 <div className="mt-4 flex flex-col items-center gap-2 text-sm">
-                  <Button variant="ghost" className="text-blue-600 dark:text-blue-400" onClick={onResend} disabled={resendMutation.isPending}>
+                  <Button variant="ghost" className="text-violet-600 dark:text-violet-400" onClick={onResend} disabled={resendMutation.isPending}>
                     {resendMutation.isPending ? t('loadingEllipsis') : t('resendOtp')}
                   </Button>
                   {resendMessage && <p className="text-slate-500 dark:text-slate-400">{resendMessage}</p>}

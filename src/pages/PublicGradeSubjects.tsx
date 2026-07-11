@@ -77,15 +77,15 @@ export default function PublicGradeSubjects() {
   const sortedSubjects = subjects.slice().sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 font-sans selection:bg-blue-200 flex flex-col">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 font-sans selection:bg-violet-200 flex flex-col">
       <SiteNavbar />
 
       {/* Hero banner */}
-      <div className="relative bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 pt-28 pb-16 overflow-hidden">
+      <div className="relative bg-gradient-to-br from-violet-600 via-violet-700 to-purple-700 pt-28 pb-16 overflow-hidden">
         <div className="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(ellipse_at_top_right,_white_0%,_transparent_60%)]" />
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           {/* Breadcrumb */}
-          <nav className={`flex items-center gap-1.5 text-sm text-blue-200 mb-6 flex-wrap ${isRtl ? 'flex-row-reverse justify-end' : ''}`}>
+          <nav className={`flex items-center gap-1.5 text-sm text-violet-200 mb-6 flex-wrap ${isRtl ? 'flex-row-reverse justify-end' : ''}`}>
             <button
               onClick={() => navigate('/')}
               className="flex items-center gap-1 hover:text-white transition-colors"
@@ -117,7 +117,7 @@ export default function PublicGradeSubjects() {
             <h1 className="text-3xl md:text-5xl font-bold text-white mb-3">
               {gradeName}
             </h1>
-            <p className="text-blue-200 text-lg max-w-2xl">
+            <p className="text-violet-200 text-lg max-w-2xl">
               {t('gradeSubjectsSubtitle')}
             </p>
           </motion.div>

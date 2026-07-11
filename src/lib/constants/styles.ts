@@ -35,13 +35,13 @@ export const cardVariants = {
  */
 export const buttonVariants = {
   /** Primary action button - blue theme */
-  primary: 'bg-blue-600 hover:bg-blue-700 text-white',
+  primary: 'bg-violet-600 hover:bg-violet-700 text-white',
   
   /** Primary with shadow - for CTAs */
-  primaryShadow: 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/30',
+  primaryShadow: 'bg-violet-600 hover:bg-violet-700 text-white shadow-lg shadow-violet-600/30',
   
   /** Primary with enhanced shadow - for hero sections */
-  primaryHero: 'bg-blue-600 hover:bg-blue-700 text-white shadow-xl shadow-blue-600/20 hover:shadow-blue-600/40',
+  primaryHero: 'bg-violet-600 hover:bg-violet-700 text-white shadow-xl shadow-violet-600/20 hover:shadow-violet-600/40',
   
   /** Secondary action button */
   secondary: 'bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-900 dark:text-slate-50',
@@ -77,7 +77,7 @@ export const inputVariants = {
  */
 export const badgeVariants = {
   /** Info badge - blue */
-  info: 'inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-semibold text-sm',
+  info: 'inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 font-semibold text-sm',
   
   /** Success badge - green */
   success: 'inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 font-semibold text-sm',
@@ -98,10 +98,10 @@ export const badgeVariants = {
  */
 export const gradients = {
   /** Blue gradient blob - top right */
-  blueTopRight: 'absolute top-0 right-0 -translate-y-1/3 translate-x-1/3 w-[700px] h-[700px] bg-blue-400/20 dark:bg-blue-900/20 rounded-full blur-[120px] pointer-events-none',
+  blueTopRight: 'absolute top-0 right-0 -translate-y-1/3 translate-x-1/3 w-[700px] h-[700px] bg-violet-400/20 dark:bg-violet-900/20 rounded-full blur-[120px] pointer-events-none',
   
   /** Indigo gradient blob - bottom left */
-  indigoBottomLeft: 'absolute bottom-0 left-0 translate-y-1/3 -translate-x-1/3 w-[520px] h-[520px] bg-indigo-400/20 dark:bg-indigo-900/20 rounded-full blur-[110px] pointer-events-none',
+  indigoBottomLeft: 'absolute bottom-0 left-0 translate-y-1/3 -translate-x-1/3 w-[520px] h-[520px] bg-purple-400/20 dark:bg-purple-900/20 rounded-full blur-[110px] pointer-events-none',
   
   /** Purple gradient blob */
   purpleCenter: 'absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-[600px] h-[600px] bg-purple-400/20 dark:bg-purple-900/20 rounded-full blur-[100px] pointer-events-none',
@@ -125,7 +125,7 @@ export const textColors = {
   muted: 'text-slate-600 dark:text-slate-300',
   
   /** Link text color */
-  link: 'text-blue-600 dark:text-blue-400 hover:underline',
+  link: 'text-violet-600 dark:text-violet-400 hover:underline',
   
   /** Error text color */
   error: 'text-red-500 dark:text-red-400',
@@ -176,13 +176,13 @@ export const spacing = {
  */
 export const iconContainers = {
   /** Small icon container - blue theme */
-  small: 'w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 flex items-center justify-center',
+  small: 'w-9 h-9 rounded-full bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-300 flex items-center justify-center',
   
   /** Medium icon container - blue theme */
-  medium: 'w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-600/30',
+  medium: 'w-12 h-12 rounded-2xl bg-violet-600 text-white flex items-center justify-center shadow-lg shadow-violet-600/30',
   
   /** Large icon container - blue theme */
-  large: 'w-16 h-16 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-600/30',
+  large: 'w-16 h-16 rounded-2xl bg-violet-600 text-white flex items-center justify-center shadow-lg shadow-violet-600/30',
 } as const;
 
 /**

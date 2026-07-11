@@ -161,7 +161,7 @@ function StepProgress({
                 isDone
                   ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-800/40"
                   : isActive
-                    ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800/40"
+                    ? "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-900/20 dark:text-violet-300 dark:border-violet-800/40"
                     : "bg-slate-50 text-slate-500 border-slate-200 dark:bg-slate-900/40 dark:text-slate-400 dark:border-slate-800"
               }`}
             >
@@ -191,7 +191,7 @@ function StepSection({
   return (
     <section className="bg-white dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
       <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60">
-        <span className="w-8 h-8 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center">
+        <span className="w-8 h-8 rounded-full bg-violet-600 text-white text-xs font-bold flex items-center justify-center">
           {step}
         </span>
         <div className="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-200">
@@ -242,7 +242,7 @@ function SidebarUnit({
         onClick={() => setOpen((prev) => !prev)}
       >
         <div className="flex items-center gap-2 min-w-0">
-          <span className="flex-shrink-0 w-6 h-6 rounded-md bg-blue-600 text-white text-xs font-bold flex items-center justify-center">
+          <span className="flex-shrink-0 w-6 h-6 rounded-md bg-violet-600 text-white text-xs font-bold flex items-center justify-center">
             {unit.order ?? 0}
           </span>
           <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate leading-snug">
@@ -320,7 +320,7 @@ function SidebarLesson({
       <button
         className={`w-full flex items-center gap-2.5 pl-8 pr-4 py-2.5 text-left transition-colors ${
           isActive
-            ? "bg-blue-50 dark:bg-blue-900/20 border-l-2 border-blue-600"
+            ? "bg-violet-50 dark:bg-violet-900/20 border-l-2 border-violet-600"
             : locked
               ? "border-l-2 border-transparent text-slate-400 dark:text-slate-500 cursor-not-allowed"
               : "hover:bg-slate-50 dark:hover:bg-slate-800/40 border-l-2 border-transparent"
@@ -330,19 +330,19 @@ function SidebarLesson({
       >
         {locked ? (
           <Lock
-            className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? "text-blue-600" : "text-slate-400"}`}
+            className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? "text-violet-600" : "text-slate-400"}`}
           />
         ) : lesson.videoUrl ? (
           <PlayCircle
-            className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? "text-blue-600" : "text-slate-400"}`}
+            className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? "text-violet-600" : "text-slate-400"}`}
           />
         ) : (
           <FileText
-            className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? "text-blue-600" : "text-slate-400"}`}
+            className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? "text-violet-600" : "text-slate-400"}`}
           />
         )}
         <span
-          className={`text-xs leading-snug truncate flex-1 ${isActive ? "font-semibold text-blue-700 dark:text-blue-300" : "text-slate-600 dark:text-slate-400"}`}
+          className={`text-xs leading-snug truncate flex-1 ${isActive ? "font-semibold text-violet-700 dark:text-violet-300" : "text-slate-600 dark:text-slate-400"}`}
         >
           {lesson.title}
         </span>
@@ -367,7 +367,7 @@ function SidebarLesson({
                 key={part._id}
                 className={`w-full flex items-center gap-2 px-3 py-1.5 rounded-md text-left text-[11px] transition-colors ${
                   partActive
-                    ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+                    ? "bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300"
                     : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
                 }`}
                 onClick={() => onPartClick(lesson, part)}
@@ -454,7 +454,7 @@ function LessonPartsSection({
   return (
     <div className="space-y-4">
       <h2 className="flex items-center gap-2 text-base font-semibold text-slate-800 dark:text-slate-200">
-        <Layers className="w-4 h-4 text-blue-600" />
+        <Layers className="w-4 h-4 text-violet-600" />
         {t("lessonParts")} ({resolvedParts.length})
       </h2>
       <div className="space-y-4">
@@ -525,7 +525,7 @@ function PartCard({
         onClick={() => setOpen((prev) => !prev)}
       >
         <div className="flex items-center gap-3">
-          <span className="w-7 h-7 rounded-lg bg-blue-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
+          <span className="w-7 h-7 rounded-lg bg-violet-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
             {index + 1}
           </span>
           <span className="font-semibold text-sm text-slate-800 dark:text-slate-200">
@@ -620,7 +620,7 @@ function PartCard({
               {/* Part quiz (UnitQuiz — separate collection, created via quiz manager) */}
               {partQuiz && (
                 <div className="space-y-4">
-                  <div className="bg-blue-50 dark:bg-blue-900/10 rounded-xl p-4 border border-blue-200 dark:border-blue-800/30 flex items-center justify-between gap-3">
+                  <div className="bg-violet-50 dark:bg-violet-900/10 rounded-xl p-4 border border-violet-200 dark:border-violet-800/30 flex items-center justify-between gap-3">
                     <div>
                       <p className="font-medium text-sm text-slate-900 dark:text-slate-100">
                         {partQuiz.title}
@@ -654,7 +654,7 @@ function PartCard({
                       ) : (
                         <Button
                           size="sm"
-                          className="bg-blue-600 hover:bg-blue-700 text-white h-8 text-xs"
+                          className="bg-violet-600 hover:bg-violet-700 text-white h-8 text-xs"
                           onClick={() => setQuizOpen(true)}
                         >
                           <ClipboardList className="w-3.5 h-3.5 mr-1" />
@@ -732,7 +732,7 @@ function CommentsSection({ lessonId }: { lessonId: string }) {
   return (
     <div>
       <h3 className="flex items-center gap-2 text-base font-semibold mb-4 text-slate-800 dark:text-slate-200">
-        <MessageSquare className="w-4 h-4 text-blue-600" />
+        <MessageSquare className="w-4 h-4 text-violet-600" />
         {t("lessonDiscussion")} ({resolvedComments.length})
       </h3>
       {showSkeleton ? (
@@ -754,7 +754,7 @@ function CommentsSection({ lessonId }: { lessonId: string }) {
           <Button
             type="submit"
             size="sm"
-            className="self-end bg-blue-600 hover:bg-blue-700 text-white px-3 h-9"
+            className="self-end bg-violet-600 hover:bg-violet-700 text-white px-3 h-9"
             disabled={addMutation.isPending || !text.trim()}
           >
             <Send className="w-4 h-4" />
@@ -779,7 +779,7 @@ function CommentsSection({ lessonId }: { lessonId: string }) {
         ) : (
           resolvedComments.map((comment) => (
             <div key={comment._id} className="flex gap-3">
-              <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-blue-700 dark:text-blue-300 font-bold text-xs flex-shrink-0">
+              <div className="w-8 h-8 rounded-full bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center text-violet-700 dark:text-violet-300 font-bold text-xs flex-shrink-0">
                 {comment.userId?.name?.charAt(0).toUpperCase() || "?"}
               </div>
               <div className="flex-1 min-w-0">
@@ -1155,7 +1155,7 @@ export default function LessonView() {
                 size="sm"
                 disabled={!nextLesson}
                 onClick={() => nextLesson && handleLessonClick(nextLesson)}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-violet-600 hover:bg-violet-700 text-white"
               >
                 {t("next", { defaultValue: "Next" })}
                 <ArrowRight className="w-4 h-4 ml-1" />
@@ -1214,7 +1214,7 @@ export default function LessonView() {
                         resolvedSubjectId && (
                           <Button
                             size="sm"
-                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                            className="bg-violet-600 hover:bg-violet-700 text-white"
                             onClick={() =>
                               navigate(
                                 `/student/subjects/${resolvedSubjectId}/teachers/${assignmentTeacherId}`,
@@ -1245,7 +1245,7 @@ export default function LessonView() {
               <StepSection
                 step={1}
                 title={t("lessonStepLearn", { defaultValue: "Learn" })}
-                icon={<BookOpen className="w-4 h-4 text-blue-600" />}
+                icon={<BookOpen className="w-4 h-4 text-violet-600" />}
               >
                 <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
                   {lesson.duration && (
@@ -1255,7 +1255,7 @@ export default function LessonView() {
                     </span>
                   )}
                   {lesson.videoUrl && (
-                    <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                    <span className="flex items-center gap-1 text-violet-600 dark:text-violet-400">
                       <PlayCircle className="w-4 h-4" />
                       {t("lessonVideoLabel")}
                     </span>
@@ -1311,7 +1311,7 @@ export default function LessonView() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                   <div className="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-5 border border-slate-200 dark:border-slate-800">
                     <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-3 flex items-center gap-2">
-                      <BookOpen className="w-4 h-4 text-blue-600" />
+                      <BookOpen className="w-4 h-4 text-violet-600" />
                       {t("lessonAbout")}
                     </h3>
                     <RenderIfExists
@@ -1340,7 +1340,7 @@ export default function LessonView() {
 
                   <div className="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-5 border border-slate-200 dark:border-slate-800 space-y-4">
                     <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-                      <Paperclip className="w-4 h-4 text-blue-600" />
+                      <Paperclip className="w-4 h-4 text-violet-600" />
                       {t("lessonAttachments")}
                     </h3>
                     <RenderIfExists
@@ -1440,7 +1440,7 @@ export default function LessonView() {
               <StepSection
                 step={2}
                 title={t("lessonStepPractice", { defaultValue: "Practice" })}
-                icon={<Layers className="w-4 h-4 text-blue-600" />}
+                icon={<Layers className="w-4 h-4 text-violet-600" />}
               >
                 <LessonPartsSection
                   lessonId={activeLessonId}
@@ -1454,14 +1454,14 @@ export default function LessonView() {
               <StepSection
                 step={3}
                 title={t("lessonStepQuiz", { defaultValue: "Quiz" })}
-                icon={<ClipboardList className="w-4 h-4 text-blue-600" />}
+                icon={<ClipboardList className="w-4 h-4 text-violet-600" />}
               >
                 {lessonQuiz ? (
                   <div className="space-y-4">
-                    <div className="bg-blue-50 dark:bg-blue-900/10 rounded-2xl p-6 border border-blue-200 dark:border-blue-800/30 flex items-center justify-between gap-4">
+                    <div className="bg-violet-50 dark:bg-violet-900/10 rounded-2xl p-6 border border-violet-200 dark:border-violet-800/30 flex items-center justify-between gap-4">
                       <div className="flex items-center gap-3 min-w-0">
                         <div
-                          className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${user?.role === "Teacher" ? "bg-amber-500" : "bg-blue-600"}`}
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${user?.role === "Teacher" ? "bg-amber-500" : "bg-violet-600"}`}
                         >
                           {user?.role === "Teacher" ? (
                             <Eye className="w-5 h-5 text-white" />
@@ -1487,7 +1487,7 @@ export default function LessonView() {
                         className={
                           user?.role === "Teacher"
                             ? "border-amber-500 text-amber-700 dark:text-amber-400 flex-shrink-0 hover:bg-amber-50 dark:hover:bg-amber-900/20"
-                            : "bg-blue-600 hover:bg-blue-700 text-white flex-shrink-0"
+                            : "bg-violet-600 hover:bg-violet-700 text-white flex-shrink-0"
                         }
                         onClick={() => setQuizOpen((prev) => !prev)}
                       >
@@ -1543,7 +1543,7 @@ export default function LessonView() {
               <StepSection
                 step={4}
                 title={t("lessonStepComplete", { defaultValue: "Complete" })}
-                icon={<Award className="w-4 h-4 text-blue-600" />}
+                icon={<Award className="w-4 h-4 text-violet-600" />}
               >
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
@@ -1591,9 +1591,9 @@ export default function LessonView() {
                 </div>
 
                 {nextLesson && (
-                  <div className="flex items-center justify-between gap-4 bg-blue-50 dark:bg-blue-900/10 rounded-xl p-4 border border-blue-200 dark:border-blue-800/30">
+                  <div className="flex items-center justify-between gap-4 bg-violet-50 dark:bg-violet-900/10 rounded-xl p-4 border border-violet-200 dark:border-violet-800/30">
                     <div className="min-w-0">
-                      <p className="text-xs text-blue-600 dark:text-blue-400 uppercase tracking-wide font-semibold">
+                      <p className="text-xs text-violet-600 dark:text-violet-400 uppercase tracking-wide font-semibold">
                         {t("nextUp", { defaultValue: "Next up" })}
                       </p>
                       <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
@@ -1602,7 +1602,7 @@ export default function LessonView() {
                     </div>
                     <Button
                       size="sm"
-                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                      className="bg-violet-600 hover:bg-violet-700 text-white"
                       onClick={() => handleLessonClick(nextLesson)}
                     >
                       {t("nextLesson", { defaultValue: "Go to next lesson" })}

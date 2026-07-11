@@ -81,7 +81,7 @@ function BilingualInput({
               onChange={(e) => onChangeAr(e.target.value)}
               rows={3}
               dir="rtl"
-              className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 resize-none focus:outline-none focus:ring-2 focus:ring-violet-500"
             />
           ) : (
             <Input value={valueAr} onChange={(e) => onChangeAr(e.target.value)} dir="rtl" />
@@ -95,7 +95,7 @@ function BilingualInput({
               onChange={(e) => onChangeEn(e.target.value)}
               rows={3}
               dir="ltr"
-              className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 resize-none focus:outline-none focus:ring-2 focus:ring-violet-500"
             />
           ) : (
             <Input value={valueEn} onChange={(e) => onChangeEn(e.target.value)} dir="ltr" />
@@ -149,8 +149,8 @@ function PlatformTab({ draft, setDraft }: { draft: PlatformConfig; setDraft: Rea
               onClick={() => setDraft((d) => ({ ...d, defaultLanguage: lang as 'ar' | 'en' }))}
               className={`px-5 py-2 rounded-full text-sm font-semibold border transition-colors ${
                 draft.defaultLanguage === lang
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:border-blue-400'
+                  ? 'bg-violet-600 text-white border-violet-600'
+                  : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:border-violet-400'
               }`}
             >
               {lang === 'ar' ? 'العربية' : 'English'}
@@ -219,7 +219,7 @@ function NavbarTab({ draft, setDraft }: { draft: PlatformConfig; setDraft: React
                 <button
                   type="button"
                   onClick={() => patchItem(item.key, { isVisible: !item.isVisible })}
-                  className={`p-1.5 rounded transition-colors ${item.isVisible ? 'text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20' : 'text-slate-300 dark:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                  className={`p-1.5 rounded transition-colors ${item.isVisible ? 'text-violet-500 hover:bg-violet-50 dark:hover:bg-violet-900/20' : 'text-slate-300 dark:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                   title={item.isVisible ? t('pcNavVisible') : t('pcNavHidden')}
                 >
                   {item.isVisible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
@@ -271,7 +271,7 @@ function NavbarTab({ draft, setDraft }: { draft: PlatformConfig; setDraft: React
                     className={`px-3 py-1 rounded-full text-xs border transition-colors ${
                       !item.sectionKey
                         ? 'bg-slate-700 text-white border-slate-700'
-                        : 'border-slate-300 dark:border-slate-700 text-slate-500 hover:border-blue-400'
+                        : 'border-slate-300 dark:border-slate-700 text-slate-500 hover:border-violet-400'
                     }`}
                   >
                     {t('pcNavNoSection')}
@@ -283,8 +283,8 @@ function NavbarTab({ draft, setDraft }: { draft: PlatformConfig; setDraft: React
                       onClick={() => patchItem(item.key, { sectionKey: cs.key, href: cs.key, isAnchor: true })}
                       className={`px-3 py-1 rounded-full text-xs border transition-colors ${
                         item.sectionKey === cs.key
-                          ? 'bg-blue-600 text-white border-blue-600'
-                          : 'border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-blue-400'
+                          ? 'bg-violet-600 text-white border-violet-600'
+                          : 'border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-violet-400'
                       }`}
                     >
                       {cs.label}
@@ -534,7 +534,7 @@ function BlockEditor({ block, onUpdate, onRemove, onMoveUp, onMoveDown, isFirst,
           </button>
         </div>
         <div className="flex items-center gap-1.5 flex-1">
-          <Icon className="w-3.5 h-3.5 text-blue-500" />
+          <Icon className="w-3.5 h-3.5 text-violet-500" />
           <span className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
             {t(`pcBlock_${block.type}`)}
           </span>
@@ -556,8 +556,8 @@ function BlockEditor({ block, onUpdate, onRemove, onMoveUp, onMoveDown, isFirst,
                 onClick={() => patch({ type: bt })}
                 className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
                   block.type === bt
-                    ? 'bg-blue-600 text-white border-blue-600'
-                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-300 dark:border-slate-700 hover:border-blue-400'
+                    ? 'bg-violet-600 text-white border-violet-600'
+                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-300 dark:border-slate-700 hover:border-violet-400'
                 }`}
               >
                 <BIcon className="w-3 h-3" />
@@ -617,8 +617,8 @@ function BlockEditor({ block, onUpdate, onRemove, onMoveUp, onMoveDown, isFirst,
                   title={a}
                   className={`flex-1 py-1 text-xs rounded border transition-colors ${
                     (block.style?.alignment ?? 'left') === a
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'border-slate-200 dark:border-slate-700 hover:border-blue-400'
+                      ? 'bg-violet-600 text-white border-violet-600'
+                      : 'border-slate-200 dark:border-slate-700 hover:border-violet-400'
                   }`}
                 >
                   {a === 'left' ? '←' : a === 'center' ? '↔' : '→'}
@@ -631,7 +631,7 @@ function BlockEditor({ block, onUpdate, onRemove, onMoveUp, onMoveDown, isFirst,
             <select
               value={block.style?.padding ?? 'md'}
               onChange={(e) => patchStyle({ padding: e.target.value as BlockStyle['padding'] })}
-              className="w-full rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs px-2 py-1.5 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs px-2 py-1.5 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-500"
             >
               {(['none', 'sm', 'md', 'lg'] as const).map((p) => (
                 <option key={p} value={p}>{p}</option>
@@ -644,7 +644,7 @@ function BlockEditor({ block, onUpdate, onRemove, onMoveUp, onMoveDown, isFirst,
               <select
                 value={block.style?.size ?? 'md'}
                 onChange={(e) => patchStyle({ size: e.target.value as BlockStyle['size'] })}
-                className="w-full rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs px-2 py-1.5 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs px-2 py-1.5 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-500"
               >
                 {(['sm', 'md', 'lg', 'xl'] as const).map((s) => (
                   <option key={s} value={s}>{s}</option>
@@ -823,7 +823,7 @@ function SectionsTab({ draft, setDraft }: { draft: PlatformConfig; setDraft: Rea
                 <button
                   type="button"
                   onClick={() => toggleVisibility(sec.key)}
-                  className={`p-1.5 rounded transition-colors ${sec.isVisible ? 'text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20' : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                  className={`p-1.5 rounded transition-colors ${sec.isVisible ? 'text-violet-500 hover:bg-violet-50 dark:hover:bg-violet-900/20' : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                   title={sec.isVisible ? t('pcSectionClickToHide') : t('pcSectionClickToShow')}
                 >
                   {sec.isVisible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
@@ -1023,7 +1023,7 @@ export default function AdminPlatformConfig() {
               size="sm"
               onClick={handleSave}
               disabled={isSaving || !isDirty}
-              className={`gap-2 ${saveStatus === 'saved' ? 'bg-green-600 hover:bg-green-700' : saveStatus === 'error' ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'} text-white`}
+              className={`gap-2 ${saveStatus === 'saved' ? 'bg-green-600 hover:bg-green-700' : saveStatus === 'error' ? 'bg-red-600 hover:bg-red-700' : 'bg-violet-600 hover:bg-violet-700'} text-white`}
             >
               <Save className={`w-4 h-4 ${isSaving ? 'animate-pulse' : ''}`} />
               {isSaving ? t('pcSaving') : saveStatus === 'saved' ? t('pcSaved') : saveStatus === 'error' ? t('pcSaveError') : t('pcSaveChanges')}
@@ -1047,7 +1047,7 @@ export default function AdminPlatformConfig() {
             onClick={() => setActiveTab(id)}
             className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-t-lg transition-colors border-b-2 -mb-px ${
               activeTab === id
-                ? 'border-blue-600 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10'
+                ? 'border-violet-600 text-violet-600 dark:text-violet-400 bg-violet-50/50 dark:bg-violet-900/10'
                 : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/50'
             }`}
           >

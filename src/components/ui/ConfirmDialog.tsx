@@ -44,8 +44,8 @@ export default function ConfirmDialog({
   const finalCancelLabel = cancelLabel || t('cancel');
   const iconStyles: Record<string, { bg: string; text: string; node: ReactNode }> = {
     info: {
-      bg: 'bg-blue-50 dark:bg-blue-900/20',
-      text: 'text-blue-600 dark:text-blue-400',
+      bg: 'bg-violet-50 dark:bg-violet-900/20',
+      text: 'text-violet-600 dark:text-violet-400',
       node: <Info className="w-7 h-7" />,
     },
     success: {
@@ -73,7 +73,7 @@ export default function ConfirmDialog({
       ? 'bg-amber-600 hover:bg-amber-700 text-white'
       : toneKey === 'danger'
       ? 'bg-red-600 hover:bg-red-700 text-white'
-      : 'bg-blue-600 hover:bg-blue-700 text-white';
+      : 'bg-violet-600 hover:bg-violet-700 text-white';
 
   const handleConfirm = async () => {
     const result = onConfirm();

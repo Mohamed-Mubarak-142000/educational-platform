@@ -153,7 +153,7 @@ export default function ManualPaymentModal({
             <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 px-4 py-2 text-sm font-mono">
               {submitted.referenceCode}
             </div>
-            <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white" onClick={onClose}>
+            <Button className="w-full bg-violet-600 hover:bg-violet-700 text-white" onClick={onClose}>
               {t("close")}
             </Button>
           </div>
@@ -180,7 +180,7 @@ export default function ManualPaymentModal({
                   onClick={() => setMethod(m.id)}
                   className={`rounded-lg border p-2 text-xs font-semibold text-center transition-all ${
                     method === m.id
-                      ? "border-blue-600 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300"
+                      ? "border-violet-600 bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300"
                       : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700"
                   }`}
                 >
@@ -210,7 +210,7 @@ export default function ManualPaymentModal({
               <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                 {t("paymentProofUpload", { defaultValue: "Payment proof screenshot" })}
               </label>
-              <label className="flex items-center gap-2 justify-center border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg py-4 cursor-pointer hover:border-blue-400 transition-colors text-sm text-slate-500 dark:text-slate-400">
+              <label className="flex items-center gap-2 justify-center border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg py-4 cursor-pointer hover:border-violet-400 transition-colors text-sm text-slate-500 dark:text-slate-400">
                 <Upload className="w-4 h-4" />
                 {proofFile ? proofFile.name : t("chooseFile", { defaultValue: "Choose file" })}
                 <input
@@ -250,7 +250,7 @@ export default function ManualPaymentModal({
                 {t("cancel")}
               </Button>
               <Button
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-violet-600 hover:bg-violet-700 text-white"
                 onClick={() => submitMutation.mutate()}
                 disabled={!proofFile || submitMutation.isPending || (!isLiveLesson && !quote)}
               >

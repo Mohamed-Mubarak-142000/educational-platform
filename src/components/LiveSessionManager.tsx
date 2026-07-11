@@ -28,7 +28,7 @@ const SessionCard: React.FC<SessionCardProps> = ({ session, onJoin }) => {
   const statusColors = {
     active: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
     "starting-soon":
-      "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+      "bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-200",
     upcoming: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200",
     ended: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
   };
@@ -38,7 +38,7 @@ const SessionCard: React.FC<SessionCardProps> = ({ session, onJoin }) => {
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
-            <Video className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            <Video className="w-5 h-5 text-violet-600 dark:text-violet-400" />
             <CardTitle className="text-lg">Live Session</CardTitle>
           </div>
           <Badge className={statusColors[status as keyof typeof statusColors]}>
@@ -164,7 +164,7 @@ export const LiveSessionManager: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-600"></div>
           </div>
         </CardContent>
       </Card>
@@ -207,7 +207,7 @@ export const LiveSessionManager: React.FC = () => {
       {upcomingSessions.length > 0 && (
         <div>
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <Clock className="w-5 h-5 text-blue-600" />
+            <Clock className="w-5 h-5 text-violet-600" />
             Upcoming
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">

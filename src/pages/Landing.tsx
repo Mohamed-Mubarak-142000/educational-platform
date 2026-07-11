@@ -43,6 +43,19 @@ const STAT_PALETTES = [
   { text: 'text-rose-500', bg: 'bg-rose-100 dark:bg-rose-900/40' },
 ];
 
+// ─── Scroll-triggered animation variants ─────────────────────────────────────
+// Applied via whileInView so each section animates in as it enters the viewport.
+const fadeInLeft = { hidden: { opacity: 0, x: -70 }, visible: { opacity: 1, x: 0 } };
+const fadeInRight = { hidden: { opacity: 0, x: 70 }, visible: { opacity: 1, x: 0 } };
+const zoomIn = { hidden: { opacity: 0, scale: 0.8 }, visible: { opacity: 1, scale: 1 } };
+const zoomOut = { hidden: { opacity: 0, scale: 1.2 }, visible: { opacity: 1, scale: 1 } };
+const fadeInUp = { hidden: { opacity: 0, y: 40 }, visible: { opacity: 1, y: 0 } };
+/** Alternates left/right by index — used for side-by-side items so they converge from both edges. */
+const sideVariant = (i: number) => (i % 2 === 0 ? fadeInLeft : fadeInRight);
+// once: false — replays every time a section crosses the viewport threshold, scrolling either direction.
+const SECTION_VIEWPORT = { once: false, amount: 0.3 } as const;
+const EASE_OUT = { duration: 0.9, ease: 'easeInOut' as const };
+
 // ─── Section renderers ────────────────────────────────────────────────────────
 
 // Keys that map a stat's `key` field to a live DB metric in PlatformStats.
@@ -62,7 +75,7 @@ function StatsSection({ section, isRtl, liveStats }: { section: LandingSection; 
   const stats: StatItem[] = section.stats ?? [];
   const isResolved = liveStats !== undefined;
   return (
-    <section className="py-16 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm border-t border-b border-slate-200 dark:border-slate-800 relative z-10">
+    <section className="py-16 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm relative z-10">
       <div className="max-w-7xl mx-auto px-6">
         <div className={`grid gap-8 ${
           stats.length <= 2 ? 'grid-cols-2' :
@@ -73,7 +86,7 @@ function StatsSection({ section, isRtl, liveStats }: { section: LandingSection; 
             const palette = STAT_PALETTES[i % STAT_PALETTES.length];
             const Icon = resolveIcon(stat.iconName);
             return (
-              <motion.div key={stat.key} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: i * 0.1 }} className="flex flex-col items-center text-center space-y-3 p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+              <motion.div key={stat.key} variants={sideVariant(i)} initial="hidden" whileInView="visible" viewport={SECTION_VIEWPORT} transition={{ ...EASE_OUT, delay: i * 0.18 }} className="flex flex-col items-center text-center space-y-3 p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                 <div className={`p-4 rounded-2xl ${palette.bg} ${palette.text} shadow-inner`}><Icon className="w-6 h-6" /></div>
                 <div>
                   <h3 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight" dir="ltr">
@@ -124,24 +137,24 @@ function FeaturesSection({ section, isRtl }: { section: LandingSection; isRtl: b
     { Icon: Layers, label: t('lessonType3D'), color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-900/30' },
   ];
   return (
-    <section id="features" className="scroll-mt-20 py-24 relative overflow-hidden bg-slate-50/80 dark:bg-slate-900/40 border-b border-slate-200 dark:border-slate-800">
-      <div className="absolute top-0 left-0 -translate-x-1/3 -translate-y-1/3 w-[520px] h-[520px] bg-blue-400/20 dark:bg-blue-900/20 rounded-full blur-[130px] pointer-events-none" />
-      <div className="absolute bottom-0 right-0 translate-x-1/3 translate-y-1/3 w-[520px] h-[520px] bg-indigo-400/20 dark:bg-indigo-900/20 rounded-full blur-[130px] pointer-events-none" />
+    <section id="features" className="scroll-mt-20 py-24 relative overflow-hidden bg-slate-50/80 dark:bg-slate-900/40">
+      <div className="absolute top-0 left-0 -translate-x-1/3 -translate-y-1/3 w-[520px] h-[520px] bg-violet-400/20 dark:bg-violet-900/20 rounded-full blur-[130px] pointer-events-none" />
+      <div className="absolute bottom-0 right-0 translate-x-1/3 translate-y-1/3 w-[520px] h-[520px] bg-purple-400/20 dark:bg-purple-900/20 rounded-full blur-[130px] pointer-events-none" />
       <div className="max-w-7xl mx-auto px-6 relative z-10 space-y-16">
         {(title || description) && (
-          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="text-center max-w-4xl mx-auto">
+          <motion.div variants={zoomIn} initial="hidden" whileInView="visible" viewport={SECTION_VIEWPORT} transition={EASE_OUT} className="text-center max-w-4xl mx-auto">
             {title && <h2 className="text-3xl md:text-5xl font-bold dark:text-white mb-6">{title}</h2>}
             {description && <p className="text-lg text-slate-600 dark:text-slate-400">{description}</p>}
           </motion.div>
         )}
 
-        {/* Three-column feature cards */}
+        {/* Three-column feature cards — left / zoom / right, so the row converges from both edges plus a centered zoom */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Student Features */}
-          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0 }}>
+          <motion.div variants={fadeInLeft} initial="hidden" whileInView="visible" viewport={SECTION_VIEWPORT} transition={EASE_OUT}>
             <Card className="h-full border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 bg-white/70 dark:bg-slate-900/60 backdrop-blur-sm rounded-3xl overflow-hidden">
               <CardContent className={`p-7 space-y-6 flex flex-col h-full ${isRtl ? 'text-right' : 'text-left'}`}>
-                <div className="w-13 h-13 w-14 h-14 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/30 shrink-0">
+                <div className="w-13 h-13 w-14 h-14 bg-violet-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-violet-600/30 shrink-0">
                   <GraduationCap className="w-7 h-7" />
                 </div>
                 <div>
@@ -156,10 +169,10 @@ function FeaturesSection({ section, isRtl }: { section: LandingSection; isRtl: b
           </motion.div>
 
           {/* Teacher Features */}
-          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.1 }}>
+          <motion.div variants={zoomIn} initial="hidden" whileInView="visible" viewport={SECTION_VIEWPORT} transition={{ ...EASE_OUT, delay: 0.18 }}>
             <Card className="h-full border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 bg-white/70 dark:bg-slate-900/60 backdrop-blur-sm rounded-3xl overflow-hidden">
               <CardContent className={`p-7 space-y-6 flex flex-col h-full ${isRtl ? 'text-right' : 'text-left'}`}>
-                <div className="w-14 h-14 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-600/30 shrink-0">
+                <div className="w-14 h-14 bg-purple-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-purple-600/30 shrink-0">
                   <LayoutDashboard className="w-7 h-7" />
                 </div>
                 <div>
@@ -174,7 +187,7 @@ function FeaturesSection({ section, isRtl }: { section: LandingSection; isRtl: b
           </motion.div>
 
           {/* Admin Features */}
-          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.2 }}>
+          <motion.div variants={fadeInRight} initial="hidden" whileInView="visible" viewport={SECTION_VIEWPORT} transition={{ ...EASE_OUT, delay: 0.36 }}>
             <Card className="h-full border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 bg-white/70 dark:bg-slate-900/60 backdrop-blur-sm rounded-3xl overflow-hidden">
               <CardContent className={`p-7 space-y-6 flex flex-col h-full ${isRtl ? 'text-right' : 'text-left'}`}>
                 <div className="w-14 h-14 bg-emerald-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-600/30 shrink-0">
@@ -193,7 +206,7 @@ function FeaturesSection({ section, isRtl }: { section: LandingSection; isRtl: b
         </div>
 
         {/* Lesson Content Types — full-width showcase */}
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.15 }}>
+        <motion.div variants={zoomOut} initial="hidden" whileInView="visible" viewport={SECTION_VIEWPORT} transition={EASE_OUT}>
           <Card className="border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/70 backdrop-blur-sm rounded-3xl shadow-lg overflow-hidden">
             <CardContent className="p-8">
               <p className={`text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-6 ${isRtl ? 'text-right' : 'text-left'}`}>{t('lessonContentTypes')}</p>
@@ -234,10 +247,10 @@ function StagesSection({ section, isRtl }: { section: LandingSection; isRtl: boo
   });
 
   return (
-    <section id="educational-stages" className="scroll-mt-20 py-24 bg-slate-50 dark:bg-slate-900/50 relative z-10 border-t border-slate-200 dark:border-slate-800">
+    <section id="educational-stages" className="scroll-mt-20 py-24 bg-slate-50 dark:bg-slate-900/50 relative z-10">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+          <motion.div variants={zoomIn} initial="hidden" whileInView="visible" viewport={SECTION_VIEWPORT} transition={EASE_OUT}>
             <h2 className="text-3xl md:text-5xl font-bold dark:text-white mb-6">{title || t('stagesTitle')}</h2>
             <p className="text-lg text-slate-600 dark:text-slate-400">{description || t('stagesSubtitle')}</p>
           </motion.div>
@@ -275,14 +288,14 @@ function StagesSection({ section, isRtl }: { section: LandingSection; isRtl: boo
                 } />
               );
             })}
-            <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }} transition={{ duration: 0.22, delay: apiStages.length * 0.07 }}>
+            <motion.div variants={zoomIn} transition={{ duration: 0.6, ease: 'easeInOut', delay: apiStages.length * 0.07 }}>
               <div className="block h-full cursor-pointer" onClick={() => navigate('/stages')}>
-                <Card className="h-full border border-dashed border-blue-300 dark:border-blue-700/60 bg-gradient-to-br from-blue-50/80 via-white to-indigo-50/80 dark:from-slate-900 dark:via-slate-950 dark:to-blue-950/40 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group rounded-2xl overflow-hidden">
+                <Card className="h-full border border-dashed border-violet-300 dark:border-violet-700/60 bg-gradient-to-br from-violet-50/80 via-white to-purple-50/80 dark:from-slate-900 dark:via-slate-950 dark:to-violet-950/40 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group rounded-2xl overflow-hidden">
                   <CardContent className="p-5 flex flex-col h-full">
-                    <div className="w-11 h-11 rounded-xl bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 flex items-center justify-center mb-3 border border-blue-200 dark:border-blue-800 shadow-sm"><GraduationCap className="w-5 h-5" /></div>
-                    <h3 className="font-bold text-base mb-1 text-blue-700 dark:text-blue-300">{t('viewAllStages')}</h3>
+                    <div className="w-11 h-11 rounded-xl bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-300 flex items-center justify-center mb-3 border border-violet-200 dark:border-violet-800 shadow-sm"><GraduationCap className="w-5 h-5" /></div>
+                    <h3 className="font-bold text-base mb-1 text-violet-700 dark:text-violet-300">{t('viewAllStages')}</h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 flex-1 line-clamp-2">{t('viewAllStagesDesc')}</p>
-                    <div className="mt-3 pt-2 border-t border-blue-200 dark:border-blue-800 flex items-center gap-2 text-xs font-medium text-blue-700 dark:text-blue-300 justify-end">
+                    <div className="mt-3 pt-2 border-t border-violet-200 dark:border-violet-800 flex items-center gap-2 text-xs font-medium text-violet-700 dark:text-violet-300 justify-end">
                       {t('exploreNow')}
                       <ArrowRight className={`w-3 h-3 transition-transform duration-200 group-hover:translate-x-1 ${isRtl ? 'rotate-180 group-hover:-translate-x-1' : ''}`} />
                     </div>
@@ -304,7 +317,7 @@ function TestimonialsSection({ section, isRtl }: { section: LandingSection; isRt
   if (testimonials.length === 0) return null;
   const cards = testimonials.map((testi, idx) => (
     <Card key={idx} className="h-full border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 hover:shadow-xl hover:bg-white dark:hover:bg-slate-800 transition-all duration-300 rounded-3xl relative">
-      <Quote className={`absolute top-6 ${isRtl ? 'left-6' : 'right-6'} w-12 h-12 text-blue-100 dark:text-slate-800/50`} />
+      <Quote className={`absolute top-6 ${isRtl ? 'left-6' : 'right-6'} w-12 h-12 text-violet-100 dark:text-slate-800/50`} />
       <CardContent className="p-8 relative z-10 flex flex-col h-full">
         <div className="flex gap-1 mb-6">{[1,2,3,4,5].map(s => <Star key={s} className="w-5 h-5 fill-yellow-400 text-yellow-400" />)}</div>
         <p className="text-lg text-slate-700 dark:text-slate-300 italic mb-8 flex-1 leading-relaxed">"{isRtl ? testi.textAr : testi.textEn}"</p>
@@ -319,15 +332,17 @@ function TestimonialsSection({ section, isRtl }: { section: LandingSection; isRt
     </Card>
   ));
   return (
-    <section id="testimonials" className="scroll-mt-20 py-24 relative overflow-hidden bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800">
-      <div className="absolute top-0 right-1/4 w-96 h-96 bg-blue-100/50 dark:bg-blue-900/10 rounded-full blur-3xl pointer-events-none" />
+    <section id="testimonials" className="scroll-mt-20 py-24 relative overflow-hidden bg-white dark:bg-slate-950">
+      <div className="absolute top-0 right-1/4 w-96 h-96 bg-violet-100/50 dark:bg-violet-900/10 rounded-full blur-3xl pointer-events-none" />
       <div className="relative max-w-7xl mx-auto px-6 z-10">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <motion.h2 initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} className="text-3xl md:text-5xl font-bold dark:text-white mb-6">
             {title || t('testiTitle')}
           </motion.h2>
         </div>
-        <Carousel items={cards} isRtl={isRtl} autoplayMs={5000} perView={{ base: 1, md: 1, lg: 1 }} className="max-w-3xl mx-auto" ariaPrevLabel={t('previous')} ariaNextLabel={t('next')} ariaSlideLabel={t('slide')} />
+        <motion.div variants={zoomOut} initial="hidden" whileInView="visible" viewport={SECTION_VIEWPORT} transition={EASE_OUT}>
+          <Carousel items={cards} isRtl={isRtl} autoplayMs={5000} perView={{ base: 1, md: 1, lg: 1 }} className="max-w-3xl mx-auto" ariaPrevLabel={t('previous')} ariaNextLabel={t('next')} ariaSlideLabel={t('slide')} />
+        </motion.div>
       </div>
     </section>
   );
@@ -372,40 +387,40 @@ function FaqSection({ section, isRtl }: { section: LandingSection; isRtl: boolea
 
   return (
     <section id="contact" className="scroll-mt-20 py-24 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-900 dark:to-indigo-900 transition-colors duration-500" />
+      <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-purple-600 dark:from-violet-900 dark:to-purple-900 transition-colors duration-500" />
       <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-80 h-80 bg-blue-400/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-80 h-80 bg-violet-400/20 rounded-full blur-3xl pointer-events-none" />
       <div className="max-w-7xl mx-auto px-8 relative z-10">
-        <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="text-center mb-14">
+        <motion.div variants={zoomIn} initial="hidden" whileInView="visible" viewport={SECTION_VIEWPORT} transition={EASE_OUT} className="text-center mb-14">
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">{title || t('ctaTitle')}</h2>
-          {description && <p className="text-xl text-blue-100 dark:text-indigo-200 max-w-2xl mx-auto">{description}</p>}
+          {description && <p className="text-xl text-violet-100 dark:text-purple-200 max-w-2xl mx-auto">{description}</p>}
         </motion.div>
 
         {accordionItems.length > 0 && (
           <div className="mb-14 grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Column 1 */}
-            <div className="bg-white/10 dark:bg-white/5 backdrop-blur-sm rounded-3xl p-8 border border-white/20 space-y-1">
-              <div className="[&_button]:text-white [&_*]:border-white/20 [&_p]:text-blue-100">
+            {/* Column 1 — slides in from the left */}
+            <motion.div variants={fadeInLeft} initial="hidden" whileInView="visible" viewport={SECTION_VIEWPORT} transition={EASE_OUT} className="bg-white/10 dark:bg-white/5 backdrop-blur-sm rounded-3xl p-8 border border-white/20 space-y-1">
+              <div className="[&_button]:text-white [&_*]:border-white/20 [&_p]:text-violet-100">
                 <Accordion items={col1} isRtl={isRtl} />
               </div>
-            </div>
-            {/* Column 2 */}
-            <div className="bg-white/10 dark:bg-white/5 backdrop-blur-sm rounded-3xl p-8 border border-white/20 space-y-1">
-              <div className="[&_button]:text-white [&_*]:border-white/20 [&_p]:text-blue-100">
+            </motion.div>
+            {/* Column 2 — slides in from the right */}
+            <motion.div variants={fadeInRight} initial="hidden" whileInView="visible" viewport={SECTION_VIEWPORT} transition={{ ...EASE_OUT, delay: 0.15 }} className="bg-white/10 dark:bg-white/5 backdrop-blur-sm rounded-3xl p-8 border border-white/20 space-y-1">
+              <div className="[&_button]:text-white [&_*]:border-white/20 [&_p]:text-violet-100">
                 <Accordion items={col2} isRtl={isRtl} />
               </div>
-            </div>
+            </motion.div>
           </div>
         )}
 
-        <div className="flex justify-center">
+        <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={SECTION_VIEWPORT} transition={EASE_OUT} className="flex justify-center">
           <Link to="/stages" className="w-full sm:w-auto">
-            <Button size="lg" className="h-14 px-10 text-lg bg-white text-blue-600 hover:bg-slate-50 shadow-xl rounded-full w-full shadow-white/10 group">
+            <Button size="lg" className="h-14 px-10 text-lg bg-white text-violet-600 hover:bg-slate-50 shadow-xl rounded-full w-full shadow-white/10 group">
               {t('getStarted')}
               <ArrowRight className={`ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform ${isRtl ? 'mr-2 ml-0 rotate-180 group-hover:-translate-x-1' : ''}`} />
             </Button>
           </Link>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
@@ -506,18 +521,20 @@ function CustomSection({ section, isRtl }: { section: LandingSection; isRtl: boo
   if (!title && !description && blocks.length === 0) return null;
 
   return (
-    <section id={section.key} className="scroll-mt-20 py-16 border-t border-slate-200 dark:border-slate-800">
+    <section id={section.key} className="scroll-mt-20 py-16">
       <div className="max-w-4xl mx-auto px-6">
         {(title || description) && (
-          <div className="text-center mb-10">
+          <motion.div variants={zoomIn} initial="hidden" whileInView="visible" viewport={SECTION_VIEWPORT} transition={EASE_OUT} className="text-center mb-10">
             {title && <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-3">{title}</h2>}
             {description && <p className="text-lg text-slate-600 dark:text-slate-400">{description}</p>}
-          </div>
+          </motion.div>
         )}
         {blocks.length > 0 && (
           <div className="space-y-2">
-            {blocks.map((block) => (
-              <BlockRenderer key={block.key} block={block} isRtl={isRtl} />
+            {blocks.map((block, idx) => (
+              <motion.div key={block.key} variants={sideVariant(idx)} initial="hidden" whileInView="visible" viewport={SECTION_VIEWPORT} transition={{ ...EASE_OUT, delay: idx * 0.15 }}>
+                <BlockRenderer block={block} isRtl={isRtl} />
+              </motion.div>
             ))}
           </div>
         )}
@@ -562,8 +579,8 @@ export default function Landing() {
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' as const } },
+    hidden: { opacity: 0, y: 30, x: isRtl ? 40 : -40 },
+    visible: { opacity: 1, y: 0, x: 0, transition: { duration: 0.6, ease: 'easeOut' as const } },
   };
 
   const navLinks: NavLink[] = config
@@ -600,15 +617,15 @@ export default function Landing() {
 
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 font-sans selection:bg-blue-200 flex flex-col">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 font-sans selection:bg-violet-200 flex flex-col">
       <SiteNavbar navLinks={navLinks} />
       <ScrollToTop />
       <main className="flex-1">
 
       {/* Hero Section */}
       <section id="home" className="relative pt-16 pb-20 lg:pt-20 lg:pb-32 overflow-hidden flex items-center min-h-[90vh]">
-        <div className="absolute top-0 right-0 -translate-y-12 translate-x-1/3 w-[800px] h-[800px] bg-blue-400/20 dark:bg-blue-900/20 rounded-full blur-[120px] pointer-events-none transition-colors duration-500" />
-        <div className="absolute bottom-0 left-0 translate-y-1/3 -translate-x-1/3 w-[600px] h-[600px] bg-indigo-400/20 dark:bg-indigo-900/20 rounded-full blur-[100px] pointer-events-none transition-colors duration-500" />
+        <div className="absolute top-0 right-0 -translate-y-12 translate-x-1/3 w-[800px] h-[800px] bg-violet-400/20 dark:bg-violet-900/20 rounded-full blur-[120px] pointer-events-none transition-colors duration-500" />
+        <div className="absolute bottom-0 left-0 translate-y-1/3 -translate-x-1/3 w-[600px] h-[600px] bg-purple-400/20 dark:bg-purple-900/20 rounded-full blur-[100px] pointer-events-none transition-colors duration-500" />
         
         <div className="max-w-7xl mx-auto px-6 relative z-10 w-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
@@ -618,12 +635,12 @@ export default function Landing() {
               animate="visible"
               variants={containerVariants}
             >
-              <motion.div variants={itemVariants} className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-semibold text-sm mb-6 transition-colors duration-300 ${isRtl ? 'ml-auto lg:ml-0 lg:mr-auto' : 'mr-auto lg:mr-0 lg:ml-0'}`}>
+              <motion.div variants={itemVariants} className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 font-semibold text-sm mb-6 transition-colors duration-300 ${isRtl ? 'ml-auto lg:ml-0 lg:mr-auto' : 'mr-auto lg:mr-0 lg:ml-0'}`}>
                 <Activity className="w-4 h-4" /> {t('nextGenLearning')}
               </motion.div>
               
               <motion.h1 variants={itemVariants} className={`text-5xl lg:text-6xl xl:text-7xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-6 leading-[1.15] ${isRtl ? 'text-start lg:text-right' : 'text-start'}`}>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 transition-colors duration-300 drop-shadow-sm">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-purple-600 dark:from-violet-400 dark:to-purple-400 transition-colors duration-300 drop-shadow-sm">
                   {heroTitle}
                 </span>
               </motion.h1>
@@ -634,7 +651,7 @@ export default function Landing() {
               
               <motion.div variants={itemVariants} className={`flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start ${isRtl ? 'lg:flex-row-reverse' : ''}`}>
                 <Link to={primaryHref} className="w-full sm:w-auto">
-                  <Button size="lg" className="h-14 px-8 text-lg bg-blue-600 hover:bg-blue-700 text-white shadow-xl shadow-blue-600/20 hover:shadow-blue-600/40 hover:-translate-y-1 transition-all rounded-full w-full group border-0">
+                  <Button size="lg" className="h-14 px-8 text-lg bg-violet-600 hover:bg-violet-700 text-white shadow-xl shadow-violet-600/20 hover:shadow-violet-600/40 hover:-translate-y-1 transition-all rounded-full w-full group border-0">
                     {primaryLabel}
                     <ArrowRight className={`ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform ${isRtl ? 'mr-2 ml-0 rotate-180 group-hover:-translate-x-1' : ''}`} />
                   </Button>
@@ -650,12 +667,12 @@ export default function Landing() {
             </motion.div>
 
             <motion.div
-               initial={{ opacity: 0, scale: 0.95 }}
+               initial={{ opacity: 0, scale: 0.8 }}
                animate={{ opacity: 1, scale: 1 }}
                transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
                className="relative lg:h-[600px] flex items-center justify-center p-4 lg:p-0"
             >
-               <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 to-indigo-500/10 dark:from-blue-500/20 dark:to-indigo-500/20 rounded-[3rem] blur-3xl transform -rotate-6 scale-105 transition-colors duration-500 pointer-events-none" />
+               <div className="absolute inset-0 bg-gradient-to-tr from-violet-500/10 to-purple-500/10 dark:from-violet-500/20 dark:to-purple-500/20 rounded-[3rem] blur-3xl transform -rotate-6 scale-105 transition-colors duration-500 pointer-events-none" />
 
                <motion.img
                   animate={{ y: [-15, 15, -15] }}
@@ -671,7 +688,7 @@ export default function Landing() {
                  transition={{ repeat: Infinity, duration: 6, ease: "easeInOut", delay: 0.5 }}
                  className="absolute top-4 -left-2 lg:top-12 lg:-left-6 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 flex items-center gap-4 z-20 transition-colors duration-300"
                >
-                 <div className="bg-blue-100 dark:bg-blue-900/50 p-3 rounded-xl text-blue-600 dark:text-blue-400 transition-colors duration-300">
+                 <div className="bg-violet-100 dark:bg-violet-900/50 p-3 rounded-xl text-violet-600 dark:text-violet-400 transition-colors duration-300">
                    <Users className="w-6 h-6" />
                  </div>
                  <div className={isRtl ? 'text-right' : 'text-left'}>

@@ -96,7 +96,7 @@ function QuizBadge({
           e.stopPropagation();
           setOpen(true);
         }}
-        className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50 text-xs font-medium hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors flex-shrink-0"
+        className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-800/50 text-xs font-medium hover:bg-violet-100 dark:hover:bg-violet-900/30 transition-colors flex-shrink-0"
       >
         <ClipboardList className="w-3 h-3" />
         {t("submitQuiz")}
@@ -209,7 +209,7 @@ function UnitRow({
       >
         <div className="flex items-center gap-3 min-w-0">
           <span
-            className={`w-8 h-8 rounded-lg text-white text-sm font-bold flex items-center justify-center flex-shrink-0 ${isUnlocked ? "bg-blue-600" : "bg-slate-400 dark:bg-slate-600"}`}
+            className={`w-8 h-8 rounded-lg text-white text-sm font-bold flex items-center justify-center flex-shrink-0 ${isUnlocked ? "bg-violet-600" : "bg-slate-400 dark:bg-slate-600"}`}
           >
             {unit.order ?? 1}
           </span>
@@ -273,7 +273,7 @@ function UnitRow({
               </motion.span>
               <Button
                 size="sm"
-                className="h-7 px-3 text-xs bg-blue-600 hover:bg-blue-700 text-white ml-1 flex-shrink-0 gap-1"
+                className="h-7 px-3 text-xs bg-violet-600 hover:bg-violet-700 text-white ml-1 flex-shrink-0 gap-1"
                 onClick={() => onSubscribeUnit(unit)}
                 disabled={subscribing}
               >
@@ -288,7 +288,7 @@ function UnitRow({
               </span>
               <Button
                 size="sm"
-                className="h-7 px-3 text-xs bg-blue-600 hover:bg-blue-700 text-white ml-1 flex-shrink-0 gap-1"
+                className="h-7 px-3 text-xs bg-violet-600 hover:bg-violet-700 text-white ml-1 flex-shrink-0 gap-1"
                 onClick={() => onSubscribeUnit(unit)}
                 disabled={subscribing}
               >
@@ -319,7 +319,7 @@ function UnitRow({
                     return (
                       <div
                         key={lesson._id}
-                        className="flex items-center gap-4 px-6 py-3.5 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors"
+                        className="flex items-center gap-4 px-6 py-3.5 hover:bg-violet-50/50 dark:hover:bg-violet-900/10 transition-colors"
                       >
                         <span className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-medium text-slate-500 flex-shrink-0">
                           {idx + 1}
@@ -327,7 +327,7 @@ function UnitRow({
                         <div className="flex items-center gap-2 flex-1 min-w-0">
                           {lessonUnlocked ? (
                             lesson.videoUrl ? (
-                              <PlayCircle className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                              <PlayCircle className="w-4 h-4 text-violet-500 flex-shrink-0" />
                             ) : (
                               <FileText className="w-4 h-4 text-slate-400 flex-shrink-0" />
                             )
@@ -336,7 +336,7 @@ function UnitRow({
                           )}
                           <div className="min-w-0">
                             <span
-                              className={`text-sm font-medium truncate transition-colors block ${lessonUnlocked ? "text-slate-700 dark:text-slate-300 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400" : "text-slate-400 dark:text-slate-500 cursor-not-allowed"}`}
+                              className={`text-sm font-medium truncate transition-colors block ${lessonUnlocked ? "text-slate-700 dark:text-slate-300 cursor-pointer hover:text-violet-600 dark:hover:text-violet-400" : "text-slate-400 dark:text-slate-500 cursor-not-allowed"}`}
                               onClick={() => {
                                 if (lessonUnlocked) {
                                   const assignmentParam = assignmentId
@@ -385,7 +385,7 @@ function UnitRow({
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                className="h-7 px-2.5 text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                                className="h-7 px-2.5 text-xs text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20"
                                 onClick={() => {
                                   const assignmentParam = assignmentId
                                     ? `&assignmentId=${assignmentId}`
@@ -780,7 +780,7 @@ export default function StudentSubjectDetail() {
             </p>
             <Button
               onClick={() => navigate("/student")}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-violet-600 hover:bg-violet-700 text-white"
             >
               {t("goToProfile")}
             </Button>
@@ -879,7 +879,7 @@ export default function StudentSubjectDetail() {
         </div>
         {!hasSubjectAccess && assignmentTeacherId && assignmentGradeId && (
           <Button
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            className="bg-violet-600 hover:bg-violet-700 text-white"
             onClick={openSubjectDialog}
           >
             <CreditCard className="w-4 h-4 mr-2" /> {t("subscribeCta")}
@@ -1021,7 +1021,7 @@ export default function StudentSubjectDetail() {
                     onClick={() => setSelectedPlan(plan)}
                     className={`rounded-xl p-3 border text-sm text-center transition-all ${
                       selectedPlan === plan
-                        ? "border-blue-600 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 font-semibold"
+                        ? "border-violet-600 bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300 font-semibold"
                         : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700"
                     }`}
                   >
@@ -1041,7 +1041,7 @@ export default function StudentSubjectDetail() {
 
             <div className="flex flex-col gap-2">
               <Button
-                className="bg-blue-600 hover:bg-blue-700 text-white gap-2 w-full"
+                className="bg-violet-600 hover:bg-violet-700 text-white gap-2 w-full"
                 onClick={initiatePayment}
                 disabled={isInitiating}
               >
