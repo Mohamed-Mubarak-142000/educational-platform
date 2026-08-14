@@ -2,16 +2,17 @@ import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePlatformConfig } from '@/context/PlatformConfigContext';
-import type {
-  PlatformConfig,
-  LandingSection,
-  NavItem,
-  StatItem,
-  TestimonialItem,
-  FaqItem,
-  SectionBlock,
-  BlockType,
-  BlockStyle,
+import {
+  uploadPlatformLogo,
+  type PlatformConfig,
+  type LandingSection,
+  type NavItem,
+  type StatItem,
+  type TestimonialItem,
+  type FaqItem,
+  type SectionBlock,
+  type BlockType,
+  type BlockStyle,
 } from '@/api/platformConfigApi';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -121,6 +122,26 @@ function ToggleRow({ label, checked, onChange }: { label: string; checked: boole
 
 function PlatformTab({ draft, setDraft }: { draft: PlatformConfig; setDraft: React.Dispatch<React.SetStateAction<PlatformConfig>> }) {
   const { t } = useTranslation();
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleLogoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setUploading(true);
+    setUploadError(null);
+    try {
+      const url = await uploadPlatformLogo(file);
+      setDraft((d) => ({ ...d, logoUrl: url }));
+    } catch {
+      setUploadError(t('pcLogoUploadError', { defaultValue: 'Upload failed. Please try again.' }));
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <BilingualInput
@@ -132,14 +153,27 @@ function PlatformTab({ draft, setDraft }: { draft: PlatformConfig; setDraft: Rea
       />
       <div className="space-y-2">
         <Label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t('pcLogoUrl')}</Label>
-        <Input
-          value={draft.logoUrl}
-          onChange={(e) => setDraft((d) => ({ ...d, logoUrl: e.target.value }))}
-          placeholder={t('pcLogoUrlPlaceholder')}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleLogoFileChange}
         />
-        {draft.logoUrl && (
-          <img src={draft.logoUrl} alt="logo preview" className="h-12 mt-2 rounded border border-slate-200 dark:border-slate-700 p-1 bg-white" />
-        )}
+        <div className="flex items-center gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+          >
+            {uploading ? t('pcUploading', { defaultValue: 'Uploading...' }) : t('pcUploadLogo', { defaultValue: 'Upload logo image' })}
+          </Button>
+          {draft.logoUrl && (
+            <img src={draft.logoUrl} alt="logo preview" className="h-12 rounded border border-slate-200 dark:border-slate-700 p-1 bg-white" />
+          )}
+        </div>
+        {uploadError && <p className="text-xs text-red-500">{uploadError}</p>}
       </div>
       <div className="space-y-2">
         <Label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t('pcDefaultLanguage')}</Label>

@@ -153,6 +153,16 @@ export async function resetPlatformConfig(): Promise<PlatformConfig> {
   return data;
 }
 
+/** Upload a platform logo image and get back its (public) URL. Admin only. */
+export async function uploadPlatformLogo(file: File): Promise<string> {
+  const form = new FormData();
+  form.append('logo', file);
+  const { data } = await api.post<{ url: string }>('/upload', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return data.url;
+}
+
 // ─── Live platform stats ──────────────────────────────────────────────────────
 
 export interface PlatformStats {
