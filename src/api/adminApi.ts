@@ -50,6 +50,10 @@ export type Teacher = {
   totalStudentCount?: number;
   schedules?: TeacherSchedule[];
   application?: TeacherApplication | null;
+  /** Subjects this teacher is actually assigned to teach (from TeacherAssignment), returned by the teachers list endpoint */
+  assignmentSubjects?: Array<{ _id: string; name: string; nameAr?: string; icon?: string; color?: string }>;
+  /** Stages this teacher is actually assigned to teach in (from TeacherAssignment), returned by the teachers list endpoint */
+  assignmentStages?: Array<{ _id: string; name: string; nameAr?: string; icon?: string; color?: string }>;
 };
 
 export type TeacherApplication = {
@@ -161,8 +165,26 @@ export type TeacherApplicationInput = {
   availableHours?: Record<string, { start?: string; end?: string }>;
 };
 
-export const getTeachers = async (): Promise<Teacher[]> => {
-  const response = await api.get<Teacher[]>("/users/teachers");
+export type TeacherListParams = {
+  search?: string;
+  status?: string;
+  subjectIds?: string[];
+  stageIds?: string[];
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+};
+
+export const getTeachers = async (params?: TeacherListParams): Promise<Teacher[]> => {
+  const response = await api.get<Teacher[]>("/users/teachers", {
+    params: {
+      search: params?.search || undefined,
+      status: params?.status || undefined,
+      subjectIds: params?.subjectIds?.length ? params.subjectIds.join(",") : undefined,
+      stageIds: params?.stageIds?.length ? params.stageIds.join(",") : undefined,
+      sortBy: params?.sortBy,
+      sortOrder: params?.sortOrder,
+    },
+  });
   return response.data;
 };
 
@@ -193,8 +215,24 @@ export const deleteTeacher = async (
   return response.data;
 };
 
-export const getStudents = async (): Promise<Student[]> => {
-  const response = await api.get<Student[]>("/users/students");
+export type StudentListParams = {
+  search?: string;
+  status?: string;
+  stageIds?: string[];
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+};
+
+export const getStudents = async (params?: StudentListParams): Promise<Student[]> => {
+  const response = await api.get<Student[]>("/users/students", {
+    params: {
+      search: params?.search || undefined,
+      status: params?.status || undefined,
+      stageIds: params?.stageIds?.length ? params.stageIds.join(",") : undefined,
+      sortBy: params?.sortBy,
+      sortOrder: params?.sortOrder,
+    },
+  });
   return response.data;
 };
 
@@ -228,7 +266,7 @@ export const deleteStudent = async (
 export const getPayments = async (_status?: string): Promise<Payment[]> => {
   // Legacy endpoint — kept for backward compatibility but returns empty array
   console.warn(
-    "[adminApi] getPayments is deprecated. Use paymobApi.getAdminPaymentsAnalytics instead.",
+    "[adminApi] getPayments is deprecated. Use paymentApi.getAdminPaymentsAnalytics instead.",
   );
   return [];
 };
@@ -237,7 +275,7 @@ export const approvePayment = async (
   _id: string,
 ): Promise<{ message?: string }> => {
   console.warn(
-    "[adminApi] approvePayment is deprecated. Payments are now auto-processed via Paymob webhook.",
+    "[adminApi] approvePayment is deprecated. Use manualPaymentApi.approveManualPaymentRequest instead.",
   );
   return {};
 };
@@ -250,9 +288,9 @@ export const rejectPayment = async (
 };
 
 export const getMyPayments = async (): Promise<Payment[]> => {
-  // Legacy — use paymobApi.getMyPaymentHistory instead
+  // Legacy — use paymentApi.getMyPaymentHistory instead
   console.warn(
-    "[adminApi] getMyPayments is deprecated. Use paymobApi.getMyPaymentHistory instead.",
+    "[adminApi] getMyPayments is deprecated. Use paymentApi.getMyPaymentHistory instead.",
   );
   return [];
 };
@@ -261,7 +299,7 @@ export const submitPayment = async (
   _data: PaymentSubmission,
 ): Promise<Payment> => {
   throw new Error(
-    "submitPayment is deprecated. Use paymobApi.createCheckoutIntention instead.",
+    "submitPayment is deprecated. Use manualPaymentApi.createManualPaymentRequest instead.",
   );
 };
 

@@ -10,10 +10,9 @@ import { MANUAL_PAYMENT_METHODS, type ManualPaymentMethod } from "@/lib/paymentM
 import {
   uploadManualPaymentProof,
   createManualPaymentRequest,
-  getSubscriptionQuote,
   type ManualPaymentRequest,
 } from "@/api/manualPaymentApi";
-import type { SubscriptionPlan } from "@/api/paymobApi";
+import { getSubscriptionQuote } from "@/api/paymentApi";
 
 export type ManualPaymentTarget =
   | { kind: "liveLesson"; requestId: string; amountEGP: number }
@@ -23,7 +22,6 @@ export type ManualPaymentTarget =
       subjectId: string;
       gradeId: string;
       unitId?: string;
-      plan: SubscriptionPlan;
     };
 
 interface ManualPaymentModalProps {
@@ -64,7 +62,6 @@ export default function ManualPaymentModal({
       !isLiveLesson ? target.subjectId : null,
       !isLiveLesson ? target.gradeId : null,
       !isLiveLesson ? target.unitId : null,
-      !isLiveLesson ? target.plan : null,
     ],
     queryFn: () =>
       getSubscriptionQuote({
@@ -73,7 +70,6 @@ export default function ManualPaymentModal({
         gradeId: (target as Extract<ManualPaymentTarget, { kind: "subject" | "unit" }>).gradeId,
         unitId: (target as Extract<ManualPaymentTarget, { kind: "subject" | "unit" }>).unitId,
         subscriptionType: target.kind as "subject" | "unit",
-        plan: (target as Extract<ManualPaymentTarget, { kind: "subject" | "unit" }>).plan,
       }),
     enabled: open && !isLiveLesson,
   });
@@ -101,7 +97,6 @@ export default function ManualPaymentModal({
         gradeId: target.gradeId,
         unitId: target.unitId,
         subscriptionType: target.kind,
-        plan: target.plan,
       });
     },
     onSuccess: (request) => {

@@ -34,7 +34,7 @@ export default function StudentForm() {
   // CRUD operations
   const { createMutation, updateMutation } = useCRUDOperations({
     queryKey: ['students'],
-    queryFn: getStudents,
+    queryFn: () => getStudents(),
     createFn: createStudent,
     updateFn: updateStudent,
     createSuccessMessage: t('toastStudentCreated'),
@@ -64,7 +64,7 @@ export default function StudentForm() {
   // Fetch student data for edit mode
   const { data: students = [] } = useQuery({
     queryKey: ['students'],
-    queryFn: getStudents,
+    queryFn: () => getStudents(),
     enabled: isEditMode,
   });
 

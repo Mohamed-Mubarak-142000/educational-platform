@@ -38,6 +38,7 @@ const TeacherForm = lazy(() => import("./pages/TeacherForm"));
 const StudentForm = lazy(() => import("./pages/StudentForm"));
 const TeacherOverview = lazy(() => import("./pages/TeacherOverview"));
 const TeacherStudents = lazy(() => import("./pages/TeacherStudents"));
+const TeacherPayments = lazy(() => import("./pages/TeacherPayments"));
 const TeacherProfileEdit = lazy(() => import("./pages/TeacherProfileEdit"));
 const TeacherStages = lazy(() => import("./pages/TeacherStages"));
 const TeacherSubjects = lazy(() => import("./pages/TeacherSubjects"));
@@ -55,6 +56,14 @@ const SessionLobbyPage = lazy(() => import("./pages/SessionLobbyPage"));
 
 const AdminGrades = lazy(() => import("./pages/AdminGrades"));
 const AdminPlatformConfig = lazy(() => import("./pages/AdminPlatformConfig"));
+const AdminAuditLog = lazy(() => import("./pages/AdminAuditLog"));
+const AdminTeacherPayouts = lazy(() => import("./pages/AdminTeacherPayouts"));
+const TeacherEarnings = lazy(() => import("./pages/TeacherEarnings"));
+const TeacherExams = lazy(() => import("./pages/TeacherExams"));
+const TeacherExamForm = lazy(() => import("./pages/TeacherExamForm"));
+const TeacherExamSubmissions = lazy(() => import("./pages/TeacherExamSubmissions"));
+const StudentExams = lazy(() => import("./pages/StudentExams"));
+const ExamView = lazy(() => import("./pages/ExamView"));
 const AdminGradeSubjects = lazy(() => import("./pages/AdminGradeSubjects"));
 const StudentLearnBrowser = lazy(() => import("./pages/StudentLearnBrowser"));
 const StudentSubjectTeachers = lazy(
@@ -72,7 +81,6 @@ const PublicAllStages = lazy(() => import("./pages/PublicAllStages"));
 const PublicGradeSubjects = lazy(() => import("./pages/PublicGradeSubjects"));
 const Unauthorized = lazy(() => import("./pages/Unauthorized"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-const PaymentResult = lazy(() => import("./pages/PaymentResult"));
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -306,6 +314,66 @@ function App() {
                 }
               />
               <Route
+                path="/teacher/payments"
+                element={
+                  <RequireAuth allowedRoles={["Teacher"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <TeacherPayments />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/teacher/earnings"
+                element={
+                  <RequireAuth allowedRoles={["Teacher"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <TeacherEarnings />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/teacher/exams"
+                element={
+                  <RequireAuth allowedRoles={["Teacher"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <TeacherExams />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/teacher/exams/new"
+                element={
+                  <RequireAuth allowedRoles={["Teacher"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <TeacherExamForm />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/teacher/exams/:examId/submissions"
+                element={
+                  <RequireAuth allowedRoles={["Teacher"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <TeacherExamSubmissions />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
                 path="/teacher/profile/edit"
                 element={
                   <RequireAuth allowedRoles={["Teacher"]}>
@@ -402,18 +470,6 @@ function App() {
                 }
               />
               <Route
-                path="/payment/result"
-                element={
-                  <RequireAuth allowedRoles={["Student"]}>
-                    <Layout>
-                      <DashboardLayout>
-                        <PaymentResult />
-                      </DashboardLayout>
-                    </Layout>
-                  </RequireAuth>
-                }
-              />
-              <Route
                 path="/student/learn"
                 element={
                   <RequireAuth allowedRoles={["Student"]}>
@@ -470,6 +526,18 @@ function App() {
                     <Layout>
                       <DashboardLayout>
                         <StudentQuizHistory />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/student/exams"
+                element={
+                  <RequireAuth allowedRoles={["Student"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <StudentExams />
                       </DashboardLayout>
                     </Layout>
                   </RequireAuth>
@@ -547,6 +615,18 @@ function App() {
                   </RequireAuth>
                 }
               />
+              <Route
+                path="/exams/:examId"
+                element={
+                  <RequireAuth>
+                    <Layout>
+                      <DashboardLayout>
+                        <ExamView />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
 
               {/* ── New generic-platform routes ─────────────────────────── */}
 
@@ -586,6 +666,30 @@ function App() {
                     <Layout>
                       <DashboardLayout>
                         <AdminPlatformConfig />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/admin/audit-log"
+                element={
+                  <RequireAuth allowedRoles={["Admin"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <AdminAuditLog />
+                      </DashboardLayout>
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/admin/teacher-payouts"
+                element={
+                  <RequireAuth allowedRoles={["Admin"]}>
+                    <Layout>
+                      <DashboardLayout>
+                        <AdminTeacherPayouts />
                       </DashboardLayout>
                     </Layout>
                   </RequireAuth>

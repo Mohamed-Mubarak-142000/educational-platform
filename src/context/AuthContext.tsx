@@ -5,6 +5,7 @@ import {
   login,
   register,
   verifyOTP,
+  verifyLoginOtp,
   updateProfile,
   type AuthTokenResponse,
   type AuthUser,
@@ -12,6 +13,7 @@ import {
   type RegisterPayload,
   type UpdateProfilePayload,
   type VerifyOtpPayload,
+  type VerifyLoginOtpPayload,
 } from '../api/authApi';
 
 interface AuthContextType {
@@ -20,6 +22,7 @@ interface AuthContextType {
   loginMutation: UseMutationResult<AuthTokenResponse, Error, LoginPayload>;
   registerMutation: UseMutationResult<AuthTokenResponse, Error, RegisterPayload>;
   verifyMutation: UseMutationResult<AuthTokenResponse, Error, VerifyOtpPayload>;
+  verifyLoginOtpMutation: UseMutationResult<AuthTokenResponse, Error, VerifyLoginOtpPayload>;
   updateProfileMutation: UseMutationResult<AuthUser, Error, UpdateProfilePayload>;
   logout: () => void;
   refreshProfile: () => void;
@@ -48,6 +51,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const loginMutation = useMutation({
     mutationFn: login,
     onSuccess: (data) => {
+      // Admins get `requiresOtp: true` instead of a token — the OTP step
+      // below is what actually issues one.
+      if (!data.token) return;
+      localStorage.setItem('token', data.token);
+      setToken(data.token);
+      refetch();
+    },
+  });
+
+  const verifyLoginOtpMutation = useMutation({
+    mutationFn: verifyLoginOtp,
+    onSuccess: (data) => {
+      if (!data.token) return;
       localStorage.setItem('token', data.token);
       setToken(data.token);
       refetch();
@@ -61,6 +77,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const verifyMutation = useMutation({
     mutationFn: verifyOTP,
     onSuccess: (data) => {
+      if (!data.token) return;
       localStorage.setItem('token', data.token);
       setToken(data.token);
       refetch();
@@ -86,7 +103,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user: user ?? null, isLoading, loginMutation, registerMutation, verifyMutation, updateProfileMutation, logout, refreshProfile }}>
+    <AuthContext.Provider value={{ user: user ?? null, isLoading, loginMutation, registerMutation, verifyMutation, verifyLoginOtpMutation, updateProfileMutation, logout, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );

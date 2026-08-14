@@ -347,7 +347,6 @@ export const deleteQuestion = async (id: string): Promise<{ message?: string }> 
 
 // ── Unit Enrollment ───────────────────────────────────────────────
 export const getEnrolledUnitIds = async (studentId: string): Promise<string[]> => (await api.get<string[]>(`/units/enrolled/${studentId}`)).data;
-export const enrollInUnit = async (_studentId: string, unitId: string): Promise<{ message?: string }> => (await api.post<{ message?: string }>('/units/enroll', { unitId })).data;
 
 // ── Unit Availability ─────────────────────────────────────────────
 export const getUnitAvailability = async (): Promise<UnitAvailability[]> => (await api.get<UnitAvailability[]>('/units/availability')).data;

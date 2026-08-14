@@ -18,7 +18,10 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { getGrades, getSubjectsByGrade, type Grade, type GradeSubjectSummary } from '@/api/gradeApi';
-import { getPublicAssignmentContent, type PublicAssignmentContent } from '@/api/teacherAssignmentApi';
+import {
+  getPublicAssignmentContent, getPublicTeacherProfile,
+  type PublicAssignmentContent, type PublicTeacherProfile,
+} from '@/api/teacherAssignmentApi';
 import type { AssignmentContentLesson } from '@/api/teacherAssignmentApi';
 import { getLocalizedName } from '@/lib/localeUtils';
 import { useAuth } from '@/context/AuthContext';
@@ -28,7 +31,7 @@ import { SiteNavbar } from '@/components/ui/SiteNavbar';
 import { SiteFooter } from '@/components/ui/SiteFooter';
 import RequestLiveLessonModal from '@/components/RequestLiveLessonModal';
 import {
-  BookOpen, ChevronRight, Home, Lock, PlayCircle, Video, Users, Layers, FileText,
+  BookOpen, ChevronRight, Home, Lock, PlayCircle, Video, Users, Layers, FileText, CalendarClock, Clock,
 } from 'lucide-react';
 
 function LessonPreview({ lesson }: { lesson: AssignmentContentLesson }) {
@@ -88,6 +91,12 @@ export default function PublicTeacherProfile() {
     enabled: !!subjectId && !!gradeId && !!teacherId,
   });
 
+  const { data: profile } = useQuery<PublicTeacherProfile>({
+    queryKey: ['public-teacher-profile', teacherId],
+    queryFn: () => getPublicTeacherProfile(teacherId!),
+    enabled: !!teacherId,
+  });
+
   const grade = grades.find((g) => g._id === gradeId);
   const subject = subjects.find((s) => s._id === subjectId);
   const gradeName = grade ? getLocalizedName(grade, i18n.language) : '';
@@ -115,7 +124,7 @@ export default function PublicTeacherProfile() {
 
       <main className="flex-1 max-w-5xl mx-auto w-full px-6 pt-28 pb-16">
         {/* Breadcrumb */}
-        <nav className={`flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 mb-6 flex-wrap ${isRtl ? 'flex-row-reverse justify-end' : ''}`}>
+        <nav className="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 mb-6 flex-wrap">
           <button onClick={() => navigate('/')} className="flex items-center gap-1 hover:text-violet-600 dark:hover:text-violet-400 transition-colors">
             <Home className="w-3.5 h-3.5" />
             {t('homeLabel')}
@@ -165,9 +174,16 @@ export default function PublicTeacherProfile() {
                   <p className="text-sm text-slate-600 dark:text-slate-400 mt-3 leading-relaxed">
                     {teacher.bio || t('noBio')}
                   </p>
-                  <div className="flex items-center justify-center sm:justify-start gap-2 mt-3 text-xs text-slate-500 dark:text-slate-400">
+                  <div className="flex items-center justify-center sm:justify-start gap-2 mt-3 text-xs text-slate-500 dark:text-slate-400 flex-wrap">
                     <Layers className="w-3.5 h-3.5" />
                     <span>{units.length} {t(units.length === 1 ? 'unitSingular' : 'unitPlural')} • {totalLessons} {t('lessonsWord')}</span>
+                    {typeof profile?.totalStudentCount === 'number' && (
+                      <>
+                        <span>•</span>
+                        <Users className="w-3.5 h-3.5" />
+                        <span>{profile.totalStudentCount} {t('students')}</span>
+                      </>
+                    )}
                   </div>
 
                   <div className="flex flex-col sm:flex-row gap-3 mt-5">
@@ -190,6 +206,96 @@ export default function PublicTeacherProfile() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Subjects taught */}
+            {profile?.subjects && profile.subjects.length > 0 && (
+              <Card className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden mb-8">
+                <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-violet-600" />
+                  <h2 className="font-semibold text-slate-900 dark:text-slate-100">{t('subjectsTaught')}</h2>
+                </div>
+                <CardContent className="p-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {profile.subjects.map((subject) => (
+                      <div
+                        key={subject._id}
+                        className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40"
+                      >
+                        <span className="text-xl">{subject.icon || '📘'}</span>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
+                            {getLocalizedName(subject, i18n.language)}
+                          </p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">{subject.studentCount ?? 0} {t('students')}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Availability schedule */}
+            {profile?.availableDays && profile.availableDays.length > 0 && (
+              <Card className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden mb-8">
+                <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center gap-2">
+                  <CalendarClock className="w-4 h-4 text-violet-600" />
+                  <h2 className="font-semibold text-slate-900 dark:text-slate-100">{t('availabilitySchedule')}</h2>
+                </div>
+                <CardContent className="p-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+                    {profile.availableDays.map((day) => {
+                      const hours = profile.availableHours?.[day];
+                      return (
+                        <div
+                          key={day}
+                          className="rounded-xl border border-violet-200 dark:border-violet-800/50 bg-violet-50 dark:bg-violet-900/10 p-4 space-y-2"
+                        >
+                          <p className="text-sm font-semibold text-violet-700 dark:text-violet-300">{t(`dayName_${day}`)}</p>
+                          <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+                            <Clock className="w-3 h-3 text-violet-500" />
+                            <span>{hours?.start || '--:--'}</span>
+                            <span>–</span>
+                            <span>{hours?.end || '--:--'}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Scheduled live lessons */}
+            {profile?.schedules && profile.schedules.length > 0 && (
+              <Card className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden mb-8">
+                <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center gap-2">
+                  <CalendarClock className="w-4 h-4 text-violet-600" />
+                  <h2 className="font-semibold text-slate-900 dark:text-slate-100">{t('scheduledLiveLessons')}</h2>
+                </div>
+                <CardContent className="p-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {profile.schedules.map((schedule) => (
+                      <div
+                        key={schedule._id}
+                        className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40 p-4 space-y-1"
+                      >
+                        <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{t(`dayName_${schedule.day}`)}</p>
+                        {typeof schedule.subjectId === 'object' && schedule.subjectId && (
+                          <p className="text-xs text-slate-500 dark:text-slate-400">
+                            {getLocalizedName(schedule.subjectId, i18n.language)}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-1.5 text-xs text-violet-600 dark:text-violet-400">
+                          <Clock className="w-3 h-3" />
+                          <span>{schedule.startTime} – {schedule.endTime}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Units + lessons preview */}
             {units.length === 0 ? (

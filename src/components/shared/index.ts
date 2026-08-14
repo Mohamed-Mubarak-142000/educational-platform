@@ -54,5 +54,14 @@ export type { AccessRestrictedProps } from './AccessRestricted';
 export { EntityCard } from './EntityCard';
 export type { EntityCardProps } from './EntityCard';
 
+export { FilterDialog } from './FilterDialog';
+export type { FilterDialogProps } from './FilterDialog';
+
+export { MultiSelectDropdown } from './MultiSelectDropdown';
+export type { MultiSelectDropdownProps, MultiSelectOption } from './MultiSelectDropdown';
+
+export { SearchInput } from './SearchInput';
+export type { SearchInputProps } from './SearchInput';
+
 export { ENTITY_COLORS, getEntityColor } from './entityCardColors';
 export type { ColorConfig } from './entityCardColors';

@@ -153,6 +153,43 @@ export const getPublicAssignmentContent = async (filters: {
 }): Promise<PublicAssignmentContent> =>
   (await api.get<PublicAssignmentContent>('/teacher-assignments/public-content', { params: filters })).data;
 
+// Public-facing: full teacher profile — bio, subjects taught, availability,
+// scheduled live lessons. No contact/account info, no auth required.
+export type PublicTeacherProfile = {
+  _id: string;
+  name?: string;
+  bio?: string;
+  profileImage?: string;
+  isAvailableForInstantLessons?: boolean;
+  instantLessonPricePerHour?: number;
+  createdAt?: string;
+  availableDays?: string[];
+  availableHours?: Record<string, { start?: string; end?: string }>;
+  totalStudentCount?: number;
+  subjects?: Array<{
+    _id: string;
+    name: string;
+    nameAr?: string;
+    icon?: string;
+    color?: string;
+    description?: string;
+    studentCount?: number;
+  }>;
+  schedules?: Array<{
+    _id: string;
+    day: string;
+    startTime: string;
+    endTime: string;
+    subjectId?: string | { _id: string; name: string; nameAr?: string };
+  }>;
+  assignmentStages?: Array<{ _id: string; name: string; nameAr?: string; icon?: string; color?: string }>;
+  assignmentGrades?: Array<{ _id: string; name: string; nameAr?: string; stageId?: { _id: string; name: string; nameAr?: string } }>;
+  assignmentSubjects?: Array<{ _id: string; name: string; nameAr?: string; icon?: string; color?: string; description?: string }>;
+};
+
+export const getPublicTeacherProfile = async (teacherId: string): Promise<PublicTeacherProfile> =>
+  (await api.get<PublicTeacherProfile>(`/users/teachers/${teacherId}/public-profile`)).data;
+
 // ─────────────────────────────────────────────────────────────────
 // Teacher dashboard stats
 // ─────────────────────────────────────────────────────────────────

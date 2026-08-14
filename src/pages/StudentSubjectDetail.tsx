@@ -20,11 +20,6 @@ import {
   type AssignmentContentUnit,
   type AssignmentContentLesson,
 } from "@/api/teacherAssignmentApi";
-import {
-  createCheckoutIntention,
-  type SubscriptionPlan,
-} from "@/api/paymobApi";
-import PaymobCheckoutModal from "@/components/PaymobCheckoutModal";
 import ManualPaymentModal from "@/components/ManualPaymentModal";
 import { useAuth } from "@/context/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
@@ -611,21 +606,15 @@ export default function StudentSubjectDetail() {
     user?.stageId ??
     "";
 
-  // ── Paymob checkout state ──
+  // ── Purchase dialog state (one-time purchase, manual payment only) ──
   const [planSelectOpen, setPlanSelectOpen] = useState(false);
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [selectedUnit, setSelectedUnit] =
     useState<AssignmentContentUnit | null>(null);
   const [requestType, setRequestType] = useState<"subject" | "unit">("subject");
-  const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan>("Monthly");
-  const [checkoutData, setCheckoutData] = useState<{
-    iframeUrl: string;
-    paymentId: string;
-    amountEGP: number;
-    planDays: number;
-  } | null>(null);
-  const [isInitiating, setIsInitiating] = useState(false);
   const [manualPaymentOpen, setManualPaymentOpen] = useState(false);
+  // Kept for the UnitRow `subscribing` prop — no async purchase call happens
+  // on this page anymore (that's all inside ManualPaymentModal).
+  const isInitiating = false;
 
   const { data: content, isLoading: contentLoading } =
     useQuery<SubjectTeacherContent>({
@@ -676,73 +665,25 @@ export default function StudentSubjectDetail() {
   const openSubjectDialog = () => {
     setSelectedUnit(null);
     setRequestType("subject");
-    setSelectedPlan("Monthly");
     setPlanSelectOpen(true);
   };
 
   const openUnitDialog = (unit: AssignmentContentUnit) => {
     setSelectedUnit(unit);
     setRequestType("unit");
-    setSelectedPlan("Monthly");
     setPlanSelectOpen(true);
   };
 
-  const initiatePayment = async () => {
-    const teacherIdVal = assignmentTeacherId;
-    const gradeIdVal = assignmentGradeId;
-    const subjectIdValue = resolvedSubjectId;
-
-    if (!teacherIdVal || !gradeIdVal || !subjectIdValue) {
-      pushToast({ type: "error", title: t("toastActionFailed") });
-      return;
-    }
-
-    if (requestType === "unit" && !selectedUnit) {
-      pushToast({ type: "error", title: t("toastActionFailed") });
-      return;
-    }
-
-    setIsInitiating(true);
-    try {
-      const result = await createCheckoutIntention({
-        teacherId: teacherIdVal,
-        subjectId: subjectIdValue,
-        gradeId: gradeIdVal,
-        unitId: requestType === "unit" ? selectedUnit?._id : undefined,
-        subscriptionType: requestType,
-        plan: selectedPlan,
-      });
-
-      if (result.retryRequired) {
-        pushToast({
-          type: "error",
-          title: result.message ?? t("paymentPending"),
-        });
-        return;
-      }
-
-      setCheckoutData({
-        iframeUrl: result.iframeUrl,
-        paymentId: result.paymentId,
-        amountEGP: result.amountEGP,
-        planDays: result.planDays,
-      });
-      setPlanSelectOpen(false);
-      setCheckoutOpen(true);
-    } catch (err: any) {
-      const message = err?.response?.data?.message ?? t("toastActionFailed");
-      pushToast({ type: "error", title: message });
-    } finally {
-      setIsInitiating(false);
-    }
-  };
-
-  const handleCheckoutComplete = () => {
-    setCheckoutOpen(false);
+  const handleManualPaymentSubmitted = () => {
+    setManualPaymentOpen(false);
+    setPlanSelectOpen(false);
     queryClient.invalidateQueries({
       queryKey: ["subject-teacher-content", subjectId, teacherId],
     });
-    pushToast({ type: "success", title: t("paymentProcessing") });
+    pushToast({
+      type: "success",
+      title: t("manualPaymentSubmittedTitle", { defaultValue: "Submitted for review" }),
+    });
   };
 
   useEffect(() => {
@@ -994,7 +935,7 @@ export default function StudentSubjectDetail() {
       >
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>{t("chooseYourPlan")}</DialogTitle>
+            <DialogTitle>{t("purchaseAccess", { defaultValue: "Get access" })}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             {/* Content summary */}
@@ -1009,48 +950,16 @@ export default function StudentSubjectDetail() {
                     : t("subject")
                   : (selectedUnit?.title ?? t("unitSingular"))}
               </p>
-            </div>
-
-            {/* Plan selector */}
-            <div className="grid grid-cols-3 gap-2">
-              {(["Monthly", "Quarterly", "Yearly"] as SubscriptionPlan[]).map(
-                (plan) => (
-                  <button
-                    key={plan}
-                    type="button"
-                    onClick={() => setSelectedPlan(plan)}
-                    className={`rounded-xl p-3 border text-sm text-center transition-all ${
-                      selectedPlan === plan
-                        ? "border-violet-600 bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300 font-semibold"
-                        : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700"
-                    }`}
-                  >
-                    <span className="block">{t(`plan${plan}`)}</span>
-                    <span className="block text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-                      {plan === "Monthly"
-                        ? "30"
-                        : plan === "Quarterly"
-                          ? "90"
-                          : "365"}{" "}
-                      {t("days")}
-                    </span>
-                  </button>
-                ),
-              )}
+              <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">
+                {t("lifetimeAccessNotice", {
+                  defaultValue: "One-time payment — access never expires.",
+                })}
+              </p>
             </div>
 
             <div className="flex flex-col gap-2">
               <Button
                 className="bg-violet-600 hover:bg-violet-700 text-white gap-2 w-full"
-                onClick={initiatePayment}
-                disabled={isInitiating}
-              >
-                <CreditCard className="w-4 h-4" />
-                {isInitiating ? t("loadingEllipsis") : t("payWithCard", { defaultValue: "Pay by card (Paymob)" })}
-              </Button>
-              <Button
-                variant="outline"
-                className="gap-2 w-full"
                 onClick={() => setManualPaymentOpen(true)}
               >
                 <Landmark className="w-4 h-4" />
@@ -1067,20 +976,6 @@ export default function StudentSubjectDetail() {
         </DialogContent>
       </Dialog>
 
-      {/* Paymob checkout iframe modal */}
-      {checkoutData && (
-        <PaymobCheckoutModal
-          open={checkoutOpen}
-          onClose={() => setCheckoutOpen(false)}
-          iframeUrl={checkoutData.iframeUrl}
-          paymentId={checkoutData.paymentId}
-          amountEGP={checkoutData.amountEGP}
-          plan={selectedPlan}
-          planDays={checkoutData.planDays}
-          onPaymentComplete={handleCheckoutComplete}
-        />
-      )}
-
       {/* Manual transfer payment modal (InstaPay / Vodafone Cash / Fawry) */}
       {assignmentTeacherId && assignmentGradeId && resolvedSubjectId && (
         <ManualPaymentModal
@@ -1092,16 +987,8 @@ export default function StudentSubjectDetail() {
             subjectId: resolvedSubjectId,
             gradeId: assignmentGradeId,
             unitId: requestType === "unit" ? selectedUnit?._id : undefined,
-            plan: selectedPlan,
           }}
-          onSubmitted={() => {
-            setManualPaymentOpen(false);
-            setPlanSelectOpen(false);
-            pushToast({
-              type: "success",
-              title: t("manualPaymentSubmittedTitle", { defaultValue: "Submitted for review" }),
-            });
-          }}
+          onSubmitted={handleManualPaymentSubmitted}
         />
       )}
 

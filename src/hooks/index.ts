@@ -12,3 +12,4 @@ export { useFormDialog } from './useFormDialog';
 export type { FormDialogConfig, FormDialogState, ConfirmAction } from './useFormDialog';
 export { useAuthForm } from './useAuthForm';
 export type { AuthFormConfig, AuthFormState } from './useAuthForm';
+export { useDebouncedValue } from './useDebouncedValue';

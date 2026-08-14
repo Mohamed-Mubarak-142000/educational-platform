@@ -19,6 +19,8 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader, LoadingState } from '@/components/shared';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import { spacing } from '@/lib/constants';
 import {
   Settings,
   Navigation,
@@ -84,7 +86,7 @@ function BilingualInput({
               className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 resize-none focus:outline-none focus:ring-2 focus:ring-violet-500"
             />
           ) : (
-            <Input value={valueAr} onChange={(e) => onChangeAr(e.target.value)} dir="rtl" />
+            <Input value={valueAr} onChange={(e) => onChangeAr(e.target.value)} dir="rtl" className="shadow-none" />
           )}
         </div>
         <div className="space-y-1">
@@ -98,7 +100,7 @@ function BilingualInput({
               className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 resize-none focus:outline-none focus:ring-2 focus:ring-violet-500"
             />
           ) : (
-            <Input value={valueEn} onChange={(e) => onChangeEn(e.target.value)} dir="ltr" />
+            <Input value={valueEn} onChange={(e) => onChangeEn(e.target.value)} dir="ltr" className="shadow-none" />
           )}
         </div>
       </div>
@@ -203,7 +205,7 @@ function NavbarTab({ draft, setDraft }: { draft: PlatformConfig; setDraft: React
   return (
     <div className="space-y-4">
       {items.map((item, idx) => (
-        <Card key={item.key} className="border border-slate-200 dark:border-slate-700 shadow-sm">
+        <Card key={item.key} className="border border-slate-200 dark:border-slate-700 shadow-none">
           <CardContent className="p-4 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -247,6 +249,7 @@ function NavbarTab({ draft, setDraft }: { draft: PlatformConfig; setDraft: React
                   value={item.href}
                   onChange={(e) => patchItem(item.key, { href: e.target.value })}
                   placeholder={item.isAnchor ? t('pcNavAnchorHint') : t('pcNavRouteHint')}
+                  className="shadow-none"
                 />
               </div>
               <div className="flex items-center gap-3 pt-5">
@@ -914,6 +917,35 @@ function SettingsTab({ draft, setDraft }: { draft: PlatformConfig; setDraft: Rea
       </Card>
 
       <div className="space-y-2">
+        <Label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t('commissionRate')}</Label>
+        <div className="flex items-center gap-2 max-w-[160px]">
+          <Input
+            type="number"
+            min={0}
+            max={100}
+            step={0.5}
+            value={(s.commissionRateBps ?? 3000) / 100}
+            onChange={(e) => patch({ commissionRateBps: Math.round(Number(e.target.value) * 100) })}
+          />
+          <span className="text-sm text-slate-500 dark:text-slate-400">%</span>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t('subscriptionFlatFee')}</Label>
+        <div className="flex items-center gap-2 max-w-[160px]">
+          <Input
+            type="number"
+            min={0}
+            step={1}
+            value={(s.subscriptionFlatFeeCents ?? 5000) / 100}
+            onChange={(e) => patch({ subscriptionFlatFeeCents: Math.round(Number(e.target.value) * 100) })}
+          />
+          <span className="text-sm text-slate-500 dark:text-slate-400">{t('currencyEgp')}</span>
+        </div>
+      </div>
+
+      <div className="space-y-2">
         <Label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t('pcContactEmail')}</Label>
         <Input
           type="email"
@@ -960,6 +992,7 @@ export default function AdminPlatformConfig() {
   const [isSaving, setIsSaving] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saved' | 'error'>('idle');
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
 
   // Sync draft when config loads for the first time
   useEffect(() => {
@@ -985,13 +1018,13 @@ export default function AdminPlatformConfig() {
   };
 
   const handleReset = async () => {
-    if (!confirm(t('pcResetConfirm'))) return;
     setIsResetting(true);
     try {
       await resetToDefaults();
       setDraft(null); // will re-sync from context
     } finally {
       setIsResetting(false);
+      setResetConfirmOpen(false);
     }
   };
 
@@ -1000,76 +1033,89 @@ export default function AdminPlatformConfig() {
   const setDraftNN = setDraft as React.Dispatch<React.SetStateAction<PlatformConfig>>;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-      {/* Header */}
-      <PageHeader
-        title={t('pcPageTitle')}
-        subtitle={t('pcPageSubtitle')}
-        action={
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleReset}
-              disabled={isResetting || isSaving}
-              className="gap-2 text-slate-600 dark:text-slate-300"
-            >
-              <RotateCcw className={`w-4 h-4 ${isResetting ? 'animate-spin' : ''}`} />
-              {t('pcReset')}
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              onClick={handleSave}
-              disabled={isSaving || !isDirty}
-              className={`gap-2 ${saveStatus === 'saved' ? 'bg-green-600 hover:bg-green-700' : saveStatus === 'error' ? 'bg-red-600 hover:bg-red-700' : 'bg-violet-600 hover:bg-violet-700'} text-white`}
-            >
-              <Save className={`w-4 h-4 ${isSaving ? 'animate-pulse' : ''}`} />
-              {isSaving ? t('pcSaving') : saveStatus === 'saved' ? t('pcSaved') : saveStatus === 'error' ? t('pcSaveError') : t('pcSaveChanges')}
-            </Button>
+    <div className={`${spacing.pageContainer} space-y-6`}>
+      <div className="rounded-[2rem] bg-white dark:bg-slate-900 p-6 space-y-6">
+        {/* Header */}
+        <PageHeader
+          title={t('pcPageTitle')}
+          subtitle={t('pcPageSubtitle')}
+          action={
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setResetConfirmOpen(true)}
+                disabled={isResetting || isSaving}
+                className="gap-2 text-slate-600 dark:text-slate-300"
+              >
+                <RotateCcw className={`w-4 h-4 ${isResetting ? 'animate-spin' : ''}`} />
+                {t('pcReset')}
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                onClick={handleSave}
+                disabled={isSaving || !isDirty}
+                className={`gap-2 ${saveStatus === 'saved' ? 'bg-green-600 hover:bg-green-700' : saveStatus === 'error' ? 'bg-red-600 hover:bg-red-700' : 'bg-violet-600 hover:bg-violet-700'} text-white`}
+              >
+                <Save className={`w-4 h-4 ${isSaving ? 'animate-pulse' : ''}`} />
+                {isSaving ? t('pcSaving') : saveStatus === 'saved' ? t('pcSaved') : saveStatus === 'error' ? t('pcSaveError') : t('pcSaveChanges')}
+              </Button>
+            </div>
+          }
+        />
+
+        {isDirty && (
+          <div className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg px-3 py-2">
+            {t('pcUnsavedChanges')}
           </div>
-        }
-      />
+        )}
 
-      {isDirty && (
-        <div className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg px-3 py-2">
-          {t('pcUnsavedChanges')}
+        {/* Tabs */}
+        <div className="flex gap-1 flex-wrap border-b border-slate-200 dark:border-slate-800">
+          {TABS.map(({ id, labelKey, icon: Icon }) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setActiveTab(id)}
+              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-t-lg transition-colors border-b-2 -mb-px ${
+                activeTab === id
+                  ? 'border-violet-600 text-violet-600 dark:text-violet-400 bg-violet-50/50 dark:bg-violet-900/10'
+                  : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/50'
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              {t(labelKey)}
+            </button>
+          ))}
         </div>
-      )}
 
-      {/* Tabs */}
-      <div className="flex gap-1 flex-wrap border-b border-slate-200 dark:border-slate-800">
-        {TABS.map(({ id, labelKey, icon: Icon }) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => setActiveTab(id)}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-t-lg transition-colors border-b-2 -mb-px ${
-              activeTab === id
-                ? 'border-violet-600 text-violet-600 dark:text-violet-400 bg-violet-50/50 dark:bg-violet-900/10'
-                : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/50'
-            }`}
-          >
-            <Icon className="w-4 h-4" />
-            {t(labelKey)}
-          </button>
-        ))}
+        {/* Tab content */}
+        <div className="min-h-[400px]">
+          {activeTab === 'platform' && <PlatformTab draft={draft} setDraft={setDraftNN} />}
+          {activeTab === 'navbar' && <NavbarTab draft={draft} setDraft={setDraftNN} />}
+          {activeTab === 'hero' && <HeroTab draft={draft} setDraft={setDraftNN} />}
+          {activeTab === 'sections' && <SectionsTab draft={draft} setDraft={setDraftNN} />}
+          {activeTab === 'settings' && <SettingsTab draft={draft} setDraft={setDraftNN} />}
+        </div>
+
+        {/* Version info */}
+        <div className="text-xs text-slate-400 dark:text-slate-600 text-right">
+          {t('pcConfigVersion')} {draft.version}
+        </div>
       </div>
 
-      {/* Tab content */}
-      <div className="min-h-[400px]">
-        {activeTab === 'platform' && <PlatformTab draft={draft} setDraft={setDraftNN} />}
-        {activeTab === 'navbar' && <NavbarTab draft={draft} setDraft={setDraftNN} />}
-        {activeTab === 'hero' && <HeroTab draft={draft} setDraft={setDraftNN} />}
-        {activeTab === 'sections' && <SectionsTab draft={draft} setDraft={setDraftNN} />}
-        {activeTab === 'settings' && <SettingsTab draft={draft} setDraft={setDraftNN} />}
-      </div>
-
-      {/* Version info */}
-      <div className="text-xs text-slate-400 dark:text-slate-600 text-right">
-        {t('pcConfigVersion')} {draft.version}
-      </div>
+      <ConfirmDialog
+        open={resetConfirmOpen}
+        title={t('pcReset')}
+        description={t('pcResetConfirm')}
+        confirmLabel={t('pcReset')}
+        cancelLabel={t('cancel')}
+        tone="danger"
+        onCancel={() => setResetConfirmOpen(false)}
+        onConfirm={handleReset}
+      />
     </div>
   );
 }

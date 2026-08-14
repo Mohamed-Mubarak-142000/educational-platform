@@ -1,12 +1,11 @@
 import api from "./axiosConfig";
 
 export type SubscriptionType = "subject" | "unit";
-export type SubscriptionStatus =
-  | "active"
-  | "expiring_soon"
-  | "expired"
-  | "revoked";
+export type SubscriptionStatus = "active" | "revoked";
 
+// A subscription is a one-time purchase that grants lifetime access — there
+// is no plan/renewal concept. `expiresAt` is kept only because the backend
+// still sets it to a sentinel far-future date for internal query reasons.
 export type Subscription = {
   _id: string;
   studentId: string | { _id: string; name: string };
@@ -24,8 +23,6 @@ export type Subscription = {
   unitId?: string | { _id: string; title: string };
   type: SubscriptionType;
   status: SubscriptionStatus;
-  plan?: string;
-  planDays?: number;
   expiresAt?: string;
   startsAt?: string;
   createdAt?: string;

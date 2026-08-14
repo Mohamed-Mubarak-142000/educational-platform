@@ -182,12 +182,12 @@ export default function AdminGrades() {
                     <div className={`h-3 w-full bg-gradient-to-r ${colors.bg}`} />
                     <CardContent className="p-5">
                       <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-12 h-12 rounded-xl ${colors.light} flex items-center justify-center text-2xl shadow-sm border ${colors.border}`}>
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <div className={`w-12 h-12 rounded-xl ${colors.light} flex items-center justify-center text-2xl shadow-sm border ${colors.border} flex-shrink-0`}>
                             <GraduationCap className={`w-6 h-6 ${colors.text}`} />
                           </div>
-                          <div>
-                            <h3 className={`font-bold text-lg ${colors.text}`}>
+                          <div className="min-w-0">
+                            <h3 className={`font-bold text-lg truncate ${colors.text}`} title={getLocalizedName(grade, i18n.language)}>
                               {getLocalizedName(grade, i18n.language)}
                             </h3>
                             <span className="text-xs text-slate-400 dark:text-slate-500">

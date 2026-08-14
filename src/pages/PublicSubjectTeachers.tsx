@@ -18,6 +18,7 @@ import { getLocalizedName } from '@/lib/localeUtils';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { SearchInput } from '@/components/shared';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, ChevronLeft, ChevronRight, Home, Star, User, Users, Video } from 'lucide-react';
 import { SiteNavbar } from '@/components/ui/SiteNavbar';
@@ -89,6 +90,14 @@ export default function PublicSubjectTeachers() {
     return acc;
   }, []);
 
+  const [teacherSearch, setTeacherSearch] = useState('');
+  const filteredAssignments = teacherSearch.trim()
+    ? uniqueAssignments.filter((a) => {
+        const teacher = getPopulatedTeacher(a);
+        return (teacher?.name ?? '').toLowerCase().includes(teacherSearch.trim().toLowerCase());
+      })
+    : uniqueAssignments;
+
   // Teacher profiles are public — no login required to browse them.
   const handleViewProfile = (assignment: TeacherAssignment) => {
     const teacherId = typeof assignment.teacherId === 'object' ? assignment.teacherId._id : assignment.teacherId;
@@ -103,7 +112,7 @@ export default function PublicSubjectTeachers() {
 
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 pt-28 pb-16">
         {/* Breadcrumb */}
-        <nav className={`flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 mb-6 flex-wrap ${isRtl ? 'flex-row-reverse justify-end' : ''}`}>
+        <nav className="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 mb-6 flex-wrap">
           <button
             onClick={() => navigate('/')}
             className="flex items-center gap-1 hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
@@ -189,6 +198,16 @@ export default function PublicSubjectTeachers() {
           </div>
         )}
 
+        {/* Search */}
+        {!isLoading && uniqueAssignments.length > 0 && (
+          <SearchInput
+            value={teacherSearch}
+            onChange={setTeacherSearch}
+            placeholder={t('searchTeacherPlaceholder')}
+            className="w-full sm:w-72 mb-6"
+          />
+        )}
+
         {/* Teachers grid */}
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -204,6 +223,15 @@ export default function PublicSubjectTeachers() {
             <p className="text-slate-500 dark:text-slate-400 text-lg mb-2">{t('noTeachersForSubject')}</p>
             <p className="text-sm text-slate-400 dark:text-slate-500">{t('checkBackSoon')}</p>
           </div>
+        ) : filteredAssignments.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
+              <Users className="w-8 h-8 text-slate-400" />
+            </div>
+            <p className="text-slate-500 dark:text-slate-400 text-lg">
+              {t('noTeachersMatchSearch', { defaultValue: 'No teachers match your search.' })}
+            </p>
+          </div>
         ) : (
           <motion.div
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
@@ -212,7 +240,7 @@ export default function PublicSubjectTeachers() {
             variants={{ visible: { transition: { staggerChildren: 0.09 } } }}
           >
             <AnimatePresence>
-              {uniqueAssignments.map((assignment) => {
+              {filteredAssignments.map((assignment) => {
                 const teacher = getPopulatedTeacher(assignment);
                 const subjectPopulated = getPopulatedSubject(assignment);
                 if (!teacher) return null;

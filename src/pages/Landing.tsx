@@ -629,8 +629,8 @@ export default function Landing() {
         
         <div className="max-w-7xl mx-auto px-6 relative z-10 w-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <motion.div 
-              className="text-center lg:text-start"
+            <motion.div
+              className="text-center lg:text-start order-2 lg:order-1"
               initial="hidden"
               animate="visible"
               variants={containerVariants}
@@ -670,7 +670,7 @@ export default function Landing() {
                initial={{ opacity: 0, scale: 0.8 }}
                animate={{ opacity: 1, scale: 1 }}
                transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
-               className="relative lg:h-[600px] flex items-center justify-center p-4 lg:p-0"
+               className="relative lg:h-[600px] flex items-center justify-center p-4 lg:p-0 order-1 lg:order-2"
             >
                <div className="absolute inset-0 bg-gradient-to-tr from-violet-500/10 to-purple-500/10 dark:from-violet-500/20 dark:to-purple-500/20 rounded-[3rem] blur-3xl transform -rotate-6 scale-105 transition-colors duration-500 pointer-events-none" />
 

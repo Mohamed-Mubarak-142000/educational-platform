@@ -25,8 +25,9 @@ import {
   getStudents,
   getTeacherApplications,
 } from "@/api/adminApi";
-import { getAdminPaymentsAnalytics } from "@/api/paymobApi";
+import { getAdminPaymentsAnalytics } from "@/api/paymentApi";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Carousel } from "@/components/ui/Carousel";
 import { useTranslation } from "react-i18next";
 import { SkeletonBlock, SkeletonStatsGrid } from "@/components/shared";
 
@@ -68,15 +69,16 @@ export default function AdminOverview() {
     "pie",
   );
   const locale = i18n.language === "ar" ? "ar-EG" : "en-US";
+  const isRtl = i18n.language === "ar";
   const { data: teachers = [], isLoading: teachersLoading } = useQuery<
     Teacher[]
-  >({ queryKey: ["teachers"], queryFn: getTeachers });
+  >({ queryKey: ["teachers"], queryFn: () => getTeachers() });
   const { data: students = [], isLoading: studentsLoading } = useQuery<
     Student[]
-  >({ queryKey: ["students"], queryFn: getStudents });
+  >({ queryKey: ["students"], queryFn: () => getStudents() });
   const { data: analytics, isLoading: paymentsLoading } = useQuery({
     queryKey: ["admin-analytics"],
-    queryFn: getAdminPaymentsAnalytics,
+    queryFn: () => getAdminPaymentsAnalytics(),
   });
   const { data: teacherApplications = [], isLoading: applicationsLoading } =
     useQuery<TeacherApplicationRecord[]>({
@@ -277,93 +279,84 @@ export default function AdminOverview() {
     );
   }
 
+  const statCardsConfig = [
+    {
+      key: "totalStudents",
+      value: totals.students,
+      Icon: Users,
+      iconBg: "bg-blue-100 dark:bg-blue-900/30",
+      iconColor: "text-blue-600 dark:text-blue-400",
+      onClick: () => navigate("/admin/students"),
+    },
+    {
+      key: "totalTeachers",
+      value: totals.teachers,
+      Icon: GraduationCap,
+      iconBg: "bg-emerald-100 dark:bg-emerald-900/30",
+      iconColor: "text-emerald-600 dark:text-emerald-400",
+      onClick: () => navigate("/admin/teachers"),
+    },
+    {
+      key: "totalRevenue",
+      value: `$${totals.revenue}`,
+      Icon: DollarSign,
+      iconBg: "bg-green-100 dark:bg-green-900/30",
+      iconColor: "text-green-600 dark:text-green-400",
+      onClick: () => navigate("/admin/payments"),
+    },
+    {
+      key: "activeSubscriptions",
+      value: totals.activeSubscriptions,
+      Icon: CreditCard,
+      iconBg: "bg-cyan-100 dark:bg-cyan-900/30",
+      iconColor: "text-cyan-600 dark:text-cyan-400",
+      onClick: () => navigate("/admin/payments"),
+    },
+    {
+      key: "totalTeacherApplications",
+      value: totals.teacherApplications,
+      Icon: ClipboardList,
+      iconBg: "bg-rose-100 dark:bg-rose-900/30",
+      iconColor: "text-rose-600 dark:text-rose-400",
+      onClick: () => navigate("/admin/teacher-requests"),
+    },
+  ];
+
+  const statCards = statCardsConfig.map(({ key, value, Icon, iconBg, iconColor, onClick }) => (
+    <Card
+      key={key}
+      className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/70 cursor-pointer hover:shadow-md transition-shadow"
+      onClick={onClick}
+    >
+      <CardHeader className="flex flex-row items-center justify-between pb-1 px-4 pt-4">
+        <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">
+          {t(key)}
+        </CardTitle>
+        <div className={`p-1.5 ${iconBg} rounded-lg`}>
+          <Icon className={`w-4 h-4 ${iconColor}`} />
+        </div>
+      </CardHeader>
+      <CardContent className="px-4 pb-4">
+        <p className="text-2xl font-bold">{value}</p>
+      </CardContent>
+    </Card>
+  ));
+
   return (
-    <div className="px-6 py-10">
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-        <Card
-          className="border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/70 cursor-pointer hover:shadow-md transition-shadow"
-          onClick={() => navigate("/admin/students")}
-        >
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">
-              {t("totalStudents")}
-            </CardTitle>
-            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-              <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{totals.students}</p>
-          </CardContent>
-        </Card>
-        <Card
-          className="border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/70 cursor-pointer hover:shadow-md transition-shadow"
-          onClick={() => navigate("/admin/teachers")}
-        >
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">
-              {t("totalTeachers")}
-            </CardTitle>
-            <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
-              <GraduationCap className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{totals.teachers}</p>
-          </CardContent>
-        </Card>
-        <Card
-          className="border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/70 cursor-pointer hover:shadow-md transition-shadow"
-          onClick={() => navigate("/admin/payments")}
-        >
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">
-              {t("totalRevenue")}
-            </CardTitle>
-            <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-              <DollarSign className="w-5 h-5 text-green-600 dark:text-green-400" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">${totals.revenue}</p>
-          </CardContent>
-        </Card>
-        <Card
-          className="border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/70 cursor-pointer hover:shadow-md transition-shadow"
-          onClick={() => navigate("/admin/payments")}
-        >
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">
-              {t("activeSubscriptions")}
-            </CardTitle>
-            <div className="p-2 bg-cyan-100 dark:bg-cyan-900/30 rounded-lg">
-              <CreditCard className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{totals.activeSubscriptions}</p>
-          </CardContent>
-        </Card>
-        <Card
-          className="border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/70 cursor-pointer hover:shadow-md transition-shadow"
-          onClick={() => navigate("/admin/teacher-requests")}
-        >
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">
-              {t("totalTeacherApplications")}
-            </CardTitle>
-            <div className="p-2 bg-rose-100 dark:bg-rose-900/30 rounded-lg">
-              <ClipboardList className="w-5 h-5 text-rose-600 dark:text-rose-400" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{totals.teacherApplications}</p>
-          </CardContent>
-        </Card>
+    <div className="px-6 pt-4 pb-10">
+      <div className="rounded-[2rem] bg-white dark:bg-slate-900 p-6">
+        <Carousel
+          items={statCards}
+          perView={{ base: 1, md: 2, lg: 4 }}
+          isRtl={isRtl}
+          autoplayMs={4000}
+          showArrows={false}
+        />
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-8">
-        <Card className="border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/70">
+      <div className="rounded-[2rem] bg-white dark:bg-slate-900 p-6 mt-8">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <Card className="border-0 shadow-none bg-white/80 dark:bg-slate-900/70">
           <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle>{t("monthlyRevenue")}</CardTitle>
             <div className="inline-flex rounded-full border border-slate-200 dark:border-slate-800 overflow-hidden">
@@ -391,7 +384,7 @@ export default function AdminOverview() {
             )}
           </CardContent>
         </Card>
-        <Card className="border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/70">
+        <Card className="border-0 shadow-none bg-white/80 dark:bg-slate-900/70">
           <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle>{t("studentGrowth")}</CardTitle>
             <div className="inline-flex rounded-full border border-slate-200 dark:border-slate-800 overflow-hidden">
@@ -422,7 +415,7 @@ export default function AdminOverview() {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-8">
-        <Card className="border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/70">
+        <Card className="border-0 shadow-none bg-white/80 dark:bg-slate-900/70">
           <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle>{t("paymentsByMethod")}</CardTitle>
             <div className="inline-flex rounded-full border border-slate-200 dark:border-slate-800 overflow-hidden">
@@ -450,7 +443,7 @@ export default function AdminOverview() {
             )}
           </CardContent>
         </Card>
-        <Card className="border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/70">
+        <Card className="border-0 shadow-none bg-white/80 dark:bg-slate-900/70">
           <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle>{t("teacherApplicationsByStatus")}</CardTitle>
             <div className="inline-flex rounded-full border border-slate-200 dark:border-slate-800 overflow-hidden">
@@ -478,6 +471,7 @@ export default function AdminOverview() {
             )}
           </CardContent>
         </Card>
+      </div>
       </div>
     </div>
   );

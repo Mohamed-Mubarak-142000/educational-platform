@@ -1,5 +1,4 @@
 import api from "./axiosConfig";
-import type { SubscriptionPlan } from "./paymobApi";
 import type { ManualPaymentMethod } from "@/lib/paymentMethods";
 
 export type ManualPaymentPurpose = "subject" | "unit" | "liveLesson";
@@ -14,8 +13,6 @@ export type ManualPaymentRequest = {
   unitId?: string;
   liveLessonRequestId?: string;
   purpose: ManualPaymentPurpose;
-  plan?: SubscriptionPlan;
-  planDays?: number;
   method: ManualPaymentMethod;
   amountEGP: number;
   referenceCode: string;
@@ -27,8 +24,6 @@ export type ManualPaymentRequest = {
 };
 
 export type ManualPaymentUploadResponse = { url: string };
-
-export type SubscriptionQuote = { amountEGP: number; planDays: number };
 
 export const uploadManualPaymentProof = async (
   file: File,
@@ -55,7 +50,6 @@ export type CreateManualPaymentPayload = {
       gradeId: string;
       unitId?: string;
       subscriptionType: "subject" | "unit";
-      plan: SubscriptionPlan;
     }
 );
 
@@ -71,11 +65,27 @@ export const getMyManualPaymentRequests = async (): Promise<ManualPaymentRequest
   return response.data;
 };
 
+export type ManualPaymentRequestListParams = {
+  status?: ManualPaymentStatus;
+  search?: string;
+  method?: string[];
+  purpose?: ManualPaymentPurpose;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+};
+
 export const getManualPaymentRequests = async (
-  status?: ManualPaymentStatus,
+  params?: ManualPaymentRequestListParams,
 ): Promise<ManualPaymentRequest[]> => {
   const response = await api.get<ManualPaymentRequest[]>("/manual-payments", {
-    params: status ? { status } : undefined,
+    params: {
+      status: params?.status,
+      search: params?.search || undefined,
+      method: params?.method?.length ? params.method.join(",") : undefined,
+      purpose: params?.purpose,
+      sortBy: params?.sortBy,
+      sortOrder: params?.sortOrder,
+    },
   });
   return response.data;
 };
@@ -94,17 +104,5 @@ export const rejectManualPaymentRequest = async (
   const response = await api.post<{ message: string }>(`/manual-payments/${id}/reject`, {
     reason,
   });
-  return response.data;
-};
-
-export const getSubscriptionQuote = async (params: {
-  teacherId: string;
-  subjectId: string;
-  gradeId: string;
-  unitId?: string;
-  subscriptionType: "subject" | "unit";
-  plan: SubscriptionPlan;
-}): Promise<SubscriptionQuote> => {
-  const response = await api.get<SubscriptionQuote>("/payments/quote", { params });
   return response.data;
 };

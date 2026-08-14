@@ -13,10 +13,13 @@ import {
   GraduationCap as LearnIcon,
   Calendar,
   UserSquare2,
-  ShieldAlert,
   X,
   Trophy,
   Pencil,
+  Wallet,
+  Banknote,
+  History,
+  FileText,
   type LucideIcon,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
@@ -24,12 +27,6 @@ import { roleHome, type Role } from "@/utils/routes";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSidebar } from "@/context/SidebarContext";
 
@@ -152,9 +149,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const { mobileOpen, setMobileOpen } = useSidebar();
-  const [firstLoginDialogOpen, setFirstLoginDialogOpen] = useState(
-    user?.role === "Teacher" && !!user?.mustChangePassword,
-  );
 
   const isRTL = i18n.language === "ar";
 
@@ -213,9 +207,21 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       end: false,
     },
     {
+      to: "/admin/teacher-payouts",
+      label: t("adminTeacherPayouts"),
+      icon: Banknote,
+      end: false,
+    },
+    {
       to: "/admin/platform-config",
       label: t("adminPlatformConfig"),
       icon: Settings,
+      end: false,
+    },
+    {
+      to: "/admin/audit-log",
+      label: t("adminAuditLog", { defaultValue: "Audit Log" }),
+      icon: History,
       end: false,
     },
   ];
@@ -237,6 +243,24 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       to: "/teacher/students",
       label: t("myStudents"),
       icon: GraduationCap,
+      end: false,
+    },
+    {
+      to: "/teacher/payments",
+      label: t("manualPaymentRequests", { defaultValue: "Payment requests" }),
+      icon: CreditCard,
+      end: false,
+    },
+    {
+      to: "/teacher/earnings",
+      label: t("myEarnings"),
+      icon: Wallet,
+      end: false,
+    },
+    {
+      to: "/teacher/exams",
+      label: t("examsTitle", { defaultValue: "Exams" }),
+      icon: FileText,
       end: false,
     },
     {
@@ -270,6 +294,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       to: "/student/quiz-history",
       label: t("quizHistoryTitle"),
       icon: Trophy,
+      end: false,
+    },
+    {
+      to: "/student/exams",
+      label: t("myExamsTitle", { defaultValue: "My exams" }),
+      icon: FileText,
       end: false,
     },
     {
@@ -432,52 +462,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           <div className="h-full overflow-y-auto">{children}</div>
         </main>
       </div>
-
-      {/* ── First-login security reminder dialog for teachers ── */}
-      <Dialog
-        open={firstLoginDialogOpen}
-        onOpenChange={setFirstLoginDialogOpen}
-      >
-        <DialogContent
-          className="max-w-md"
-          onInteractOutside={(e) => e.preventDefault()}
-        >
-          <DialogHeader>
-            <DialogTitle className="sr-only">{t("securityNotice")}</DialogTitle>
-          </DialogHeader>
-          <div className="flex flex-col items-center text-center gap-5 py-2">
-            <div className="w-20 h-20 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-              <ShieldAlert className="w-10 h-10 text-amber-500" />
-            </div>
-            <div className="space-y-2">
-              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
-                {t("firstLoginTitle")}
-              </h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-                {t("firstLoginMessage")}
-              </p>
-            </div>
-            <div className="flex gap-3 w-full">
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={() => setFirstLoginDialogOpen(false)}
-              >
-                {t("remindMeLater")}
-              </Button>
-              <Button
-                className="flex-1 bg-violet-600 hover:bg-violet-700 text-white"
-                onClick={() => {
-                  setFirstLoginDialogOpen(false);
-                  navigate("/change-password");
-                }}
-              >
-                {t("changePassword")}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

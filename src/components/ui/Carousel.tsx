@@ -48,6 +48,12 @@ export function Carousel({
 
   const totalPages = Math.max(1, Math.ceil(items.length / itemsPerView));
   const safeActiveIndex = activeIndex % totalPages;
+  // Clamp the last page's offset so it always shows a full set of items
+  // (overlapping the previous page) instead of leaving empty trailing space
+  // when items.length isn't a multiple of itemsPerView.
+  const maxItemOffset = Math.max(0, items.length - itemsPerView);
+  const itemOffset = Math.min(safeActiveIndex * itemsPerView, maxItemOffset);
+  const shiftPercent = itemOffset * (100 / itemsPerView);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -111,7 +117,7 @@ export function Carousel({
       >
         <motion.div
           className="flex w-full"
-          animate={{ x: `${(isRtl ? 1 : -1) * safeActiveIndex * 100}%` }}
+          animate={{ x: `${(isRtl ? 1 : -1) * shiftPercent}%` }}
           transition={{ type: 'spring', stiffness: 140, damping: 24 }}
         >
           {items.map((item, index) => (

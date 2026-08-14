@@ -72,7 +72,7 @@ export default function PublicStageSubjects() {
         <div className="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(ellipse_at_top_right,_white_0%,_transparent_60%)]" />
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           {/* Breadcrumb */}
-          <nav className={`flex items-center gap-1.5 text-sm text-violet-200 mb-6 flex-wrap ${isRtl ? 'flex-row-reverse justify-end' : ''}`}>
+          <nav className="flex items-center gap-1.5 text-sm text-violet-200 mb-6 flex-wrap">
             <button
               onClick={() => navigate('/')}
               className="flex items-center gap-1 hover:text-white transition-colors"

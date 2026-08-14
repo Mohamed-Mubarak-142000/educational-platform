@@ -19,15 +19,24 @@ export type AuthUser = {
 };
 
 export type AuthTokenResponse = {
-  token: string;
+  token?: string;
   user?: AuthUser;
   mustChangePassword?: boolean;
   role?: string;
+  // Present instead of `token` when the account (Admin) requires a login OTP
+  // step — see verifyLoginOtp.
+  requiresOtp?: boolean;
+  userId?: string;
 };
 
 export type LoginPayload = {
   email: string;
   password: string;
+};
+
+export type VerifyLoginOtpPayload = {
+  userId: string;
+  otp: string;
 };
 
 export type RegisterPayload = {
@@ -83,6 +92,11 @@ export type CreateTeacherPayload = Record<string, string | number | boolean | un
 
 export const login = async (data: LoginPayload): Promise<AuthTokenResponse> => {
   const response = await api.post<AuthTokenResponse>('/users/login', data);
+  return response.data;
+};
+
+export const verifyLoginOtp = async (data: VerifyLoginOtpPayload): Promise<AuthTokenResponse> => {
+  const response = await api.post<AuthTokenResponse>('/users/login/verify-otp', data);
   return response.data;
 };
 

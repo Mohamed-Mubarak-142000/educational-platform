@@ -37,6 +37,15 @@ export interface DataTableProps<T = unknown> {
   isLoading?: boolean;
   className?: string;
   pageSize?: number;
+  /**
+   * When `onSortChange` is provided, sorting is delegated to the caller
+   * (e.g. a server-side query) instead of re-sorting `data` in the browser —
+   * `data` is trusted to already be in the right order. `sortBy`/`sortOrder`
+   * only drive which header shows the active sort icon.
+   */
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  onSortChange?: (key: string, order: 'asc' | 'desc') => void;
 }
 
 export function DataTable<T extends Record<string, unknown>>({
@@ -47,9 +56,16 @@ export function DataTable<T extends Record<string, unknown>>({
   isLoading = false,
   className = '',
   pageSize = 10,
+  sortBy,
+  sortOrder,
+  onSortChange,
 }: DataTableProps<T>) {
   const { t } = useTranslation();
   const [sorting, setSorting] = useState<SortingState>([]);
+  const manualSorting = !!onSortChange;
+  const effectiveSorting: SortingState = manualSorting
+    ? (sortBy ? [{ id: sortBy, desc: sortOrder === 'desc' }] : [])
+    : sorting;
 
   const getNestedValue = (obj: Record<string, unknown>, path: string): unknown => {
     return path.split('.').reduce<unknown>((acc, part) => {
@@ -93,10 +109,11 @@ export function DataTable<T extends Record<string, unknown>>({
   const table = useReactTable({
     data: data ?? [],
     columns: tanstackColumns,
-    state: { sorting },
-    onSortingChange: setSorting,
+    state: { sorting: effectiveSorting },
+    onSortingChange: manualSorting ? undefined : setSorting,
+    manualSorting,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
+    getSortedRowModel: manualSorting ? undefined : getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     initialState: { pagination: { pageSize } },
   });
@@ -180,11 +197,21 @@ export function DataTable<T extends Record<string, unknown>>({
                   const meta = (header.column.columnDef.meta as TableMeta | undefined) ?? {};
                   const align = meta.align || 'left';
                   const isSortable = header.column.getCanSort();
+                  const onHeaderClick = !isSortable
+                    ? undefined
+                    : manualSorting && onSortChange
+                      ? () => {
+                          const key = header.column.id;
+                          const nextOrder: 'asc' | 'desc' =
+                            sortBy === key && sortOrder === 'asc' ? 'desc' : 'asc';
+                          onSortChange(key, nextOrder);
+                        }
+                      : header.column.getToggleSortingHandler();
                   return (
                     <th
                       key={header.id}
                       className={`px-4 py-3 font-semibold text-${align} whitespace-nowrap ${isSortable ? 'cursor-pointer select-none' : ''} ${meta.className || ''}`}
-                      onClick={isSortable ? header.column.getToggleSortingHandler() : undefined}
+                      onClick={onHeaderClick}
                     >
                       <span className="inline-flex items-center gap-1">
                         {flexRender(header.column.columnDef.header, header.getContext())}

@@ -8,7 +8,6 @@ import {
   AlertCircle,
   Video,
   DollarSign,
-  CreditCard,
   Landmark,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,8 +18,6 @@ import {
   createLiveLessonRequest,
   calculateLessonPrice,
 } from "@/api/liveLessonApi";
-import { createLiveLessonCheckoutIntention } from "@/api/paymobApi";
-import PaymobCheckoutModal from "./PaymobCheckoutModal";
 import ManualPaymentModal from "./ManualPaymentModal";
 import { useToast } from "./ui/ToastProvider";
 
@@ -67,12 +64,6 @@ export default function RequestLiveLessonModal({
     id: string;
     priceEGP: number;
   } | null>(null);
-  const [checkout, setCheckout] = useState<{
-    requestId: string;
-    paymentId: string;
-    iframeUrl: string;
-    amountEGP: number;
-  } | null>(null);
   const [manualOpen, setManualOpen] = useState(false);
   const [manualSubmitted, setManualSubmitted] = useState(false);
 
@@ -81,33 +72,6 @@ export default function RequestLiveLessonModal({
     duration,
     requestType === "instant" ? urgencyLevel : "medium",
   );
-
-  const checkoutMutation = useMutation({
-    mutationFn: createLiveLessonCheckoutIntention,
-    onSuccess: (data, requestId) => {
-      if (!data.iframeUrl) {
-        pushToast({
-          title: t("requestFailed"),
-          description: data.message || t("somethingWentWrong"),
-          type: "error",
-        });
-        return;
-      }
-      setCheckout({
-        requestId,
-        paymentId: data.paymentId,
-        iframeUrl: data.iframeUrl,
-        amountEGP: data.amountEGP,
-      });
-    },
-    onError: (error: any) => {
-      pushToast({
-        title: t("requestFailed"),
-        description: error.response?.data?.message || t("somethingWentWrong"),
-        type: "error",
-      });
-    },
-  });
 
   const createRequestMutation = useMutation({
     mutationFn: createLiveLessonRequest,
@@ -134,7 +98,6 @@ export default function RequestLiveLessonModal({
     setDescription("");
     setPreferredDateTime("");
     setCreatedRequest(null);
-    setCheckout(null);
     setManualOpen(false);
     setManualSubmitted(false);
   };
@@ -171,17 +134,6 @@ export default function RequestLiveLessonModal({
     });
   };
 
-  const handlePaymentComplete = () => {
-    pushToast({
-      title: t("requestSent"),
-      description: t("liveLessonRequestSentDesc"),
-      type: "success",
-    });
-    queryClient.invalidateQueries({ queryKey: ["my-requests"] });
-    onClose();
-    resetForm();
-  };
-
   const handleManualSubmitted = () => {
     queryClient.invalidateQueries({ queryKey: ["my-requests"] });
     setManualSubmitted(true);
@@ -201,7 +153,7 @@ export default function RequestLiveLessonModal({
     return now.toISOString().slice(0, 16);
   };
 
-  const isSubmitting = createRequestMutation.isPending || checkoutMutation.isPending;
+  const isSubmitting = createRequestMutation.isPending;
 
   return (
     <>
@@ -258,26 +210,10 @@ export default function RequestLiveLessonModal({
                     </div>
                     <p className="text-sm text-slate-500 dark:text-slate-400">
                       {t("choosePaymentMethodDesc", {
-                        defaultValue: "Your request is saved — choose how you'd like to pay to confirm it.",
+                        defaultValue: "Your request is saved — confirm it by paying via bank/wallet transfer.",
                       })}
                     </p>
                     <div className="grid grid-cols-1 gap-3">
-                      <button
-                        type="button"
-                        onClick={() => checkoutMutation.mutate(createdRequest.id)}
-                        disabled={checkoutMutation.isPending}
-                        className="flex items-center gap-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-4 text-left hover:border-violet-400 transition-all disabled:opacity-60"
-                      >
-                        <CreditCard className="w-6 h-6 text-violet-600 flex-shrink-0" />
-                        <div>
-                          <div className="font-semibold text-slate-900 dark:text-slate-100">
-                            {t("payWithCard", { defaultValue: "Pay by card (Paymob)" })}
-                          </div>
-                          <div className="text-xs text-slate-500 dark:text-slate-400">
-                            {t("payWithCardDesc", { defaultValue: "Instant confirmation" })}
-                          </div>
-                        </div>
-                      </button>
                       <button
                         type="button"
                         onClick={() => setManualOpen(true)}
@@ -484,17 +420,6 @@ export default function RequestLiveLessonModal({
           </>
         )}
       </AnimatePresence>
-
-      {checkout && (
-        <PaymobCheckoutModal
-          open={!!checkout}
-          onClose={() => setCheckout(null)}
-          iframeUrl={checkout.iframeUrl}
-          paymentId={checkout.paymentId}
-          amountEGP={checkout.amountEGP}
-          onPaymentComplete={handlePaymentComplete}
-        />
-      )}
 
       {createdRequest && (
         <ManualPaymentModal

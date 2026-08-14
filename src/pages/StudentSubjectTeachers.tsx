@@ -7,6 +7,7 @@
  * Route: /student/subjects/:subjectId/teachers
  * State: { gradeId }
  */
+import { useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getSubjectById, getSubjectTeachers, type SubjectTeacherAssignment } from '@/api/subjectApi';
@@ -15,7 +16,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { EmptyState } from '@/components/shared';
+import { EmptyState, SearchInput } from '@/components/shared';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, User, Star } from 'lucide-react';
 import { spacing } from '@/lib/constants';
@@ -153,6 +154,14 @@ export default function StudentSubjectTeachers() {
     return acc;
   }, []);
 
+  const [teacherSearch, setTeacherSearch] = useState('');
+  const filteredAssignments = teacherSearch.trim()
+    ? uniqueAssignments.filter((a) => {
+        const teacher = typeof a.teacherId === 'object' ? a.teacherId : null;
+        return (teacher?.name ?? '').toLowerCase().includes(teacherSearch.trim().toLowerCase());
+      })
+    : uniqueAssignments;
+
   const isLoading = subjectLoading || assignmentsLoading || !subject || assignments === undefined;
 
   const handleSelectTeacher = (assignment: SubjectTeacherAssignment) => {
@@ -217,9 +226,18 @@ export default function StudentSubjectTeachers() {
         )}
       </div>
 
-      <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+      <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
         {t('selectTeacherPrompt')}
       </p>
+
+      {!isLoading && uniqueAssignments.length > 0 && (
+        <SearchInput
+          value={teacherSearch}
+          onChange={setTeacherSearch}
+          placeholder={t('searchTeacherPlaceholder')}
+          className="w-full sm:w-72 mb-6"
+        />
+      )}
 
       {isLoading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -233,10 +251,16 @@ export default function StudentSubjectTeachers() {
             <EmptyState description={t('noTeachersForSubject')} />
           </CardContent>
         </Card>
+      ) : filteredAssignments.length === 0 ? (
+        <Card className="border border-slate-200 dark:border-slate-800">
+          <CardContent className="py-16 text-center">
+            <EmptyState description={t('noTeachersMatchSearch', { defaultValue: 'No teachers match your search.' })} />
+          </CardContent>
+        </Card>
       ) : (
         <motion.div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4" initial="hidden" animate="visible">
           <AnimatePresence>
-            {uniqueAssignments.map((assignment, index) => (
+            {filteredAssignments.map((assignment, index) => (
               <TeacherCard
                 key={assignment._id}
                 assignment={assignment}

@@ -3,19 +3,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getAdminPaymentsAnalytics,
   refundPayment,
-  type PaymobPayment,
-} from "@/api/paymobApi";
-import {
-  getManualPaymentRequests,
-  approveManualPaymentRequest,
-  rejectManualPaymentRequest,
-  type ManualPaymentRequest,
-} from "@/api/manualPaymentApi";
-import { MANUAL_PAYMENT_METHODS } from "@/lib/paymentMethods";
+  type Payment,
+} from "@/api/paymentApi";
+import { useDebouncedValue } from "@/hooks";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useTranslation } from "react-i18next";
@@ -26,6 +19,8 @@ import {
   ErrorState,
   PageHeader,
   DataTable,
+  FilterDialog,
+  SearchInput,
   type TableColumn,
 } from "@/components/shared";
 import { spacing, cardVariants } from "@/lib/constants";
@@ -38,9 +33,6 @@ import {
   XCircle,
   Clock,
   RefreshCw,
-  ImageIcon,
-  Check,
-  X,
 } from "lucide-react";
 
 function StatCard({
@@ -49,15 +41,17 @@ function StatCard({
   sub,
   icon: Icon,
   color,
+  className = "",
 }: {
   title: string;
   value: string;
   sub?: string;
   icon: React.ComponentType<{ className?: string }>;
   color: string;
+  className?: string;
 }) {
   return (
-    <Card className={cardVariants.default}>
+    <Card className={`${cardVariants.default} ${className}`}>
       <CardContent className="pt-5 pb-4">
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -134,11 +128,24 @@ export default function AdminPayments() {
   const { t } = useTranslation();
   const { pushToast } = useToast();
   const queryClient = useQueryClient();
-  const [refundTarget, setRefundTarget] = useState<PaymobPayment | null>(null);
+  const [refundTarget, setRefundTarget] = useState<Payment | null>(null);
   const [refundReason, setRefundReason] = useState("");
-  const [rejectTarget, setRejectTarget] = useState<ManualPaymentRequest | null>(null);
-  const [rejectReason, setRejectReason] = useState("");
-  const [proofPreview, setProofPreview] = useState<string | null>(null);
+
+  // Recent payments: search + filters (resolved server-side)
+  const [paymentsSearchQuery, setPaymentsSearchQuery] = useState("");
+  const debouncedPaymentsSearch = useDebouncedValue(paymentsSearchQuery);
+  const [statusFilter, setStatusFilter] = useState<"all" | Payment["status"]>("all");
+  const [typeFilter, setTypeFilter] = useState<"all" | Payment["subscriptionType"]>("all");
+  const [paymentsSortBy, setPaymentsSortBy] = useState("createdAt");
+  const [paymentsSortOrder, setPaymentsSortOrder] = useState<"asc" | "desc">("desc");
+
+  const analyticsParams = {
+    search: debouncedPaymentsSearch || undefined,
+    status: statusFilter !== "all" ? statusFilter : undefined,
+    subscriptionType: typeFilter !== "all" ? typeFilter : undefined,
+    sortBy: paymentsSortBy,
+    sortOrder: paymentsSortOrder,
+  };
 
   const {
     data: analytics,
@@ -147,131 +154,16 @@ export default function AdminPayments() {
     error,
     refetch,
   } = useQuery({
-    queryKey: ["admin-analytics"],
-    queryFn: getAdminPaymentsAnalytics,
+    queryKey: ["admin-analytics", JSON.stringify(analyticsParams)],
+    queryFn: () => getAdminPaymentsAnalytics(analyticsParams),
   });
 
-  const {
-    data: manualRequests = [],
-    isLoading: manualLoading,
-  } = useQuery({
-    queryKey: ["manual-payment-requests", "Pending"],
-    queryFn: () => getManualPaymentRequests("Pending"),
-  });
+  const paymentsActiveFilterCount = (statusFilter !== "all" ? 1 : 0) + (typeFilter !== "all" ? 1 : 0);
 
-  const approveMutation = useMutation({
-    mutationFn: (id: string) => approveManualPaymentRequest(id),
-    onSuccess: () => {
-      pushToast({
-        title: t("manualPaymentApproved", { defaultValue: "Payment approved" }),
-        type: "success",
-      });
-      queryClient.invalidateQueries({ queryKey: ["manual-payment-requests"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-analytics"] });
-    },
-    onError: (err: any) => {
-      pushToast({
-        title: t("actionFailed", { defaultValue: "Action failed" }),
-        description: err.response?.data?.message || t("somethingWentWrong"),
-        type: "error",
-      });
-    },
-  });
-
-  const rejectMutation = useMutation({
-    mutationFn: ({ id, reason }: { id: string; reason?: string }) =>
-      rejectManualPaymentRequest(id, reason),
-    onSuccess: () => {
-      pushToast({
-        title: t("manualPaymentRejected", { defaultValue: "Payment rejected" }),
-        type: "success",
-      });
-      queryClient.invalidateQueries({ queryKey: ["manual-payment-requests"] });
-      setRejectTarget(null);
-      setRejectReason("");
-    },
-    onError: (err: any) => {
-      pushToast({
-        title: t("actionFailed", { defaultValue: "Action failed" }),
-        description: err.response?.data?.message || t("somethingWentWrong"),
-        type: "error",
-      });
-    },
-  });
-
-  const manualColumns = useMemo<TableColumn<ManualPaymentRequest>[]>(
-    () => [
-      {
-        key: "createdAt",
-        label: t("date"),
-        render: (value) =>
-          value
-            ? new Date(value as string).toLocaleDateString(undefined, {
-                month: "short",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })
-            : "—",
-      },
-      {
-        key: "studentId",
-        label: t("student", { defaultValue: "Student" }),
-        render: (value) => refName(value as ManualPaymentRequest["studentId"]),
-      },
-      {
-        key: "method",
-        label: t("method", { defaultValue: "Method" }),
-        render: (value) => {
-          const method = MANUAL_PAYMENT_METHODS.find((m) => m.id === value);
-          return (
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-              {method ? t(method.labelKey, { defaultValue: method.defaultLabel }) : String(value)}
-            </span>
-          );
-        },
-      },
-      {
-        key: "amountEGP",
-        label: t("amount"),
-        render: (value) => (
-          <span className="font-medium">
-            {value as number} {t("currencyEgp")}
-          </span>
-        ),
-      },
-      {
-        key: "purpose",
-        label: t("subscriptionTypeLabel"),
-        render: (value) => <span className="capitalize">{String(value)}</span>,
-      },
-      {
-        key: "referenceCode",
-        label: t("referenceCode", { defaultValue: "Reference" }),
-        render: (value) => (
-          <span className="font-mono text-xs text-slate-500 dark:text-slate-400">
-            {String(value)}
-          </span>
-        ),
-      },
-      {
-        key: "proofUrl",
-        label: t("proof", { defaultValue: "Proof" }),
-        render: (value) => (
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-1.5"
-            onClick={() => setProofPreview(value as string)}
-          >
-            <ImageIcon className="w-3.5 h-3.5" />
-            {t("view", { defaultValue: "View" })}
-          </Button>
-        ),
-      },
-    ],
-    [t],
-  );
+  const resetPaymentsFilters = () => {
+    setStatusFilter("all");
+    setTypeFilter("all");
+  };
 
   const refundMutation = useMutation({
     mutationFn: ({ paymentId, reason }: { paymentId: string; reason?: string }) =>
@@ -294,7 +186,7 @@ export default function AdminPayments() {
     },
   });
 
-  const columns = useMemo<TableColumn<PaymobPayment>[]>(
+  const columns = useMemo<TableColumn<Payment>[]>(
     () => [
       {
         key: "createdAt",
@@ -313,21 +205,45 @@ export default function AdminPayments() {
       {
         key: "studentId",
         label: t("student", { defaultValue: "Student" }),
-        render: (value) => refName(value as PaymobPayment["studentId"]),
+        sortable: false,
+        render: (value) => refName(value as Payment["studentId"]),
       },
       {
         key: "teacherId",
         label: t("teacher", { defaultValue: "Teacher" }),
-        render: (value) => refName(value as PaymobPayment["teacherId"]),
+        sortable: false,
+        render: (value) => refName(value as Payment["teacherId"]),
       },
       {
         key: "amountCents",
-        label: t("amount"),
+        label: t("grossAmount"),
         render: (value, row) => (
           <span className="font-medium">
             {((value as number) / 100).toFixed(2)} {row.currency}
           </span>
         ),
+      },
+      {
+        key: "platformFeeCents",
+        label: t("platformFee"),
+        sortable: false,
+        render: (value) =>
+          value === undefined ? (
+            <span className="text-slate-400">—</span>
+          ) : (
+            <span className="text-slate-400">-{((value as number) / 100).toFixed(2)} {t("currencyEgp")}</span>
+          ),
+      },
+      {
+        key: "netEarningCents",
+        label: t("netEarning"),
+        sortable: false,
+        render: (value) =>
+          value === undefined ? (
+            <span className="text-slate-400">—</span>
+          ) : (
+            <span className="font-semibold">{((value as number) / 100).toFixed(2)} {t("currencyEgp")}</span>
+          ),
       },
       {
         key: "subscriptionType",
@@ -342,13 +258,10 @@ export default function AdminPayments() {
         render: (value) => <StatusBadge status={value as string} />,
       },
       {
-        key: "paymobTransactionId",
-        label: t("transactionId"),
+        key: "paymentMethod",
+        label: t("paymentMethod", { defaultValue: "Method" }),
         render: (value) => (
-          <span
-            className="font-mono text-xs text-slate-500 dark:text-slate-400 block truncate max-w-[160px]"
-            title={(value as string) || "N/A"}
-          >
+          <span className="text-xs text-slate-500 dark:text-slate-400">
             {(value as string) || "N/A"}
           </span>
         ),
@@ -394,108 +307,113 @@ export default function AdminPayments() {
       {isLoading || !analytics ? (
         <SkeletonStatsGrid items={4} />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-          <StatCard
-            title={t("totalRevenue", { defaultValue: "Total revenue" })}
-            value={`${analytics.totalRevenueEGP.toLocaleString()} ${t("currencyEgp")}`}
-            sub={`MRR ${analytics.mrrEGP.toLocaleString()} · ARR ${analytics.arrEGP.toLocaleString()}`}
-            icon={TrendingUp}
-            color="bg-emerald-600"
-          />
-          <StatCard
-            title={t("activeSubscriptions", { defaultValue: "Active subscriptions" })}
-            value={String(analytics.activeSubscriptions)}
-            sub={t("expiringSoonCount", {
-              defaultValue: "{{count}} expiring soon",
-              count: analytics.expiringSoon,
-            })}
-            icon={Users}
-            color="bg-violet-600"
-          />
-          <StatCard
-            title={t("paymentStatusSuccess")}
-            value={String(analytics.successCount)}
-            icon={CheckCircle2}
-            color="bg-emerald-500"
-          />
-          <StatCard
-            title={t("paymentStatusFailed")}
-            value={String(analytics.failedCount)}
-            sub={`${analytics.refundedCount} ${t("paymentStatusRefunded")}`}
-            icon={CreditCard}
-            color="bg-red-500"
-          />
+        <div className="rounded-[2rem] bg-white dark:bg-slate-900 p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+            <StatCard
+              title={t("totalRevenue", { defaultValue: "Total revenue" })}
+              value={`${analytics.totalRevenueEGP.toLocaleString()} ${t("currencyEgp")}`}
+              sub={t("revenueMonthYearSub", {
+                defaultValue: "This month {{month}} · This year {{year}}",
+                month: analytics.revenueThisMonthEGP.toLocaleString(),
+                year: analytics.revenueThisYearEGP.toLocaleString(),
+              })}
+              icon={TrendingUp}
+              color="bg-emerald-600"
+              className="border-0 shadow-none"
+            />
+            <StatCard
+              title={t("activeSubscriptions", { defaultValue: "Active subscriptions" })}
+              value={String(analytics.activeSubscriptions)}
+              sub={t("lifetimeAccessNotice", { defaultValue: "One-time payment — access never expires." })}
+              icon={Users}
+              color="bg-violet-600"
+              className="border-0 shadow-none"
+            />
+            <StatCard
+              title={t("paymentStatusSuccess")}
+              value={String(analytics.successCount)}
+              icon={CheckCircle2}
+              color="bg-emerald-500"
+              className="border-0 shadow-none"
+            />
+            <StatCard
+              title={t("paymentStatusFailed")}
+              value={String(analytics.failedCount)}
+              sub={`${analytics.refundedCount} ${t("paymentStatusRefunded")}`}
+              icon={CreditCard}
+              color="bg-red-500"
+              className="border-0 shadow-none"
+            />
+          </div>
         </div>
       )}
 
-      <Card className={cardVariants.default}>
-        <CardHeader className="border-b border-slate-200 dark:border-slate-800 pb-4">
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            {t("manualPaymentRequests", { defaultValue: "Manual payment requests" })}
-            {manualRequests.length > 0 && (
-              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/20 dark:text-amber-300">
-                {manualRequests.length} {t("pending", { defaultValue: "pending" })}
-              </span>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className={spacing.cardPadding}>
-          {manualLoading ? (
-            <SkeletonTable columns={7} />
-          ) : manualRequests.length === 0 ? (
-            <EmptyState
-              description={t("noManualPaymentsPending", {
-                defaultValue: "No manual payment requests waiting for review.",
-              })}
-            />
-          ) : (
-            <DataTable<ManualPaymentRequest>
-              columns={manualColumns}
-              data={manualRequests}
-              pageSize={20}
-              actions={(row) => (
-                <div className="flex items-center gap-1.5">
-                  <Button
-                    size="sm"
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1"
-                    onClick={() => approveMutation.mutate(row._id)}
-                    disabled={approveMutation.isPending}
-                  >
-                    <Check className="w-3.5 h-3.5" />
-                    {t("approve", { defaultValue: "Approve" })}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="text-red-600 border-red-200 hover:bg-red-50 dark:text-red-400 dark:border-red-900/40 dark:hover:bg-red-900/20 gap-1"
-                    onClick={() => setRejectTarget(row)}
-                  >
-                    <X className="w-3.5 h-3.5" />
-                    {t("reject", { defaultValue: "Reject" })}
-                  </Button>
-                </div>
-              )}
-            />
-          )}
-        </CardContent>
-      </Card>
-
-      <Card className={cardVariants.default}>
-        <CardHeader className="border-b border-slate-200 dark:border-slate-800 pb-4">
+      <Card className={`${cardVariants.default} border-0 shadow-none rounded-[2rem]`}>
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <CardTitle className="text-lg font-semibold">
             {t("recentPayments", { defaultValue: "Recent payments" })}
           </CardTitle>
+          <div className="flex items-center gap-3">
+            <SearchInput
+              value={paymentsSearchQuery}
+              onChange={setPaymentsSearchQuery}
+              placeholder={t("searchByNamePlaceholder")}
+              className="w-full sm:w-64"
+            />
+            <FilterDialog activeCount={paymentsActiveFilterCount} onReset={resetPaymentsFilters}>
+              <div>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">
+                  {t("status")}
+                </label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
+                  className="w-full h-10 px-3 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-slate-100"
+                >
+                  <option value="all">{t("allStatuses")}</option>
+                  <option value="success">{t("paymentStatusSuccess")}</option>
+                  <option value="pending">{t("paymentStatusPending")}</option>
+                  <option value="failed">{t("paymentStatusFailed")}</option>
+                  <option value="refunded">{t("paymentStatusRefunded")}</option>
+                  <option value="voided">{t("paymentStatusVoided")}</option>
+                  <option value="expired">{t("paymentStatusExpired")}</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">
+                  {t("filterByType")}
+                </label>
+                <select
+                  value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value as typeof typeFilter)}
+                  className="w-full h-10 px-3 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-slate-100"
+                >
+                  <option value="all">{t("allOption")}</option>
+                  <option value="subject">{t("subscriptionTypeSubject")}</option>
+                  <option value="unit">{t("subscriptionTypeUnit")}</option>
+                  <option value="liveLesson">{t("subscriptionTypeLiveLesson")}</option>
+                </select>
+              </div>
+            </FilterDialog>
+          </div>
         </CardHeader>
         <CardContent className={spacing.cardPadding}>
           {isLoading ? (
-            <SkeletonTable columns={7} />
+            <SkeletonTable columns={9} />
           ) : !analytics || analytics.recentPayments.length === 0 ? (
             <EmptyState description={t("noPaymentsYet")} />
           ) : (
-            <DataTable<PaymobPayment>
+            <DataTable<Payment>
               columns={columns}
               data={analytics.recentPayments}
               pageSize={20}
+              sortBy={paymentsSortBy}
+              sortOrder={paymentsSortOrder}
+              onSortChange={(key, order) => {
+                setPaymentsSortBy(key);
+                setPaymentsSortOrder(order);
+              }}
               actions={(row) =>
                 row.status === "success" ? (
                   <Button
@@ -518,7 +436,7 @@ export default function AdminPayments() {
         title={t("confirmRefundTitle", { defaultValue: "Refund this payment?" })}
         description={t("confirmRefundDescription", {
           defaultValue:
-            "This marks the payment as refunded and revokes the linked subscription. It does not call Paymob automatically — process the actual money transfer there separately.",
+            "This marks the payment as refunded and revokes the student's access. There is no payment gateway to call automatically — you must manually send the money back to the student via the same method they paid with (InstaPay/Vodafone Cash/Fawry).",
         })}
         confirmLabel={t("refund", { defaultValue: "Refund" })}
         tone="danger"
@@ -544,50 +462,6 @@ export default function AdminPayments() {
           className="resize-none mt-2"
         />
       </ConfirmDialog>
-
-      <ConfirmDialog
-        open={!!rejectTarget}
-        title={t("confirmRejectTitle", { defaultValue: "Reject this payment?" })}
-        description={t("confirmRejectDescription", {
-          defaultValue: "The student will see this request as rejected.",
-        })}
-        confirmLabel={t("reject", { defaultValue: "Reject" })}
-        tone="danger"
-        onCancel={() => {
-          setRejectTarget(null);
-          setRejectReason("");
-        }}
-        onConfirm={async () => {
-          if (!rejectTarget) return;
-          await rejectMutation.mutateAsync({
-            id: rejectTarget._id,
-            reason: rejectReason || undefined,
-          });
-        }}
-      >
-        <Textarea
-          value={rejectReason}
-          onChange={(e) => setRejectReason(e.target.value)}
-          placeholder={t("rejectReasonPlaceholder", { defaultValue: "Reason (optional)" })}
-          rows={2}
-          className="resize-none mt-2"
-        />
-      </ConfirmDialog>
-
-      <Dialog open={!!proofPreview} onOpenChange={(v) => !v && setProofPreview(null)}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>{t("paymentProofUpload", { defaultValue: "Payment proof screenshot" })}</DialogTitle>
-          </DialogHeader>
-          {proofPreview && (
-            <img
-              src={proofPreview}
-              alt="proof"
-              className="w-full max-h-[70vh] object-contain rounded-lg border border-slate-200 dark:border-slate-800"
-            />
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

@@ -42,11 +42,27 @@ export type MyUnitStudentsResponse = {
   students: StudentSubscriptionEntry[];
 };
 
+export type MyStudentsListParams = {
+  search?: string;
+  status?: string;
+  stageIds?: string[];
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+};
+
 /**
  * Get students enrolled in any of the currently logged-in teacher's courses.
  */
-export const getMyStudents = async (): Promise<TeacherStudent[]> => {
-  const response = await api.get<TeacherStudent[]>('/users/my-students');
+export const getMyStudents = async (params?: MyStudentsListParams): Promise<TeacherStudent[]> => {
+  const response = await api.get<TeacherStudent[]>('/users/my-students', {
+    params: {
+      search: params?.search || undefined,
+      status: params?.status || undefined,
+      stageIds: params?.stageIds?.length ? params.stageIds.join(',') : undefined,
+      sortBy: params?.sortBy,
+      sortOrder: params?.sortOrder,
+    },
+  });
   return response.data;
 };
 

@@ -1,5 +1,7 @@
 import * as z from 'zod';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
@@ -24,11 +26,17 @@ type ApiError = {
   };
 };
 
+const otpSchema = z.object({
+  otp: z.string().min(6).max(6),
+});
+type OtpFormData = z.infer<typeof otpSchema>;
+
 export default function Login() {
   const { t } = useTranslation();
   const isRtl = useRTL(); // Using useRTL hook
-  const { loginMutation } = useAuth();
+  const { loginMutation, verifyLoginOtpMutation } = useAuth();
   const navigate = useNavigate();
+  const [otpUserId, setOtpUserId] = useState<string | null>(null);
 
   const schema = useMemo(() => z.object({
     email: z.string().email({ message: t('emailInvalid') }),
@@ -37,23 +45,99 @@ export default function Login() {
 
   type LoginFormData = z.infer<typeof schema>;
 
+  const completeLogin = (auth: AuthTokenResponse | null) => {
+    if (auth?.mustChangePassword) {
+      navigate('/change-password');
+      return;
+    }
+    const role = auth?.role;
+    const normalizedRole: Role | undefined = role === 'Admin' || role === 'Teacher' || role === 'Student' ? role : undefined;
+    navigate(roleHome(normalizedRole));
+  };
+
   // Using useAuthForm hook - Replaces manual form setup
   const { form, onSubmit, isSubmitting } = useAuthForm<LoginFormData>({
     schema,
     mutation: loginMutation,
     onSuccess: (response) => {
       const auth = response as AuthTokenResponse | null;
-      if (auth?.mustChangePassword) {
-        navigate('/change-password');
+      if (auth?.requiresOtp && auth.userId) {
+        setOtpUserId(auth.userId);
         return;
       }
-      const role = auth?.role;
-      const normalizedRole: Role | undefined = role === 'Admin' || role === 'Teacher' || role === 'Student' ? role : undefined;
-      navigate(roleHome(normalizedRole));
+      completeLogin(auth);
     },
   });
 
   const { register, formState: { errors } } = form;
+
+  const otpForm = useForm<OtpFormData>({
+    resolver: zodResolver(otpSchema),
+    defaultValues: { otp: '' },
+  });
+
+  const onSubmitOtp = (data: OtpFormData) => {
+    if (!otpUserId) return;
+    verifyLoginOtpMutation.mutate(
+      { userId: otpUserId, otp: data.otp },
+      { onSuccess: (response) => completeLogin(response as AuthTokenResponse | null) },
+    );
+  };
+
+  if (otpUserId) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 font-sans selection:bg-violet-200 flex flex-col">
+        <SiteNavbar />
+        <main className="flex-1">
+          <section className="pt-32 pb-20 relative overflow-hidden">
+            <div className={gradients.blueTopRight} />
+            <div className={gradients.indigoBottomLeft} />
+            <div className="max-w-md mx-auto px-6 relative z-10">
+              <Card className={cardVariants.premium}>
+                <CardHeader className="space-y-2">
+                  <CardTitle className="text-2xl">{t('otpTitle')}</CardTitle>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    {t('loginOtpSubtitle', { defaultValue: 'Enter the verification code sent to your email to finish signing in.' })}
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={otpForm.handleSubmit(onSubmitOtp)} className="space-y-4">
+                    <div>
+                      <Input
+                        {...otpForm.register('otp')}
+                        placeholder={t('otp')}
+                        className="w-full text-center tracking-[1em]"
+                        maxLength={6}
+                      />
+                      {otpForm.formState.errors.otp && (
+                        <span className="text-red-500 text-sm">{otpForm.formState.errors.otp.message}</span>
+                      )}
+                    </div>
+                    <Button
+                      type="submit"
+                      className={`w-full ${buttonVariants.primaryShadow}`}
+                      disabled={verifyLoginOtpMutation.isPending}
+                    >
+                      {verifyLoginOtpMutation.isPending ? t('loadingEllipsis') : t('verifyOTP')}
+                    </Button>
+                    {verifyLoginOtpMutation.isError && (
+                      <p className="text-red-500 text-center text-sm">{t('otpInvalid')}</p>
+                    )}
+                  </form>
+                  <div className="mt-4 text-center text-sm">
+                    <Button variant="ghost" className="text-violet-600 dark:text-violet-400" onClick={() => setOtpUserId(null)}>
+                      {t('backToLogin', { defaultValue: 'Back to login' })}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </section>
+        </main>
+        <SiteFooter />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 font-sans selection:bg-violet-200 flex flex-col">
@@ -68,7 +152,7 @@ export default function Login() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className={`space-y-6 ${isRtl ? 'text-right' : 'text-left'}`}
+            className={`hidden lg:block space-y-6 ${isRtl ? 'text-right' : 'text-left'}`}
           >
             <div className={badgeVariants.info}>
               <Activity className="w-4 h-4" /> {t('welcome')}

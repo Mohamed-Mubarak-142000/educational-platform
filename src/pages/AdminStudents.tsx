@@ -2,36 +2,70 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { deleteStudent, getStudents, type Student } from '@/api/adminApi';
+import { getStages, type Stage } from '@/api/subjectApi';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useTranslation } from 'react-i18next';
-import { useCRUDOperations } from '@/hooks';
+import { useCRUDOperations, useDebouncedValue } from '@/hooks';
 import { cardVariants, buttonVariants, spacing } from '@/lib/constants';
-import { PageHeader, DataTable, ErrorState } from '@/components/shared';
-import type { TableColumn } from '@/components/shared';
+import { PageHeader, DataTable, ErrorState, FilterDialog, MultiSelectDropdown, SearchInput } from '@/components/shared';
+import type { TableColumn, MultiSelectOption } from '@/components/shared';
+import { getLocalizedName } from '@/lib/localeUtils';
 import { Pencil, Trash2, Plus, Eye } from 'lucide-react';
 
+type StatusFilter = 'all' | 'Active' | 'Inactive';
+
 export default function AdminStudents() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebouncedValue(searchQuery);
+  const [selectedStageIds, setSelectedStageIds] = useState<string[]>([]);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [sortBy, setSortBy] = useState('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+
+  const studentListParams = {
+    search: debouncedSearch || undefined,
+    status: statusFilter !== 'all' ? statusFilter : undefined,
+    stageIds: selectedStageIds,
+    sortBy,
+    sortOrder,
+  };
 
   const { data: students = [], isLoading: studentsLoading, isError: studentsError, refetch: refetchStudents } = useQuery<Student[]>({
-    queryKey: ['students'],
-    queryFn: getStudents,
+    queryKey: ['students', JSON.stringify(studentListParams)],
+    queryFn: () => getStudents(studentListParams),
   });
-  
+
+  const { data: stages = [] } = useQuery<Stage[]>({
+    queryKey: ['stages'],
+    queryFn: getStages,
+  });
 
   // CRUD operations hook
   const { deleteMutation } = useCRUDOperations({
     queryKey: ['students'],
-    queryFn: getStudents,
+    queryFn: () => getStudents(),
     deleteFn: deleteStudent,
     deleteSuccessMessage: t('toastStudentDeleted'),
   });
 
+  const activeFilterCount = selectedStageIds.length + (statusFilter !== 'all' ? 1 : 0);
+
+  const resetFilters = () => {
+    setSelectedStageIds([]);
+    setStatusFilter('all');
+  };
+
+  const stageOptions: MultiSelectOption[] = stages.map((stage) => ({
+    id: stage._id,
+    label: getLocalizedName(stage, i18n.language),
+    icon: stage.icon,
+  }));
 
   const handleDelete = (studentId: string) => {
     setSelectedStudentId(studentId);
@@ -48,9 +82,10 @@ export default function AdminStudents() {
 
   // Define table columns
   const columns: TableColumn<Student>[] = [
-    { 
-      key: 'profileImage', 
-      label: t('photo'), 
+    {
+      key: 'profileImage',
+      label: t('photo'),
+      sortable: false,
       render: (v, row) => typeof v === 'string' && v ? (
         <img src={v} alt={t('profilePhotoAlt')} className="w-10 h-10 rounded-full object-cover" />
       ) : (
@@ -61,7 +96,17 @@ export default function AdminStudents() {
     },
     { key: 'name', label: t('name') },
     { key: 'email', label: t('email') },
+    {
+      key: 'stageId',
+      label: t('stage'),
+      sortable: false,
+      render: (v) => {
+        const stage = stages.find((s) => s._id === v);
+        return stage ? getLocalizedName(stage, i18n.language) : '-';
+      },
+    },
     { key: 'phone', label: t('phone'), render: (v) => (typeof v === 'string' && v ? v : '-') },
+    { key: 'status', label: t('status') },
   ];
 
   return (
@@ -80,9 +125,47 @@ export default function AdminStudents() {
         }
       />
 
-      <Card className={cardVariants.default}>
-        <CardHeader>
+      <Card className={`${cardVariants.default} border-0 shadow-none rounded-[2rem]`}>
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <CardTitle>{t('studentsTableTitle')}</CardTitle>
+          <div className="flex items-center gap-3">
+            <SearchInput
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder={t('searchStudentPlaceholder')}
+              className="w-full sm:w-64"
+            />
+            <FilterDialog activeCount={activeFilterCount} onReset={resetFilters}>
+              <div>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">
+                  {t('stage')}
+                </label>
+                <MultiSelectDropdown
+                  options={stageOptions}
+                  selectedIds={selectedStageIds}
+                  onChange={setSelectedStageIds}
+                  placeholder={t('selectStagesPlaceholder')}
+                  selectedCountLabel={(count) => t('stagesSelectedCount', { count })}
+                  emptyMessage={t('noStages')}
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">
+                  {t('status')}
+                </label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+                  className="w-full h-10 px-3 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-slate-100"
+                >
+                  <option value="all">{t('allStatuses')}</option>
+                  <option value="Active">{t('active')}</option>
+                  <option value="Inactive">{t('inactive')}</option>
+                </select>
+              </div>
+            </FilterDialog>
+          </div>
         </CardHeader>
         <CardContent>
           {studentsError ? (
@@ -92,6 +175,12 @@ export default function AdminStudents() {
             columns={columns}
             data={students}
             isLoading={studentsLoading}
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            onSortChange={(key, order) => {
+              setSortBy(key);
+              setSortOrder(order);
+            }}
             actions={(student) => (
               <div className="flex items-center justify-end gap-1">
                 <Button

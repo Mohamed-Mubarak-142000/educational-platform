@@ -115,6 +115,11 @@ export interface PlatformSettings {
   maintenanceMode: boolean;
   contactEmail: string;
   socialLinks: Array<{ platform: string; url: string; icon: string }>;
+  // Platform's cut of a live-lesson payment, in basis points (3000 = 30%).
+  commissionRateBps: number;
+  // Flat fee (in cents) the platform takes from every subject/unit
+  // subscription payment.
+  subscriptionFlatFeeCents: number;
 }
 
 export interface PlatformConfig {

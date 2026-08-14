@@ -41,7 +41,7 @@ export default function TeacherForm() {
   // CRUD operations
   const { createMutation, updateMutation } = useCRUDOperations({
     queryKey: ['teachers'],
-    queryFn: getTeachers,
+    queryFn: () => getTeachers(),
     createFn: createTeacher,
     updateFn: updateTeacher,
     createSuccessMessage: t('toastTeacherCreated'),
@@ -78,7 +78,7 @@ export default function TeacherForm() {
   // Fetch teacher data for edit mode
   const { data: teachers = [] } = useQuery({
     queryKey: ['teachers'],
-    queryFn: getTeachers,
+    queryFn: () => getTeachers(),
     enabled: isEditMode,
   });
 

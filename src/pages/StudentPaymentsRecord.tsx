@@ -4,8 +4,8 @@ import { useTranslation } from "react-i18next";
 import {
   getMyPaymentHistory,
   type PaymentStatus,
-  type PaymobPayment,
-} from "@/api/paymobApi";
+  type Payment,
+} from "@/api/paymentApi";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +13,7 @@ import {
   type TableColumn,
   ErrorState,
   PageHeader,
+  FilterDialog,
 } from "@/components/shared";
 import { spacing, cardVariants } from "@/lib/constants";
 import {
@@ -76,20 +77,36 @@ export default function StudentPaymentsRecord() {
   const [selectedStatus, setSelectedStatus] = useState<PaymentStatus | "all">(
     "all",
   );
+  const [selectedType, setSelectedType] = useState<
+    Payment["subscriptionType"] | "all"
+  >("all");
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+
+  const historyParams = {
+    status: selectedStatus !== "all" ? selectedStatus : undefined,
+    subscriptionType: selectedType !== "all" ? selectedType : undefined,
+    sortBy,
+    sortOrder,
+  };
 
   const { data, isLoading, isError, error, refetch } = useQuery({
-    queryKey: ["my-payment-history"],
-    queryFn: () => getMyPaymentHistory(1),
+    queryKey: ["my-payment-history", JSON.stringify(historyParams)],
+    queryFn: () => getMyPaymentHistory(1, historyParams),
   });
 
   const payments = data?.payments ?? [];
-  const filteredPayments =
-    selectedStatus === "all"
-      ? payments
-      : payments.filter((p) => p.status === selectedStatus);
+
+  const activeFilterCount =
+    (selectedStatus !== "all" ? 1 : 0) + (selectedType !== "all" ? 1 : 0);
+
+  const resetFilters = () => {
+    setSelectedStatus("all");
+    setSelectedType("all");
+  };
 
   // Define table columns using the DataTable's TableColumn interface
-  const columns = useMemo<TableColumn<PaymobPayment>[]>(
+  const columns = useMemo<TableColumn<Payment>[]>(
     () => [
       {
         key: "createdAt",
@@ -127,15 +144,10 @@ export default function StudentPaymentsRecord() {
         render: (value) => <StatusBadge status={value as PaymentStatus} />,
       },
       {
-        key: "paymobTransactionId",
-        label: t("transactionId"),
+        key: "paymentMethod",
+        label: t("paymentMethod", { defaultValue: "Method" }),
         render: (value) => (
-          <span
-            className="font-mono text-muted-foreground block truncate max-w-[180px]"
-            title={(value as string) || "N/A"}
-          >
-            {(value as string) || "N/A"}
-          </span>
+          <span className="text-muted-foreground">{(value as string) || "N/A"}</span>
         ),
       },
       {
@@ -174,44 +186,67 @@ export default function StudentPaymentsRecord() {
         subtitle={t("paymentsRecordSubtitle")}
       />
 
-      <Card className={cardVariants.default}>
-        <CardHeader className="border-b border-border/40 pb-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <CardTitle className="text-lg font-semibold">
-              {t("paymentHistory")}
-            </CardTitle>
-            <div className="flex items-center gap-2">
-              <select
-                value={selectedStatus}
-                onChange={(e) =>
-                  setSelectedStatus(e.target.value as PaymentStatus | "all")
-                }
-                className="px-3 py-1.5 rounded-md border border-input bg-background text-sm hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors"
-              >
-                <option value="all">{t("allStatuses")}</option>
-                <option value="success">{t("paymentStatusSuccess")}</option>
-                <option value="pending">{t("paymentStatusPending")}</option>
-                <option value="failed">{t("paymentStatusFailed")}</option>
-                <option value="refunded">{t("paymentStatusRefunded")}</option>
-                <option value="voided">{t("paymentStatusVoided")}</option>
-                <option value="expired">{t("paymentStatusExpired")}</option>
-              </select>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => refetch()}
-                className="shrink-0"
-                aria-label="Refresh"
-              >
-                <RefreshCw className="w-4 h-4" />
-              </Button>
-            </div>
+      <Card className={`${cardVariants.default} border-0 shadow-none rounded-[2rem]`}>
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <CardTitle className="text-lg font-semibold">
+            {t("paymentHistory")}
+          </CardTitle>
+          <div className="flex items-center gap-3">
+            <FilterDialog activeCount={activeFilterCount} onReset={resetFilters}>
+              <div>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">
+                  {t("status")}
+                </label>
+                <select
+                  value={selectedStatus}
+                  onChange={(e) =>
+                    setSelectedStatus(e.target.value as PaymentStatus | "all")
+                  }
+                  className="w-full h-10 px-3 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-slate-100"
+                >
+                  <option value="all">{t("allStatuses")}</option>
+                  <option value="success">{t("paymentStatusSuccess")}</option>
+                  <option value="pending">{t("paymentStatusPending")}</option>
+                  <option value="failed">{t("paymentStatusFailed")}</option>
+                  <option value="refunded">{t("paymentStatusRefunded")}</option>
+                  <option value="voided">{t("paymentStatusVoided")}</option>
+                  <option value="expired">{t("paymentStatusExpired")}</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">
+                  {t("filterByType")}
+                </label>
+                <select
+                  value={selectedType}
+                  onChange={(e) =>
+                    setSelectedType(e.target.value as Payment["subscriptionType"] | "all")
+                  }
+                  className="w-full h-10 px-3 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-slate-100"
+                >
+                  <option value="all">{t("allOption")}</option>
+                  <option value="subject">{t("subscriptionTypeSubject")}</option>
+                  <option value="unit">{t("subscriptionTypeUnit")}</option>
+                  <option value="liveLesson">{t("subscriptionTypeLiveLesson")}</option>
+                </select>
+              </div>
+            </FilterDialog>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetch()}
+              className="shrink-0"
+              aria-label="Refresh"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </Button>
           </div>
         </CardHeader>
         <CardContent className={spacing.cardPadding}>
-          <DataTable<PaymobPayment>
+          <DataTable<Payment>
             columns={columns}
-            data={filteredPayments}
+            data={payments}
             isLoading={isLoading}
             emptyMessage={
               selectedStatus === "all"
@@ -219,6 +254,12 @@ export default function StudentPaymentsRecord() {
                 : t("noPaymentsWithStatus")
             }
             pageSize={10}
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            onSortChange={(key, order) => {
+              setSortBy(key);
+              setSortOrder(order);
+            }}
           />
         </CardContent>
       </Card>

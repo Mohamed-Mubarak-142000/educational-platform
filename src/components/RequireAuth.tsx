@@ -31,7 +31,7 @@ export default function RequireAuth({ children, allowedRoles }: RequireAuthProps
 
   const role = isRole(user.role) ? user.role : undefined;
 
-  if (user.mustChangePassword && role !== 'Teacher' && location.pathname !== '/change-password') {
+  if (user.mustChangePassword && location.pathname !== '/change-password') {
     return <Navigate to="/change-password" replace />;
   }
 
