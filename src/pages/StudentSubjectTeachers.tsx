@@ -21,6 +21,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, User, Star } from 'lucide-react';
 import { spacing } from '@/lib/constants';
 
+// A dangling assignment (its teacher User was deleted) populates teacherId
+// as null rather than a string id — typeof null is 'object' too, so every
+// check here must exclude null explicitly.
+function getTeacherId(assignment: SubjectTeacherAssignment): string | null {
+  const { teacherId } = assignment;
+  if (!teacherId) return null;
+  return typeof teacherId === 'object' ? teacherId._id : teacherId;
+}
+
 const CARD_GRADIENTS = [
   'from-blue-500 to-indigo-600',
   'from-emerald-500 to-teal-600',
@@ -39,8 +48,8 @@ function TeacherCard({
   onSelect: () => void;
 }) {
   const { t, i18n } = useTranslation();
-  const teacher = typeof assignment.teacherId === 'object' ? assignment.teacherId : null;
-  const subject = typeof assignment.subjectId === 'object' ? assignment.subjectId : null;
+  const teacher = assignment.teacherId && typeof assignment.teacherId === 'object' ? assignment.teacherId : null;
+  const subject = assignment.subjectId && typeof assignment.subjectId === 'object' ? assignment.subjectId : null;
   const gradient = CARD_GRADIENTS[index % CARD_GRADIENTS.length];
   const subjectPrice = assignment.subjectPrice && assignment.subjectPrice > 0 ? assignment.subjectPrice : 300;
   const currencyLabel = t('currencyEgp');
@@ -145,10 +154,12 @@ export default function StudentSubjectTeachers() {
     enabled: !!resolvedSubjectId && (!!gradeId || !!stageId),
   });
 
-  // Deduplicate by teacher _id
+  // Deduplicate by teacher _id — assignments whose teacher was deleted (no
+  // resolvable id) are dropped rather than shown broken.
   const uniqueAssignments = assignments.reduce<SubjectTeacherAssignment[]>((acc, a) => {
-    const tid = typeof a.teacherId === 'object' ? a.teacherId._id : a.teacherId;
-    if (!acc.some((x) => (typeof x.teacherId === 'object' ? x.teacherId._id : x.teacherId) === tid)) {
+    const tid = getTeacherId(a);
+    if (!tid) return acc;
+    if (!acc.some((x) => getTeacherId(x) === tid)) {
       acc.push(a);
     }
     return acc;
@@ -157,7 +168,7 @@ export default function StudentSubjectTeachers() {
   const [teacherSearch, setTeacherSearch] = useState('');
   const filteredAssignments = teacherSearch.trim()
     ? uniqueAssignments.filter((a) => {
-        const teacher = typeof a.teacherId === 'object' ? a.teacherId : null;
+        const teacher = a.teacherId && typeof a.teacherId === 'object' ? a.teacherId : null;
         return (teacher?.name ?? '').toLowerCase().includes(teacherSearch.trim().toLowerCase());
       })
     : uniqueAssignments;
@@ -165,7 +176,7 @@ export default function StudentSubjectTeachers() {
   const isLoading = subjectLoading || assignmentsLoading || !subject || assignments === undefined;
 
   const handleSelectTeacher = (assignment: SubjectTeacherAssignment) => {
-    const teacherId = typeof assignment.teacherId === 'object' ? assignment.teacherId._id : assignment.teacherId;
+    const teacherId = getTeacherId(assignment);
     // Navigate to teacher-scoped subject view
     navigate(`/student/subjects/${resolvedSubjectId}/teachers/${teacherId}`, {
       state: { gradeId, stageId },

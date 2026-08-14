@@ -26,12 +26,21 @@ import { SiteFooter } from '@/components/ui/SiteFooter';
 import { useAuth } from '@/context/AuthContext';
 import RequestLiveLessonModal from '@/components/RequestLiveLessonModal';
 
+// A dangling assignment (its teacher/subject User or Subject document was
+// deleted) populates as null rather than a string id — typeof null is
+// 'object' too, so every check here must exclude null explicitly.
 function getPopulatedTeacher(assignment: TeacherAssignment) {
-  return typeof assignment.teacherId === 'object' ? assignment.teacherId : null;
+  return assignment.teacherId && typeof assignment.teacherId === 'object' ? assignment.teacherId : null;
 }
 
 function getPopulatedSubject(assignment: TeacherAssignment) {
-  return typeof assignment.subjectId === 'object' ? assignment.subjectId : null;
+  return assignment.subjectId && typeof assignment.subjectId === 'object' ? assignment.subjectId : null;
+}
+
+function getTeacherId(assignment: TeacherAssignment): string | null {
+  const { teacherId } = assignment;
+  if (!teacherId) return null;
+  return typeof teacherId === 'object' ? teacherId._id : teacherId;
 }
 
 export default function PublicSubjectTeachers() {
@@ -81,10 +90,12 @@ export default function PublicSubjectTeachers() {
     ? (i18n.language === 'ar' && subject.nameAr ? subject.nameAr : subject.name)
     : '';
 
-  // Deduplicate assignments by teacher _id
+  // Deduplicate assignments by teacher _id — assignments whose teacher was
+  // deleted (no resolvable id) are dropped rather than shown broken.
   const uniqueAssignments = assignments.reduce<TeacherAssignment[]>((acc, a) => {
-    const tid = typeof a.teacherId === 'object' ? a.teacherId._id : a.teacherId;
-    if (!acc.some((x) => (typeof x.teacherId === 'object' ? x.teacherId._id : x.teacherId) === tid)) {
+    const tid = getTeacherId(a);
+    if (!tid) return acc;
+    if (!acc.some((x) => getTeacherId(x) === tid)) {
       acc.push(a);
     }
     return acc;
@@ -100,7 +111,7 @@ export default function PublicSubjectTeachers() {
 
   // Teacher profiles are public — no login required to browse them.
   const handleViewProfile = (assignment: TeacherAssignment) => {
-    const teacherId = typeof assignment.teacherId === 'object' ? assignment.teacherId._id : assignment.teacherId;
+    const teacherId = getTeacherId(assignment);
     if (!teacherId || !subjectId || !gradeId) return;
 
     navigate(`/stages/${stageId}/grades/${gradeId}/subjects/${subjectId}/teachers/${teacherId}`);
